@@ -118,4 +118,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ---
 
 Made for the Jellyfin community
-
