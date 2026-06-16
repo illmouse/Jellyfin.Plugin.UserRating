@@ -388,7 +388,6 @@
     }
 
     function seamlessPageRefresh(itemId, force = false) {
-        // Only refresh on details page
         const currentHash = window.location.hash;
         const currentUrl = window.location.href;
         const isDetailsPage = currentHash.includes('#/details') || currentHash.includes('/details') || 
@@ -400,19 +399,22 @@
             return;
         }
         
-        // Don't refresh if we recently refreshed (prevent loops)
-        // Unless forced (from final zero-size check)
         if (!force && hasTriedRefresh) {
             console.log('[UserRatings] Skipping refresh - already tried once');
             return;
         }
         
-        console.log('[UserRatings] Performing hard page refresh', force ? '(FORCED)' : '');
+        console.log('[UserRatings] Re-injecting UI', force ? '(FORCED)' : '');
         hasTriedRefresh = true;
-        
-        // Hard refresh - reload the page completely
-        // This bypasses cache and reloads everything fresh
-        window.location.reload(true);
+
+        const existingUI = document.getElementById('user-ratings-ui');
+        if (existingUI) {
+            existingUI.remove();
+        }
+
+        isInjecting = false;
+        injectionAttempts = 0;
+        injectRatingsUI();
     }
 
     async function createRatingsUI(itemId) {
