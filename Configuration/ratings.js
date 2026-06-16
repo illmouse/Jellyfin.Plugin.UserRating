@@ -218,6 +218,50 @@
             color: #e0e0e0;
             line-height: 1.4;
         }
+        .user-ratings-my-rating.collapsed .rating-form-section,
+        .user-ratings-my-rating.collapsed .rating-actions {
+            display: none;
+        }
+        .my-rating-summary {
+            display: none;
+            align-items: center;
+            gap: 0.6em;
+            cursor: pointer;
+            padding: 0.6em 0.9em;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .my-rating-summary:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .user-ratings-my-rating.collapsed .my-rating-summary {
+            display: flex;
+        }
+        .summary-stars {
+            color: #ffd700;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+        .summary-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95em;
+        }
+        .edit-rating-btn {
+            margin-left: auto;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.23);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 4px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-family: inherit;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .edit-rating-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
     `;
     document.head.appendChild(style);
 
@@ -377,15 +421,16 @@
         container.className = 'user-ratings-container';
         container.id = 'user-ratings-ui';
         
-        // Get item name for personalized heading
         let itemName = 'this item';
+        let isWatched = false;
         try {
             console.log('[UserRatings] → Loading item details...');
             const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), itemId);
             if (itemDetails && itemDetails.Name) {
                 itemName = itemDetails.Name;
             }
-            console.log('[UserRatings] → Item details loaded:', itemName);
+            isWatched = itemDetails?.UserData?.Played === true;
+            console.log('[UserRatings] → Item details loaded:', itemName, '| watched:', isWatched);
         } catch (error) {
             console.log('[UserRatings] Could not load item name:', error);
         }
@@ -490,14 +535,11 @@
             
             if (result.success) {
                 saveBtn.textContent = 'Posted!';
-                setTimeout(() => {
-                    saveBtn.textContent = 'Post Rating';
-                    saveBtn.disabled = false;
-                }, 2000);
+                saveBtn.disabled = false;
                 
-                // Reload all ratings
                 await displayAllRatings(itemId, container);
                 deleteBtn.style.display = 'inline-block';
+                collapseMyRating();
             } else {
                 alert('Error saving rating: ' + result.message);
                 saveBtn.textContent = 'Post Rating';
@@ -527,6 +569,7 @@
                 deleteBtn.style.display = 'none';
                 
                 await displayAllRatings(itemId, container);
+                expandMyRating();
             } else {
                 alert('Error deleting rating: ' + result.message);
             }
@@ -537,6 +580,34 @@
         actionsContainer.appendChild(deleteBtn);
         
         myRatingSection.appendChild(actionsContainer);
+
+        const summaryEl = document.createElement('div');
+        summaryEl.className = 'my-rating-summary';
+        summaryEl.innerHTML = '<span class="summary-stars"></span><span class="summary-label">Your rating</span><button class="edit-rating-btn">Edit</button>';
+        summaryEl.querySelector('.edit-rating-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            myRatingSection.classList.remove('collapsed');
+        });
+        summaryEl.addEventListener('click', () => {
+            myRatingSection.classList.remove('collapsed');
+        });
+        myRatingSection.appendChild(summaryEl);
+
+        function updateSummaryStars(rating) {
+            const starsEl = summaryEl.querySelector('.summary-stars');
+            if (starsEl) {
+                starsEl.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+            }
+        }
+
+        function collapseMyRating() {
+            updateSummaryStars(currentRating);
+            myRatingSection.classList.add('collapsed');
+        }
+
+        function expandMyRating() {
+            myRatingSection.classList.remove('collapsed');
+        }
         container.appendChild(myRatingSection);
         
         // All Ratings Section
@@ -558,6 +629,12 @@
             const length = noteInput.value.length;
             charCount.textContent = `${length} character${length !== 1 ? 's' : ''}`;
             deleteBtn.style.display = 'inline-block';
+        }
+
+        if (!isWatched) {
+            collapseMyRating();
+        } else if (myRating && myRating.rating) {
+            collapseMyRating();
         }
         
         // Load all ratings
