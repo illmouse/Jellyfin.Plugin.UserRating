@@ -6,15 +6,15 @@
     "overview": "Social rating system for Jellyfin - rate content and see ratings from other users on your server",
     "owner": "davidhenry",
     "category": "General",
-    "imageUrl": "https://raw.githubusercontent.com/aG00Dtime/Jellyfin.Plugin.UserRating/main/icon.png",
+    "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
         "version": "1.7.33.0",
-        "changelog": "Rating dialog minimization, watched/unwatched initial state",
+        "changelog": "Release 1.7.33",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.33/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "cad9a3b149f8f69b6475a8d961dd23a1",
-        "timestamp": "2025-11-02T12:37:48Z"
+        "checksum": "34ac2d0f68d5ec11fe8ac413883d779f",
+        "timestamp": "2026-06-16T19:15:39Z"
       }
     ]
   }
