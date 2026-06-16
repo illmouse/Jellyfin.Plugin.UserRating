@@ -9,10 +9,10 @@
     "imageUrl": "https://raw.githubusercontent.com/aG00Dtime/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
-        "version": "1.7.32.0",
-        "changelog": "Release 1.7.32",
+        "version": "1.7.33.0",
+        "changelog": "Rating dialog minimization, watched/unwatched initial state",
         "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/aG00Dtime/Jellyfin.Plugin.UserRating/releases/download/v1.7.32/Jellyfin.Plugin.UserRatings.zip",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.33/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "cad9a3b149f8f69b6475a8d961dd23a1",
         "timestamp": "2025-11-02T12:37:48Z"
       }
