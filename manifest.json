@@ -10,11 +10,43 @@
     "versions": [
       {
         "version": "1.8.3.0",
-        "changelog": "Release 1.8.3",
+        "changelog": "Move Save button to bottom, update docs with Plex import",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.3/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "c22a5b29de35c1885dfe87db193902d5",
         "timestamp": "2026-06-17T13:53:23Z"
+      },
+      {
+        "version": "1.8.2.0",
+        "changelog": "Add scheduled auto-sync for Plex ratings",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.2/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "32484f3bd3d1359daab89db94d5972c6",
+        "timestamp": "2026-06-17T13:37:36Z"
+      },
+      {
+        "version": "1.8.1.0",
+        "changelog": "Add Plex rating import - target Jellyfin 10.11+",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "39debc088ede980f55859c12ddd00aa5",
+        "timestamp": "2026-06-17T12:42:02Z"
+      },
+      {
+        "version": "1.7.37.0",
+        "changelog": "Fix syntax error causing ratings to not inject",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.37/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "8225a7aefa85b1dcc3b097f4280d7d1c",
+        "timestamp": "2026-06-17T14:00:00Z"
+      },
+      {
+        "version": "1.7.36.0",
+        "changelog": "Release 1.7.36",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/ellmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.36/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "7d726b6b3b2b6f30e1bb023e6913852c",
+        "timestamp": "2026-06-17T10:06:05Z"
       }
     ]
   }
