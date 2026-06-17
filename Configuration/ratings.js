@@ -9,6 +9,7 @@
     style.textContent = `
         #user-ratings-ui {
             grid-column: 1 / -1;
+            min-height: 1px;
         }
         .user-ratings-container {
             background: var(--lighterGradientPointAlpha, rgba(0, 0, 0, 0.15));
@@ -344,10 +345,7 @@
 
     let currentItemId = null;
     let currentRating = 0;
-    let isInjecting = false; // Flag to prevent concurrent injections
-    let hasTriedRefresh = false; // Flag to prevent infinite refresh loops
-    let isNavigating = false; // Flag to prevent refresh during navigation
-    let lastNavigationTime = 0; // Track when navigation occurred
+    let isInjecting = false;
 
     function createStarRating(rating, interactive, onHover, onClick) {
         const container = document.createElement('div');
@@ -464,32 +462,15 @@
         }
     }
 
-    function seamlessPageRefresh(itemId, force = false) {
-        // Only refresh on details page
-        const currentHash = window.location.hash;
-        const currentUrl = window.location.href;
-        const isDetailsPage = currentHash.includes('#/details') || currentHash.includes('/details') || 
-                              currentUrl.includes('/details') || 
-                              (itemId && currentHash.includes(itemId));
-        
-        if (!isDetailsPage) {
-            console.log('[UserRatings] Skipping refresh - not on details page');
-            return;
+    function reInjectUI(itemId) {
+        const existingUI = document.getElementById('user-ratings-ui');
+        if (existingUI) {
+            existingUI.remove();
         }
-        
-        // Don't refresh if we recently refreshed (prevent loops)
-        // Unless forced (from final zero-size check)
-        if (!force && hasTriedRefresh) {
-            console.log('[UserRatings] Skipping refresh - already tried once');
-            return;
+        isInjecting = false;
+        if (itemId) {
+            setTimeout(() => injectRatingsUI(), 150);
         }
-        
-        console.log('[UserRatings] Performing hard page refresh', force ? '(FORCED)' : '');
-        hasTriedRefresh = true;
-        
-        // Hard refresh - reload the page completely
-        // This bypasses cache and reloads everything fresh
-        window.location.reload(true);
     }
 
     async function createRatingsUI(itemId) {
@@ -738,17 +719,6 @@
         await displayAllRatings(itemId, container);
         console.log('[UserRatings] → All ratings loaded, returning container');
         
-        // Check size after all async operations complete
-        setTimeout(() => {
-            const rect = container.getBoundingClientRect();
-            console.log('[UserRatings] Post-load size check:', rect.width, 'x', rect.height);
-            if (rect.width === 0 && rect.height === 0) {
-                console.log('[UserRatings] Container has zero size after loading, will trigger refresh');
-                // Store flag for size check to handle
-                container.dataset.zeroSize = 'true';
-            }
-        }, 200);
-        
         return container;
     }
 
@@ -924,16 +894,10 @@
                 console.log(`[UserRatings] Container not ready, retry ${injectionAttempts}/${maxInjectionAttempts} in ${retryDelay.toFixed(0)}ms`);
                 setTimeout(injectRatingsUI, retryDelay);
             } else {
-                console.log('[UserRatings] Max injection attempts reached, attempting seamless refresh');
-                
-                // Try seamless refresh - only once per page load
-                if (!hasTriedRefresh && itemId) {
-                    hasTriedRefresh = true;
-                    seamlessPageRefresh(itemId);
-                } else {
-                    injectionAttempts = 0;
-                    isInjecting = false;
-                }
+                console.log('[UserRatings] Max injection attempts reached, resetting for retry');
+                injectionAttempts = 0;
+                isInjecting = false;
+            }
             }
             return;
         }
@@ -947,105 +911,18 @@
         createRatingsUI(itemId).then(ui => {
             targetContainer.appendChild(ui);
             
-            // Function to check size and handle refresh
-            const checkSizeAndRefresh = (checkName) => {
-                const rect = ui.getBoundingClientRect();
-                const hasZeroSize = rect.width === 0 && rect.height === 0;
-                const hasZeroSizeFlag = ui.dataset.zeroSize === 'true';
-                
-                console.log(`[UserRatings] ${checkName} size check:`, rect.width, 'x', rect.height, hasZeroSize ? '(ZERO)' : '', hasZeroSizeFlag ? '(flagged)' : '');
-                
-                // Check if zero size or was flagged during creation
-                if (hasZeroSize || hasZeroSizeFlag) {
-                    // Final check always forces refresh
-                    const isFinalCheck = checkName === 'Final';
-                    
-                    if (isFinalCheck) {
-                        // For final check, clear all flags to allow refresh
-                        console.log('[UserRatings] Final check detected zero size - forcing refresh');
-                        hasTriedRefresh = false; // Allow refresh even if we tried before
-                    }
-                    
-                    console.log('[UserRatings] UI has zero size, triggering refresh', isFinalCheck ? '(FORCED)' : '');
-                    const injectedUI = document.getElementById('user-ratings-ui');
-                    if (injectedUI) {
-                        injectedUI.remove();
-                    }
-                    isInjecting = false;
-                    hasTriedRefresh = false; // Allow refresh to be tried
-                    seamlessPageRefresh(itemId, isFinalCheck); // Force if final check
-                    return true; // Refresh triggered
-                } else {
-                    // Clear any zero size flag on success
-                    delete ui.dataset.zeroSize;
-                    return false; // No refresh needed
-                }
-            };
-            
-            // Immediate check (after DOM insertion)
+            // Mark injection complete after a short delay to allow rendering
             setTimeout(() => {
-                if (!checkSizeAndRefresh('Immediate')) {
-                    isInjecting = false;
-                }
-            }, 100);
-            
-            // Check after async operations should complete
-            setTimeout(() => {
-                if (!checkSizeAndRefresh('Post-async')) {
-                    if (isInjecting) {
-                        isInjecting = false;
-                        hasTriedRefresh = false;
-                        console.log('[UserRatings] ✓ UI injected successfully');
-                    }
-                }
-            }, 800);
-            
-            // Final check after longer delay
-            setTimeout(() => {
-                checkSizeAndRefresh('Final');
-            }, 1500);
+                isInjecting = false;
+                console.log('[UserRatings] ✓ UI injected successfully');
+            }, 200);
             
         }).catch(err => {
             console.error('[UserRatings] Error creating UI:', err);
             isInjecting = false;
-            injectionAttempts = 0; // Reset so it can try again
+            injectionAttempts = 0;
         });
     }
-
-    // Monitor for UI that becomes zero-sized (page re-rendered)
-    setInterval(() => {
-        // Only check on details page
-        const currentHash = window.location.hash;
-        const isDetailsPage = currentHash.includes('#/details') || currentHash.includes('/details');
-        if (!isDetailsPage) {
-            return;
-        }
-        
-        // Don't check if we just tried to refresh (prevent loops)
-        if (hasTriedRefresh) {
-            return;
-        }
-        
-        const ui = document.getElementById('user-ratings-ui');
-        if (ui && currentItemId) {
-            const rect = ui.getBoundingClientRect();
-            // Check if UI exists but has zero size (hidden or not rendered)
-            if (rect.width === 0 && rect.height === 0) {
-                // Check if parent container still exists and is visible
-                const parent = ui.parentElement;
-                if (parent) {
-                    const parentRect = parent.getBoundingClientRect();
-                    // If parent is visible but UI is not, trigger refresh
-                    if (parentRect.width > 0 || parentRect.height > 0) {
-                        console.log('[UserRatings] UI became zero-sized, parent visible, triggering refresh');
-                        ui.remove();
-                        isInjecting = false;
-                        seamlessPageRefresh(currentItemId);
-                    }
-                }
-            }
-        }
-    }, 2000); // Check every 2 seconds
     
     // Watch for page changes with more aggressive detection
     let lastUrl = location.href;
@@ -1075,11 +952,6 @@
             isInjecting = false;
             injectionAttempts = 0;
             currentItemId = null;
-            hasTriedRefresh = false; // Reset refresh flag for new page
-            
-            // Clear navigation flags immediately - don't block navigation
-            isNavigating = false;
-            lastNavigationTime = 0;
             
             // Try injection with slight delay
             setTimeout(injectRatingsUI, 150);
@@ -1172,11 +1044,6 @@
         isInjecting = false;
         injectionAttempts = 0;
         currentItemId = null;
-        hasTriedRefresh = false; // Reset refresh flag for new page
-        
-        // Clear navigation flags immediately - don't block navigation
-        isNavigating = false;
-        lastNavigationTime = 0;
         
         // Try injection with multiple attempts
         setTimeout(injectRatingsUI, 100);
