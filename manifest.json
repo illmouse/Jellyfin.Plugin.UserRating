@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.7.37.0",
+        "changelog": "Fix syntax error causing ratings to not inject",
+        "targetAbi": "10.9.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.37/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-17T14:00:00Z"
+      },
+      {
         "version": "1.7.36.0",
         "changelog": "Release 1.7.36",
         "targetAbi": "10.9.0.0",

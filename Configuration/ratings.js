@@ -887,17 +887,15 @@
         }
         
         if (!targetContainer) {
-            // If container not ready yet, retry with backoff
             if (injectionAttempts < maxInjectionAttempts) {
                 injectionAttempts++;
-                const retryDelay = Math.min(100 * Math.pow(1.5, injectionAttempts), 3000); // Better exponential backoff
+                const retryDelay = Math.min(100 * Math.pow(1.5, injectionAttempts), 3000);
                 console.log(`[UserRatings] Container not ready, retry ${injectionAttempts}/${maxInjectionAttempts} in ${retryDelay.toFixed(0)}ms`);
                 setTimeout(injectRatingsUI, retryDelay);
             } else {
                 console.log('[UserRatings] Max injection attempts reached, resetting for retry');
                 injectionAttempts = 0;
                 isInjecting = false;
-            }
             }
             return;
         }
