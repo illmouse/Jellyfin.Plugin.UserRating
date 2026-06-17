@@ -316,12 +316,10 @@
                 flex-direction: column;
                 gap: 0.5em;
             }
-            .rating-actions .save-btn {
+            .rating-actions .save-btn,
+            .rating-actions .delete-btn {
                 min-width: unset;
                 flex: unset;
-                width: 100%;
-            }
-            .rating-actions .delete-btn {
                 width: 100%;
                 text-align: center;
             }
