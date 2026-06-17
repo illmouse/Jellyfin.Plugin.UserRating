@@ -13,7 +13,7 @@
         "changelog": "Fix page reload bug - remove aggressive zero-size checks, ElegantFin theme compatibility",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.36/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "30f8103a5b3488af965ec3037ab92154",
         "timestamp": "2026-06-17T12:00:00Z"
       },
       {
