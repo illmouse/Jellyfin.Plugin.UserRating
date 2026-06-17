@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.7.34.0",
-        "changelog": "Rating dialog collapse/expand with mobile responsive layout",
+        "changelog": "Release 1.7.34",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.34/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "1bab3aeb992480f0d63ca08f9be999b4",
-        "timestamp": "2026-06-17T09:06:29Z"
+        "checksum": "077369125473373e5dd4284df81038b4",
+        "timestamp": "2026-06-17T09:09:24Z"
       }
     ]
   }
