@@ -70,6 +70,31 @@
                         <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings.</div>
                     </div>
 
+                    <div style="margin-top: 1.5em; padding-top: 1em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                        <h4>Automatic Sync</h4>
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="enableAutoSync" is="emby-checkbox" />
+                                <span>Automatically import ratings from Plex on a schedule</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
+                            <input type="number" id="syncIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
+                            <div class="fieldDescription">How often to sync ratings from Plex. Default is every 24 hours.</div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="syncUserId">Sync As User</label>
+                            <select id="syncUserId" is="emby-select" class="emby-select">
+                                <option value="">Loading users...</option>
+                            </select>
+                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for. Uses the same conflict mode as manual import.</div>
+                        </div>
+                    </div>
+
                     <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
                         <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised block" style="min-width: 180px;">
                             <span>Test Connection</span>
@@ -124,6 +149,9 @@
                     document.getElementById('recentlyRatedCount').value = config.RecentlyRatedItemsCount || 10;
                     document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
                     document.getElementById('plexConflictMode').value = config.PlexImportConflictMode || 'skip';
+                    document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
+                    document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
+                    document.getElementById('syncUserId').value = config.SyncUserId || '';
 
                     if (config.EncryptedPlexToken) {
                         document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
@@ -142,16 +170,32 @@
             function loadUsers() {
                 ApiClient.getUsers().then(function (users) {
                     var select = document.getElementById('importTargetUser');
+                    var syncSelect = document.getElementById('syncUserId');
                     select.innerHTML = '';
+                    syncSelect.innerHTML = '';
                     users.forEach(function (user) {
                         var option = document.createElement('option');
                         option.value = user.Id;
                         option.textContent = user.Name;
                         select.appendChild(option);
+
+                        var syncOption = document.createElement('option');
+                        syncOption.value = user.Id;
+                        syncOption.textContent = user.Name;
+                        syncSelect.appendChild(syncOption);
+                    });
+
+                    var config = Plugin.Instance ? null : null;
+                    ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (cfg) {
+                        if (cfg.SyncUserId) {
+                            syncSelect.value = cfg.SyncUserId;
+                        }
                     });
                 }).catch(function () {
                     var select = document.getElementById('importTargetUser');
+                    var syncSelect = document.getElementById('syncUserId');
                     select.innerHTML = '<option value="">Failed to load users</option>';
+                    syncSelect.innerHTML = '<option value="">Failed to load users</option>';
                 });
             }
 
@@ -163,6 +207,9 @@
                     config.RecentlyRatedItemsCount = parseInt(document.getElementById('recentlyRatedCount').value) || 10;
                     config.PlexServerUrl = document.getElementById('plexServerUrl').value.trim();
                     config.PlexImportConflictMode = document.getElementById('plexConflictMode').value;
+                    config.EnableAutoSync = document.getElementById('enableAutoSync').checked;
+                    config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value) || 24;
+                    config.SyncUserId = document.getElementById('syncUserId').value;
 
                     var tokenField = document.getElementById('plexToken');
                     if (tokenField.value) {

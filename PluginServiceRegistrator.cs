@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.UserRatings.Data;
+using Jellyfin.Plugin.UserRatings.ScheduledTasks;
 using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
@@ -13,6 +14,7 @@ namespace Jellyfin.Plugin.UserRatings
             serviceCollection.AddSingleton<RatingRepository>();
             serviceCollection.AddSingleton<ProgressTracker>();
             serviceCollection.AddSingleton<PlexImportService>();
+            serviceCollection.AddSingleton<PlexSyncScheduledTask>();
         }
     }
 }
