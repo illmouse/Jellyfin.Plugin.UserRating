@@ -4,17 +4,22 @@
     console.log('[UserRatings] Loading plugin...');
 
     // CSS for inline ratings UI
+    // Uses ElegantFin CSS custom properties with fallbacks for default Jellyfin
     const style = document.createElement('style');
     style.textContent = `
+        #user-ratings-ui {
+            grid-column: 1 / -1;
+        }
         .user-ratings-container {
-            background: rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
+            background: var(--lighterGradientPointAlpha, rgba(0, 0, 0, 0.15));
+            backdrop-filter: var(--blurDefault, blur(10px));
+            border-radius: var(--largeRadius, 10px);
             padding: 1.8em 2em;
-            margin-top: 2em;
-            margin-bottom: 2em;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 1.5em;
+            margin-bottom: 1.5em;
+            border: var(--defaultBorder, 1px solid rgba(255, 255, 255, 0.08));
             box-sizing: border-box;
+            color: var(--textColor, #ffffff);
         }
         .user-ratings-container * {
             box-sizing: border-box;
@@ -23,7 +28,7 @@
             font-size: 1.3em;
             font-weight: 500;
             margin-bottom: 1.2em;
-            color: #ffffff;
+            color: var(--textColor, #ffffff);
             display: flex;
             align-items: center;
             gap: 1em;
@@ -36,17 +41,17 @@
         .user-ratings-my-rating {
             margin-bottom: 1.5em;
             padding-bottom: 1.5em;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: var(--defaultBorder, 1px solid rgba(255, 255, 255, 0.08));
         }
         .user-ratings-section-title {
             font-size: 1.15em;
             margin-bottom: 0.3em;
-            color: #ffffff;
+            color: var(--textColor, #ffffff);
             font-weight: 600;
         }
         .user-ratings-section-subtitle {
             font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.5));
             margin-bottom: 0.8em;
         }
         .rating-form-row {
@@ -82,16 +87,16 @@
             transform: scale(1.15);
         }
         .rating-prompt {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.5));
             font-size: 0.9em;
         }
         .rating-note-input {
             width: 100%;
-            padding: 1em;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
+            padding: 0.5em;
+            background: var(--selectorBackgroundColor, rgba(0, 0, 0, 0.2));
+            border: var(--defaultLighterBorder, 1px solid rgba(255, 255, 255, 0.2));
+            border-radius: var(--smallRadius, 8px);
+            color: var(--textColor, #ffffff);
             font-size: 0.95em;
             font-family: inherit;
             transition: border-color 0.2s, background 0.2s;
@@ -101,16 +106,16 @@
         }
         .rating-note-input:focus {
             outline: none;
-            border-color: #00a4dc;
-            background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 0 1px #00a4dc;
+            border-color: var(--highlightOutlineColor, #00a4dc) !important;
+            background: var(--selectorBackgroundColor, rgba(0, 0, 0, 0.3));
+            box-shadow: 0 0 0 1px var(--highlightOutlineColor, #00a4dc);
         }
         .rating-note-input::placeholder {
-            color: rgba(255, 255, 255, 0.35);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.35));
         }
         .rating-char-count {
             font-size: 0.85em;
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.4));
             margin-top: 0.5em;
         }
         .rating-char-count.error {
@@ -142,23 +147,23 @@
             text-transform: uppercase;
             min-width: 64px;
             padding: 8px 22px;
-            border-radius: 4px;
-            transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-            border: 0;
+            border-radius: var(--smallRadius, 4px);
+            transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, filter 125ms;
         }
         .rating-actions .save-btn {
-            background-color: #e53935;
+            background-color: var(--btnSubmitColor, #e53935);
             color: #fff;
+            border: solid var(--btnSubmitBorderColor, transparent) var(--borderWidth, 0.06em);
             box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
             flex: 1;
             min-width: 200px;
         }
         .rating-actions .save-btn:hover:not(:disabled) {
-            background-color: #d32f2f;
-            box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+            filter: brightness(1.2);
         }
         .rating-actions .save-btn:active:not(:disabled) {
-            box-shadow: 0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12);
+            filter: brightness(1.2);
+            transform: scale(0.98);
         }
         .rating-actions .save-btn:disabled {
             background-color: rgba(255, 255, 255, 0.12);
@@ -166,19 +171,21 @@
             cursor: default;
             pointer-events: none;
             box-shadow: none;
+            filter: none;
         }
         .rating-actions .delete-btn {
-            background-color: transparent;
-            color: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.23);
+            background-color: var(--btnDeleteColor, transparent);
+            color: var(--textColor, rgba(255, 255, 255, 0.7));
+            border: solid var(--btnDeleteBorderColor, rgba(255, 255, 255, 0.23)) var(--borderWidth, 0.06em);
             padding: 7px 21px;
         }
         .rating-actions .delete-btn:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.23);
+            filter: brightness(1.2);
+            background-color: var(--btnDeleteColor, rgba(255, 255, 255, 0.08));
         }
         .rating-actions .delete-btn:active {
-            background-color: rgba(255, 255, 255, 0.12);
+            filter: brightness(1.2);
+            transform: scale(0.98);
         }
         .user-ratings-all {
             margin-top: 1.5em;
@@ -186,10 +193,10 @@
         .rating-item {
             margin: 0.75em 0;
             padding: 1em;
-            background: rgba(0, 0, 0, 0.12);
-            border-radius: 8px;
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--darkerGradientPointAlpha, rgba(0, 0, 0, 0.12));
+            border-radius: var(--smallRadius, 8px);
+            color: var(--textColor, #ffffff);
+            border: var(--defaultLighterBorder, 1px solid rgba(255, 255, 255, 0.05));
         }
         .rating-item-header {
             display: flex;
@@ -201,7 +208,7 @@
         }
         .rating-item-user {
             font-weight: 500;
-            color: #ffffff;
+            color: var(--textColor, #ffffff);
         }
         .rating-item-stars {
             color: #ffd700;
@@ -209,13 +216,13 @@
         }
         .rating-item-date {
             font-size: 0.85em;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.5));
         }
         .rating-item-note {
             margin-top: 0.5em;
             opacity: 0.9;
             font-size: 0.95em;
-            color: #e0e0e0;
+            color: var(--dimTextColor, #e0e0e0);
             line-height: 1.4;
         }
         .user-ratings-my-rating.collapsed .rating-form-section,
@@ -228,7 +235,7 @@
             gap: 0.6em;
             cursor: pointer;
             padding: 0.6em 0.9em;
-            border-radius: 6px;
+            border-radius: var(--smallerRadius, 6px);
             transition: background 0.2s;
             margin-left: auto;
             flex-wrap: wrap;
@@ -245,16 +252,16 @@
             letter-spacing: 1px;
         }
         .summary-label {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.6));
             font-size: 0.95em;
         }
         .edit-rating-btn {
             margin-left: auto;
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.23);
-            color: rgba(255, 255, 255, 0.7);
+            border: var(--defaultLighterBorder, 1px solid rgba(255, 255, 255, 0.23));
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.7));
             padding: 4px 14px;
-            border-radius: 4px;
+            border-radius: var(--smallerRadius, 4px);
             cursor: pointer;
             font-size: 0.85em;
             font-family: inherit;
@@ -262,15 +269,15 @@
         }
         .edit-rating-btn:hover {
             background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.3);
+            border-color: var(--lighterBorderColor, rgba(255, 255, 255, 0.3));
         }
         .collapse-rating-btn {
             display: none;
             background: none;
-            border: 1px solid rgba(255, 255, 255, 0.23);
-            color: rgba(255, 255, 255, 0.5);
+            border: var(--defaultLighterBorder, 1px solid rgba(255, 255, 255, 0.23));
+            color: var(--dimTextColor, rgba(255, 255, 255, 0.5));
             padding: 2px 10px;
-            border-radius: 4px;
+            border-radius: var(--smallerRadius, 4px);
             cursor: pointer;
             font-size: 0.8em;
             font-family: inherit;
@@ -279,7 +286,7 @@
         }
         .collapse-rating-btn:hover {
             background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--textColor, rgba(255, 255, 255, 0.8));
         }
         .user-ratings-container.has-rating .collapse-rating-btn {
             display: inline-block;
@@ -289,7 +296,7 @@
                 padding: 1em 0.8em;
                 margin-top: 1em;
                 margin-bottom: 1em;
-                border-radius: 8px;
+                border-radius: var(--smallRadius, 8px);
             }
             .user-ratings-header {
                 font-size: 1.1em;
