@@ -230,11 +230,13 @@
             padding: 0.6em 0.9em;
             border-radius: 6px;
             transition: background 0.2s;
+            margin-left: auto;
+            flex-wrap: wrap;
         }
         .my-rating-summary:hover {
             background: rgba(255, 255, 255, 0.06);
         }
-        .user-ratings-my-rating.collapsed .my-rating-summary {
+        .user-ratings-container.has-rating .my-rating-summary {
             display: flex;
         }
         .summary-stars {
@@ -261,6 +263,75 @@
         .edit-rating-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.3);
+        }
+        .collapse-rating-btn {
+            display: none;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.23);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 2px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-family: inherit;
+            margin-left: 0.5em;
+            transition: background 0.2s, color 0.2s;
+        }
+        .collapse-rating-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .user-ratings-container.has-rating .collapse-rating-btn {
+            display: inline-block;
+        }
+        @media (max-width: 480px) {
+            .user-ratings-container {
+                padding: 1em 0.8em;
+                margin-top: 1em;
+                margin-bottom: 1em;
+                border-radius: 8px;
+            }
+            .user-ratings-header {
+                font-size: 1.1em;
+                gap: 0.5em;
+            }
+            .my-rating-summary {
+                margin-left: 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.3em;
+                width: 100%;
+                padding: 0.5em 0.7em;
+            }
+            .edit-rating-btn {
+                margin-left: 0;
+                width: 100%;
+                text-align: center;
+                margin-top: 0.2em;
+            }
+            .star-rating {
+                font-size: 1.5em;
+            }
+            .rating-actions {
+                flex-direction: column;
+                gap: 0.5em;
+            }
+            .rating-actions .save-btn {
+                min-width: unset;
+                flex: unset;
+                width: 100%;
+            }
+            .rating-actions .delete-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .rating-note-input {
+                min-height: 80px;
+                padding: 0.8em;
+            }
+            .rating-item {
+                padding: 0.75em;
+            }
         }
     `;
     document.head.appendChild(style);
@@ -388,6 +459,7 @@
     }
 
     function seamlessPageRefresh(itemId, force = false) {
+        // Only refresh on details page
         const currentHash = window.location.hash;
         const currentUrl = window.location.href;
         const isDetailsPage = currentHash.includes('#/details') || currentHash.includes('/details') || 
@@ -399,22 +471,19 @@
             return;
         }
         
+        // Don't refresh if we recently refreshed (prevent loops)
+        // Unless forced (from final zero-size check)
         if (!force && hasTriedRefresh) {
             console.log('[UserRatings] Skipping refresh - already tried once');
             return;
         }
         
-        console.log('[UserRatings] Re-injecting UI', force ? '(FORCED)' : '');
+        console.log('[UserRatings] Performing hard page refresh', force ? '(FORCED)' : '');
         hasTriedRefresh = true;
-
-        const existingUI = document.getElementById('user-ratings-ui');
-        if (existingUI) {
-            existingUI.remove();
-        }
-
-        isInjecting = false;
-        injectionAttempts = 0;
-        injectRatingsUI();
+        
+        // Hard refresh - reload the page completely
+        // This bypasses cache and reloads everything fresh
+        window.location.reload(true);
     }
 
     async function createRatingsUI(itemId) {
@@ -423,16 +492,15 @@
         container.className = 'user-ratings-container';
         container.id = 'user-ratings-ui';
         
+        // Get item name for personalized heading
         let itemName = 'this item';
-        let isWatched = false;
         try {
             console.log('[UserRatings] → Loading item details...');
             const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), itemId);
             if (itemDetails && itemDetails.Name) {
                 itemName = itemDetails.Name;
             }
-            isWatched = itemDetails?.UserData?.Played === true;
-            console.log('[UserRatings] → Item details loaded:', itemName, '| watched:', isWatched);
+            console.log('[UserRatings] → Item details loaded:', itemName);
         } catch (error) {
             console.log('[UserRatings] Could not load item name:', error);
         }
@@ -446,6 +514,20 @@
         avgSpan.className = 'user-ratings-average';
         avgSpan.id = 'ratings-average-display';
         header.appendChild(avgSpan);
+        
+        const summaryEl = document.createElement('div');
+        summaryEl.className = 'my-rating-summary';
+        summaryEl.innerHTML = '<span class="summary-stars"></span><span class="summary-label">Your rating</span><button class="edit-rating-btn">Edit</button>';
+        summaryEl.querySelector('.edit-rating-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            expandMyRating();
+            summaryEl.style.display = 'none';
+        });
+        summaryEl.addEventListener('click', () => {
+            expandMyRating();
+            summaryEl.style.display = 'none';
+        });
+        header.appendChild(summaryEl);
         container.appendChild(header);
         
         // My Rating Section
@@ -460,6 +542,20 @@
         myRatingTitle.className = 'user-ratings-section-title';
         myRatingTitle.textContent = `How would you rate ${itemName}?`;
         starSection.appendChild(myRatingTitle);
+        
+        const collapseBtn = document.createElement('button');
+        collapseBtn.className = 'collapse-rating-btn';
+        collapseBtn.textContent = '✕ Close';
+        collapseBtn.addEventListener('click', () => {
+            collapseMyRating();
+            summaryEl.style.display = '';
+        });
+        
+        const titleRow = document.createElement('div');
+        titleRow.style.cssText = 'display:flex;align-items:center;';
+        titleRow.appendChild(myRatingTitle);
+        titleRow.appendChild(collapseBtn);
+        starSection.appendChild(titleRow);
         
         const starRatingContainer = document.createElement('div');
         starRatingContainer.className = 'star-rating-container';
@@ -541,7 +637,9 @@
                 
                 await displayAllRatings(itemId, container);
                 deleteBtn.style.display = 'inline-block';
+                updateSummaryStars(currentRating);
                 collapseMyRating();
+                summaryEl.style.display = '';
             } else {
                 alert('Error saving rating: ' + result.message);
                 saveBtn.textContent = 'Post Rating';
@@ -572,6 +670,7 @@
                 
                 await displayAllRatings(itemId, container);
                 expandMyRating();
+                summaryEl.style.display = 'none';
             } else {
                 alert('Error deleting rating: ' + result.message);
             }
@@ -582,34 +681,23 @@
         actionsContainer.appendChild(deleteBtn);
         
         myRatingSection.appendChild(actionsContainer);
-
-        const summaryEl = document.createElement('div');
-        summaryEl.className = 'my-rating-summary';
-        summaryEl.innerHTML = '<span class="summary-stars"></span><span class="summary-label">Your rating</span><button class="edit-rating-btn">Edit</button>';
-        summaryEl.querySelector('.edit-rating-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            myRatingSection.classList.remove('collapsed');
-        });
-        summaryEl.addEventListener('click', () => {
-            myRatingSection.classList.remove('collapsed');
-        });
-        myRatingSection.appendChild(summaryEl);
-
+        
+        const summaryStars = summaryEl.querySelector('.summary-stars');
+        
         function updateSummaryStars(rating) {
-            const starsEl = summaryEl.querySelector('.summary-stars');
-            if (starsEl) {
-                starsEl.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+            if (summaryStars) {
+                summaryStars.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
             }
         }
-
+        
         function collapseMyRating() {
-            updateSummaryStars(currentRating);
             myRatingSection.classList.add('collapsed');
         }
-
+        
         function expandMyRating() {
             myRatingSection.classList.remove('collapsed');
         }
+        
         container.appendChild(myRatingSection);
         
         // All Ratings Section
@@ -627,16 +715,16 @@
             updateStarDisplay(starContainer, myRating.rating);
             ratingPrompt.style.display = 'none';
             noteInput.value = myRating.note || '';
-            // Update character counter
             const length = noteInput.value.length;
             charCount.textContent = `${length} character${length !== 1 ? 's' : ''}`;
             deleteBtn.style.display = 'inline-block';
-        }
-
-        if (!isWatched) {
+            updateSummaryStars(myRating.rating);
             collapseMyRating();
-        } else if (myRating && myRating.rating) {
-            collapseMyRating();
+            container.classList.add('has-rating');
+            summaryEl.style.display = '';
+        } else {
+            container.classList.remove('has-rating');
+            summaryEl.style.display = 'none';
         }
         
         // Load all ratings

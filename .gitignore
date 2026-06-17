@@ -42,6 +42,7 @@ artifacts/
 # Cursor AI files
 .cursor/
 
-
-
-.cursor/
+# Dev environment
+dev/
+IMPLEMENTATION_PLAN.md
+SESSION_CONTEXT.md
