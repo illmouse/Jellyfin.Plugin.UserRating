@@ -150,6 +150,78 @@ namespace Jellyfin.Plugin.UserRatings.Data
                     .ToList();
             }
         }
+
+        public (int imported, int skipped, int overwritten) BulkSaveRatings(IEnumerable<UserRating> ratings, string conflictMode)
+        {
+            var imported = 0;
+            var skipped = 0;
+            var overwritten = 0;
+
+            lock (_lock)
+            {
+                foreach (var rating in ratings)
+                {
+                    var key = GetKey(rating.ItemId, rating.UserId);
+
+                    switch (conflictMode)
+                    {
+                        case "skip":
+                            if (_ratings.ContainsKey(key))
+                            {
+                                skipped++;
+                                continue;
+                            }
+                            _ratings[key] = rating;
+                            imported++;
+                            break;
+
+                        case "overwrite":
+                            if (_ratings.ContainsKey(key))
+                            {
+                                overwritten++;
+                            }
+                            _ratings[key] = rating;
+                            imported++;
+                            break;
+
+                        case "keepHigher":
+                            if (_ratings.TryGetValue(key, out var existing))
+                            {
+                                if (rating.Rating > existing.Rating)
+                                {
+                                    _ratings[key] = rating;
+                                    overwritten++;
+                                    imported++;
+                                }
+                                else
+                                {
+                                    skipped++;
+                                }
+                            }
+                            else
+                            {
+                                _ratings[key] = rating;
+                                imported++;
+                            }
+                            break;
+
+                        default:
+                            if (_ratings.ContainsKey(key))
+                            {
+                                skipped++;
+                                continue;
+                            }
+                            _ratings[key] = rating;
+                            imported++;
+                            break;
+                    }
+                }
+
+                SaveRatings();
+            }
+
+            return (imported, skipped, overwritten);
+        }
     }
 }
 

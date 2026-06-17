@@ -5,12 +5,12 @@
     <title>User Ratings</title>
 </head>
 <body>
-    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <form id="UserRatingsConfigForm">
                     <h2>User Ratings Plugin</h2>
-                    
+
                     <div class="fieldDescription" style="margin-bottom: 2em;">
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
@@ -26,19 +26,89 @@
                             <span>Save</span>
                         </button>
                     </div>
+                </form>
 
-                    <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                        <h3 style="color: #e53935;">Danger Zone</h3>
-                        <div class="fieldDescription" style="margin-bottom: 1em;">
-                            Permanently delete all user ratings from the database. This action cannot be undone.
-                        </div>
-                        <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
-                            <span>Delete All Ratings</span>
-                        </button>
-                        <div id="deleteResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: 4px;"></div>
+                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                    <h3>Plex Rating Import</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                        Import your ratings from a Plex Media Server. Ratings are matched to Jellyfin items using IMDB, TMDB, and TVDB identifiers.
                     </div>
 
-                </form>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="plexServerUrl">Plex Server URL</label>
+                        <input type="text" id="plexServerUrl" is="emby-input" class="emby-input" placeholder="http://192.168.1.100:32400" />
+                        <div class="fieldDescription">The URL of your Plex Media Server, including the port (default: 32400).</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="plexToken">Plex Token</label>
+                        <input type="password" id="plexToken" is="emby-input" class="emby-input" placeholder="Enter your Plex token" />
+                        <div class="fieldDescription">Your Plex authentication token. <a href="https://www.plexopedia.com/plex-media-server/general/plex-token/" target="_blank" style="color: var(--textColor, #fff);">How to find your Plex token</a>. Leave blank to keep the stored token.</div>
+                    </div>
+
+                    <div style="margin: 0.5em 0;">
+                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised" style="font-size: 0.85em; padding: 0.3em 0.8em;">
+                            <span>Clear Stored Token</span>
+                        </button>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="plexConflictMode">On Conflict</label>
+                        <select id="plexConflictMode" is="emby-select" class="emby-select">
+                            <option value="skip">Skip existing ratings</option>
+                            <option value="overwrite">Overwrite existing ratings</option>
+                            <option value="keepHigher">Keep higher rating</option>
+                        </select>
+                        <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
+                        <select id="importTargetUser" is="emby-select" class="emby-select">
+                            <option value="">Loading users...</option>
+                        </select>
+                        <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings.</div>
+                    </div>
+
+                    <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
+                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised block" style="min-width: 180px;">
+                            <span>Test Connection</span>
+                        </button>
+                        <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit block" style="min-width: 220px;">
+                            <span>Import Ratings from Plex</span>
+                        </button>
+                    </div>
+
+                    <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
+
+                    <div id="importProgress" style="display: none; margin-top: 1.5em;">
+                        <h4>Import Progress</h4>
+                        <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
+                            <div id="progressBar" style="height: 100%; background: var(--btnSubmitColor, #e53935); width: 0%; transition: width 0.3s ease; border-radius: var(--smallRadius, 4px);"></div>
+                        </div>
+                        <div id="progressText" style="font-size: 0.9em; color: var(--dimTextColor, #ccc);">Preparing...</div>
+                        <div id="progressStats" style="font-size: 0.85em; color: var(--dimTextColor, #aaa); margin-top: 0.3em;"></div>
+                    </div>
+
+                    <div id="importResult" style="display: none; margin-top: 1.5em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
+
+                    <div id="unmatchedSection" style="display: none; margin-top: 1em;">
+                        <h4>Unmatched Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex ratings could not be matched to Jellyfin items.</div>
+                        <div id="unmatchedList" style="max-height: 300px; overflow-y: auto; background: var(--selectorBackgroundColor, rgba(255,255,255,0.05)); border-radius: var(--smallRadius, 4px); padding: 0.5em;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h3 style="color: #e53935;">Danger Zone</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1em;">
+                        Permanently delete all user ratings from the database. This action cannot be undone.
+                    </div>
+                    <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
+                        <span>Delete All Ratings</span>
+                    </button>
+                    <div id="deleteResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: 4px;"></div>
+                </div>
             </div>
         </div>
 
@@ -49,42 +119,276 @@
 
             document.getElementById('UserRatingsConfigPage').addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();
-                
+
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     document.getElementById('recentlyRatedCount').value = config.RecentlyRatedItemsCount || 10;
+                    document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
+                    document.getElementById('plexConflictMode').value = config.PlexImportConflictMode || 'skip';
+
+                    if (config.EncryptedPlexToken) {
+                        document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
+                        document.getElementById('plexToken').value = '';
+                    } else {
+                        document.getElementById('plexToken').placeholder = 'Enter your Plex token';
+                        document.getElementById('plexToken').value = '';
+                    }
+
+                    loadUsers();
+                    Dashboard.hideLoadingMsg();
                     Dashboard.hideLoadingMsg();
                 });
             });
 
+            function loadUsers() {
+                ApiClient.getUsers().then(function (users) {
+                    var select = document.getElementById('importTargetUser');
+                    select.innerHTML = '';
+                    users.forEach(function (user) {
+                        var option = document.createElement('option');
+                        option.value = user.Id;
+                        option.textContent = user.Name;
+                        select.appendChild(option);
+                    });
+                }).catch(function () {
+                    var select = document.getElementById('importTargetUser');
+                    select.innerHTML = '<option value="">Failed to load users</option>';
+                });
+            }
+
             document.getElementById('UserRatingsConfigForm').addEventListener('submit', function (e) {
                 e.preventDefault();
                 Dashboard.showLoadingMsg();
-                
+
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     config.RecentlyRatedItemsCount = parseInt(document.getElementById('recentlyRatedCount').value) || 10;
-                    
+                    config.PlexServerUrl = document.getElementById('plexServerUrl').value.trim();
+                    config.PlexImportConflictMode = document.getElementById('plexConflictMode').value;
+
+                    var tokenField = document.getElementById('plexToken');
+                    if (tokenField.value) {
+                        config.NewPlexToken = tokenField.value;
+                    } else {
+                        config.NewPlexToken = '';
+                    }
+
                     ApiClient.updatePluginConfiguration(UserRatingsConfig.pluginUniqueId, config).then(function () {
                         Dashboard.processPluginConfigurationUpdateResult();
+                        tokenField.value = '';
+                        tokenField.placeholder = 'Token is stored (leave blank to keep)';
                     });
                 });
-                
+
                 return false;
             });
+
+            document.getElementById('btnClearPlexToken').addEventListener('click', function () {
+                if (!confirm('Are you sure you want to clear the stored Plex token?')) return;
+
+                ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
+                    config.EncryptedPlexToken = '';
+                    config.NewPlexToken = '';
+                    ApiClient.updatePluginConfiguration(UserRatingsConfig.pluginUniqueId, config).then(function () {
+                        var tokenField = document.getElementById('plexToken');
+                        tokenField.value = '';
+                        tokenField.placeholder = 'Enter your Plex token';
+                        showStatus('plexStatus', 'Plex token cleared.', true);
+                    });
+                });
+            });
+
+            document.getElementById('btnTestPlexConnection').addEventListener('click', function () {
+                var statusDiv = document.getElementById('plexStatus');
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = 'Testing connection...';
+                statusDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                fetch(ApiClient.getUrl('api/UserRatings/PlexStatus'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        statusDiv.innerHTML = result.message;
+                        statusDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                    } else {
+                        statusDiv.innerHTML = result.message;
+                        statusDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    statusDiv.innerHTML = 'Connection error: ' + err.message;
+                    statusDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                });
+            });
+
+            var currentEventSource = null;
+
+            document.getElementById('btnImportFromPlex').addEventListener('click', function () {
+                var userId = document.getElementById('importTargetUser').value;
+                if (!userId) {
+                    alert('Please select a user to import ratings for.');
+                    return;
+                }
+
+                var config = {
+                    plexServerUrl: document.getElementById('plexServerUrl').value.trim(),
+                    conflictMode: document.getElementById('plexConflictMode').value
+                };
+
+                if (!config.plexServerUrl) {
+                    alert('Please configure and save the Plex server URL first.');
+                    return;
+                }
+
+                var conflictLabels = { skip: 'skip existing', overwrite: 'overwrite existing', keepHigher: 'keep higher rating' };
+                if (!confirm('Import ratings from Plex as ' + document.getElementById('importTargetUser').selectedOptions[0].text + '? Conflicts will be resolved by: ' + conflictLabels[config.conflictMode] + '.')) {
+                    return;
+                }
+
+                var progressDiv = document.getElementById('importProgress');
+                var progressBar = document.getElementById('progressBar');
+                var progressText = document.getElementById('progressText');
+                var progressStats = document.getElementById('progressStats');
+                var resultDiv = document.getElementById('importResult');
+                var unmatchedSection = document.getElementById('unmatchedSection');
+
+                progressDiv.style.display = 'block';
+                resultDiv.style.display = 'none';
+                unmatchedSection.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Starting import...';
+                progressStats.textContent = '';
+
+                document.getElementById('btnImportFromPlex').disabled = true;
+
+                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId)), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (!result.success) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.innerHTML = result.message || 'Import failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                        document.getElementById('btnImportFromPlex').disabled = false;
+                        return;
+                    }
+
+                    var operationId = result.operationId;
+                    connectProgressSSE(operationId);
+                }).catch(function (err) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    document.getElementById('btnImportFromPlex').disabled = false;
+                });
+            });
+
+            function connectProgressSSE(operationId) {
+                if (currentEventSource) {
+                    currentEventSource.close();
+                }
+
+                var url = ApiClient.getUrl('api/UserRatings/ImportProgress/' + operationId + '?X-Emby-Token=' + encodeURIComponent(ApiClient.accessToken()));
+                currentEventSource = new EventSource(url);
+
+                currentEventSource.onmessage = function (event) {
+                    var data;
+                    try { data = JSON.parse(event.data); } catch (e) { return; }
+
+                    var progressBar = document.getElementById('progressBar');
+                    var progressText = document.getElementById('progressText');
+                    var progressStats = document.getElementById('progressStats');
+
+                    progressBar.style.width = data.percentComplete + '%';
+
+                    if (data.status === 'fetching') {
+                        progressText.textContent = 'Fetching libraries from Plex...';
+                    } else if (data.status === 'matching') {
+                        progressText.textContent = 'Matching: ' + (data.currentItem || '...');
+                        progressStats.textContent = 'Processed ' + data.processedItems + ' of ' + data.totalItems + ' items';
+                    } else if (data.status === 'saving') {
+                        progressText.textContent = 'Saving ratings...';
+                    } else if (data.status === 'completed') {
+                        progressBar.style.width = '100%';
+                        progressText.textContent = 'Import complete!';
+                        progressStats.textContent = '';
+                        currentEventSource.close();
+                        currentEventSource = null;
+                        document.getElementById('btnImportFromPlex').disabled = false;
+                        showImportResult(data);
+                    } else if (data.status === 'failed') {
+                        progressText.textContent = 'Import failed';
+                        progressStats.textContent = '';
+                        currentEventSource.close();
+                        currentEventSource = null;
+                        document.getElementById('btnImportFromPlex').disabled = false;
+
+                        var resultDiv = document.getElementById('importResult');
+                        resultDiv.style.display = 'block';
+                        resultDiv.innerHTML = data.errorMessage || 'Import failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    } else if (data.status === 'cancelled') {
+                        progressText.textContent = 'Import cancelled';
+                        currentEventSource.close();
+                        currentEventSource = null;
+                        document.getElementById('btnImportFromPlex').disabled = false;
+                    }
+                };
+
+                currentEventSource.onerror = function () {
+                    if (currentEventSource) {
+                        currentEventSource.close();
+                        currentEventSource = null;
+                    }
+                    document.getElementById('btnImportFromPlex').disabled = false;
+                };
+            }
+
+            function showImportResult(data) {
+                var resultDiv = document.getElementById('importResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '<strong>Import Complete</strong><br>' +
+                    'Imported: ' + data.importedItems + '<br>' +
+                    'Skipped: ' + data.skippedItems + '<br>' +
+                    'Unmatched: ' + data.unmatchedItems;
+                resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+
+                if (data.unmatched && data.unmatched.length > 0) {
+                    var unmatchedSection = document.getElementById('unmatchedSection');
+                    var unmatchedList = document.getElementById('unmatchedList');
+                    unmatchedSection.style.display = 'block';
+                    unmatchedList.innerHTML = '';
+
+                    data.unmatched.forEach(function (item) {
+                        var div = document.createElement('div');
+                        div.style.padding = '0.3em 0.5em';
+                        div.style.borderBottom = '1px solid var(--defaultBorder, rgba(255,255,255,0.05))';
+                        div.innerHTML = '<strong>' + item.plexType + '</strong>: ' + item.title +
+                            ' <span style="color: var(--dimTextColor, #aaa);">(Plex rating: ' + item.plexRating + '/10 → ' + Math.round(item.plexRating / 2) + '/5)</span>' +
+                            '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + item.guids.join(', ') + '</span>';
+                        unmatchedList.appendChild(div);
+                    });
+                }
+            }
+
+            function showStatus(elementId, message, isSuccess) {
+                var div = document.getElementById(elementId);
+                div.style.display = 'block';
+                div.innerHTML = message;
+                div.style.backgroundColor = isSuccess ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)';
+            }
 
             document.getElementById('btnDeleteAllRatings').addEventListener('click', function () {
                 var resultDiv = document.getElementById('deleteResult');
                 resultDiv.style.display = 'none';
-                
+
                 if (!confirm('Are you ABSOLUTELY sure you want to delete ALL user ratings? This cannot be undone!')) {
                     return;
                 }
-                
+
                 if (!confirm('This will permanently delete all ratings from all users. Continue?')) {
                     return;
                 }
-                
+
                 Dashboard.showLoadingMsg();
-                
+
                 fetch(ApiClient.getUrl('api/UserRatings/DeleteAll'), {
                     method: 'DELETE',
                     headers: {
@@ -95,7 +399,7 @@
                 }).then(function (result) {
                     Dashboard.hideLoadingMsg();
                     resultDiv.style.display = 'block';
-                    
+
                     if (result.success) {
                         resultDiv.innerHTML = result.message || 'All ratings have been deleted';
                         resultDiv.style.backgroundColor = '#4CAF50';
@@ -117,4 +421,3 @@
     </div>
 </body>
 </html>
-

@@ -69,6 +69,19 @@ namespace Jellyfin.Plugin.UserRatings
             }
         }
 
+        public override void UpdateConfiguration(BasePluginConfiguration configuration)
+        {
+            var newConfig = (PluginConfiguration)configuration;
+
+            if (!string.IsNullOrEmpty(newConfig.NewPlexToken))
+            {
+                newConfig.EncryptedPlexToken = TokenEncryption.Encrypt(newConfig.NewPlexToken);
+                newConfig.NewPlexToken = string.Empty;
+            }
+
+            base.UpdateConfiguration(configuration);
+        }
+
         public static Plugin? Instance { get; private set; }
 
         public IEnumerable<PluginPageInfo> GetPages()

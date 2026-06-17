@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
-using MediaBrowser.Common.Configuration;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api
@@ -14,9 +13,9 @@ namespace Jellyfin.Plugin.UserRatings.Api
     {
         private readonly RatingRepository _repository;
 
-        public RatingsController(IApplicationPaths appPaths)
+        public RatingsController(RatingRepository repository)
         {
-            _repository = new RatingRepository(appPaths);
+            _repository = repository;
         }
 
         [HttpPost("Rate")]
