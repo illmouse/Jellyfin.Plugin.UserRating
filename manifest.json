@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.8.4.0",
+        "changelog": "Eliminate 66 per-item API calls on viewer page - server now provides item metadata",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.4/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-17T22:00:00Z"
+      },
+      {
         "version": "1.8.3.0",
         "changelog": "Move Save button to bottom, update docs with Plex import",
         "targetAbi": "10.11.0.0",

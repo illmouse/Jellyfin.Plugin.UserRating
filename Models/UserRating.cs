@@ -26,6 +26,9 @@ namespace Jellyfin.Plugin.UserRatings.Models
         public double AverageRating { get; set; }
         public int TotalRatings { get; set; }
         public DateTime LastRated { get; set; }
+        public string? Name { get; set; }
+        public string? Type { get; set; }
+        public Guid? SeriesId { get; set; }
     }
 }
 

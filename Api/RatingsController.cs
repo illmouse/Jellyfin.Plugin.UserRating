@@ -3,6 +3,9 @@ using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api
@@ -12,10 +15,12 @@ namespace Jellyfin.Plugin.UserRatings.Api
     public class RatingsController : ControllerBase
     {
         private readonly RatingRepository _repository;
+        private readonly ILibraryManager _libraryManager;
 
-        public RatingsController(RatingRepository repository)
+        public RatingsController(RatingRepository repository, ILibraryManager libraryManager)
         {
             _repository = repository;
+            _libraryManager = libraryManager;
         }
 
         [HttpPost("Rate")]
@@ -172,17 +177,42 @@ namespace Jellyfin.Plugin.UserRatings.Api
             {
                 var ratedItems = _repository.GetAllRatedItems();
 
-                return Ok(new
+                var result = ratedItems.Select(item =>
                 {
-                    success = true,
-                    items = ratedItems.Select(item => new
+                    string? name = null;
+                    string? type = null;
+                    string? seriesId = null;
+
+                    try
+                    {
+                        var libraryItem = _libraryManager.GetItemById(item.ItemId);
+                        if (libraryItem != null)
+                        {
+                            name = libraryItem.Name;
+                            type = libraryItem.GetType().Name;
+                            if (libraryItem is Episode ep)
+                            {
+                                seriesId = ep.Series?.Id.ToString();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    return new
                     {
                         itemId = item.ItemId,
                         averageRating = item.AverageRating,
                         totalRatings = item.TotalRatings,
-                        lastRated = item.LastRated
-                    })
+                        lastRated = item.LastRated,
+                        name,
+                        type,
+                        seriesId
+                    };
                 });
+
+                return Ok(new { success = true, items = result });
             }
             catch (Exception ex)
             {

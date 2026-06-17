@@ -1128,21 +1128,46 @@
                 return;
             }
 
-            // Fetch item details from Jellyfin
-            const itemPromises = items.map(async (item) => {
-                try {
-                    const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), item.itemId);
+            // Enrich items missing server-side metadata with individual lookups
+            const itemsNeedingDetails = items.filter(item => !item.name);
+            let detailMap = {};
+            if (itemsNeedingDetails.length > 0) {
+                const detailPromises = itemsNeedingDetails.map(async (item) => {
+                    try {
+                        const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), item.itemId);
+                        return { itemId: item.itemId, details: itemDetails };
+                    } catch (error) {
+                        console.error('[UserRatings] Error loading item details:', error);
+                        return null;
+                    }
+                });
+                const detailResults = (await Promise.all(detailPromises)).filter(r => r !== null);
+                detailMap = Object.fromEntries(detailResults.map(r => [r.itemId, r.details]));
+            }
+
+            const itemsWithDetails = items.map(item => {
+                if (item.name) {
                     return {
                         ...item,
-                        details: itemDetails
+                        lastRatedTimestamp: item.lastRated || 0,
+                        details: {
+                            Name: item.name,
+                            Type: item.type,
+                            SeriesId: item.seriesId,
+                            Id: item.itemId
+                        }
                     };
-                } catch (error) {
-                    console.error('[UserRatings] Error loading item details:', error);
-                    return null;
                 }
-            });
-
-            const itemsWithDetails = (await Promise.all(itemPromises)).filter(item => item !== null);
+                const details = detailMap[item.itemId];
+                if (details) {
+                    return {
+                        ...item,
+                        lastRatedTimestamp: item.lastRated || 0,
+                        details
+                    };
+                }
+                return null;
+            }).filter(item => item !== null);
 
             if (itemsWithDetails.length === 0) {
                 ratingsTabContent.innerHTML = `
@@ -1152,20 +1177,6 @@
                 `;
                 return;
             }
-
-            // Get all ratings with timestamps to sort by recently rated
-            const allRatingsResponse = await fetch(ApiClient.getUrl('api/UserRatings/AllRatedItems'), {
-                headers: {
-                    'X-Emby-Token': ApiClient.accessToken()
-                }
-            });
-            const allRatingsData = await allRatingsResponse.json();
-
-            // Add timestamp info to items
-            itemsWithDetails.forEach(item => {
-                const ratingInfo = allRatingsData.items.find(r => r.itemId === item.itemId);
-                item.lastRatedTimestamp = ratingInfo?.lastRated || 0;
-            });
 
             // Get plugin configuration
             let recentItemsLimit = 10;
