@@ -13,7 +13,7 @@
         "changelog": "Fix syntax error causing ratings to not inject",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.37/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "8225a7aefa85b1dcc3b097f4280d7d1c",
         "timestamp": "2026-06-17T14:00:00Z"
       },
       {
