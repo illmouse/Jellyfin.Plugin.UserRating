@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.8.3.0",
+        "changelog": "Move Save button to bottom, update README with Plex import docs",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.3/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-17T21:00:00Z"
+      },
+      {
         "version": "1.8.2.0",
         "changelog": "Add scheduled auto-sync for Plex ratings",
         "targetAbi": "10.11.0.0",

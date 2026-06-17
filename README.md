@@ -3,24 +3,33 @@
 **Rate and review content with other users on your Jellyfin server**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Jellyfin 10.9.0+](https://img.shields.io/badge/Jellyfin-10.9.0%2B-blue)](https://jellyfin.org/)
+[![Jellyfin 10.11.0+](https://img.shields.io/badge/Jellyfin-10.11.0%2B-blue)](https://jellyfin.org/)
 
-A social rating system for Jellyfin that lets users rate movies, TV shows, and episodes, then browse and discover what other users on the server think through a dedicated ratings viewer with smart filtering and sorting.
+A social rating system for Jellyfin that lets users rate movies, TV shows, and episodes, then browse and discover what other users on the server think. Includes Plex rating import with scheduled auto-sync.
 
-> **Note:** Currently supports **web UI only**. 
+> **Note:** Currently supports **web UI only**.
 
 ---
 
 ## Screenshots
 
-### Rating Items
-<img src="screenshots/browser.png" alt="Rating Interface" width="800">
+### Rating Items (collapsed)
+<img src="screenshots/broser_collapsed.png" alt="Rating Interface - Collapsed" width="800">
+
+### Rating Items (expanded)
+<img src="screenshots/browser_expanded.png" alt="Rating Interface - Expanded" width="800">
 
 ### Viewer Ratings Page
 <img src="screenshots/view user ratings.png" alt="Viewer Ratings Page" width="800">
 
 ### Mobile Support
 <img src="screenshots/mobile_app.png" alt="Mobile Interface" width="400">
+
+### Plex Import Settings
+<img src="screenshots/plex_import settings.png" alt="Plex Import Settings" width="800">
+
+### Plex Import Progress
+<img src="screenshots/plex_import_progress.png" alt="Plex Import Progress" width="800">
 
 ---
 
@@ -39,20 +48,26 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
   - 🖼️ Native Jellyfin card styling with clickable navigation
   - 📺 Smart thumbnails (episodes show series posters)
 - 🌐 Web interface support (desktop & mobile browsers)
+- 🔄 **Plex Rating Import** - Import your existing Plex ratings into Jellyfin
+  - 🔁 **Scheduled Auto-Sync** - Automatically sync ratings from Plex on a schedule
+  - 🔒 AES-256-CBC encrypted Plex token storage
+  - 📊 Real-time progress tracking during import
 
 ## Installation
 
 1. Open **Jellyfin Dashboard** → **Plugins** → **Repositories**
 2. Add repository URL:
    ```
-   https://raw.githubusercontent.com/aG00Dtime/Jellyfin.Plugin.UserRating/main/manifest.json
+   https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/manifest.json
    ```
 3. Go to **Catalog**, find **User Ratings**, and install
 4. Restart Jellyfin
 
 ## Setup
 
-**No setup required!** After installing and restarting Jellyfin, the ratings UI will automatically appear on item detail pages when accessing Jellyfin through a web browser.
+**No setup required for ratings!** After installing and restarting Jellyfin, the ratings UI will automatically appear on item detail pages when accessing Jellyfin through a web browser.
+
+For Plex import, see [Plex Rating Import](#plex-rating-import) below.
 
 ## Usage
 
@@ -90,12 +105,73 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 
 **Dashboard** → **Plugins** → **User Ratings** → **Settings**
 
-### Available Settings
+### General Settings
 
 - **Recently Rated Items Count** (5-50, default: 10)
   - Controls how many items appear in each "Recently Rated" section (Movies, Shows, Episodes)
   - The "All Rated Items" section remains paginated at 24 items per page
 
+### Plex Rating Import
+
+Import your existing ratings from a Plex Media Server into Jellyfin.
+
+#### Prerequisites
+
+1. Your Plex server must be accessible from the Jellyfin server (IP/hostname + port)
+2. You need a Plex authentication token (see below)
+
+#### Getting Your Plex Token
+
+1. Open Plex in a browser and sign in
+2. Browse to any library item
+3. Click the three dots (⋮) → **Get Info** → **View XML**
+4. In the URL, find `&X-Plex-Token=YOUR_TOKEN_HERE` — copy that token value
+
+#### Import Settings
+
+- **Plex Server URL** - Address of your Plex server (e.g., `http://192.168.1.100:32400`)
+- **Plex Token** - Your Plex authentication token (stored encrypted using AES-256-CBC)
+- **Import Ratings As User** - Which Jellyfin user receives the imported ratings
+- **Conflict Mode** - What to do when a rating already exists:
+  - **Skip** (default) - Keep the existing rating, don't overwrite
+  - **Overwrite** - Replace the existing rating with the Plex rating
+  - **Keep Higher** - Keep whichever rating is higher
+
+#### Running a Manual Import
+
+1. Configure the Plex server URL and token
+2. Select the target Jellyfin user
+3. Click **Import Ratings from Plex**
+4. Watch the real-time progress bar — you'll see matched/unmatched/skipped counts
+
+> **Note:** Series-level ratings are imported (Plex `type="show"`). Individual episode ratings are skipped.
+
+### Automatic Sync
+
+Enable scheduled auto-sync to keep your Jellyfin ratings up to date with Plex automatically.
+
+- **Enable Automatic Sync** - Toggle scheduled Plex rating imports
+- **Sync Interval (hours)** - How often to run (default: 24 hours)
+- **Sync As User** - Which Jellyfin user to sync ratings for
+
+When enabled, Jellyfin's built-in scheduled task system will run the import at the configured interval using the same conflict mode as manual import.
+
+> **Note:** The sync interval takes effect after restarting Jellyfin or manually triggering the scheduled task from Dashboard → Scheduled Tasks.
+
+#### How It Works
+
+1. Connects to your Plex server and fetches all rated items
+2. Matches Plex items to Jellyfin items using provider IDs (IMDB → TMDB → TVDB)
+3. Converts Plex's 10-point rating scale to Jellyfin's 5-star scale (`round(plexRating / 2)`)
+4. Applies your chosen conflict mode for existing ratings
+5. Saves all ratings in bulk
+
+#### Troubleshooting
+
+- **"Connection failed"** - Verify the Plex server URL is reachable from the Jellyfin server
+- **"Authentication failed"** - Your Plex token may have expired; generate a new one
+- **Items showing as "Unmatched"** - The Plex item doesn't have a provider ID (IMDB/TMDB/TVDB) that matches any Jellyfin item. Ensure metadata is fetched for both libraries.
+- **SSE progress not updating** - Some browsers/proxies may buffer Server-Sent Events. The import still runs server-side; refresh the page to see results.
 
 ## Use Cases
 
@@ -103,6 +179,7 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 - Browse the Viewer Ratings page to see what family members are watching and enjoying
 - Check ratings before picking your next movie night selection
 - See trending content based on recent ratings
+- Import ratings from a shared Plex server
 
 **Friend Group**
 - Discover highly-rated content through the sorted "All Rated Items" view
@@ -110,6 +187,9 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 - Compare opinions: "Dad rated Breaking Bad 5 stars, Mom gave it 3 stars"
 - Share detailed thoughts with optional rating notes
 
+**Plex Migrant**
+- Import your existing Plex ratings when moving to Jellyfin
+- Set up auto-sync to keep both servers in sync during a transition period
 
 ## License
 
