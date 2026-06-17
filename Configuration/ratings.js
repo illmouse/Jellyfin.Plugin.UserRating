@@ -322,6 +322,7 @@
                 flex: unset;
                 width: 100%;
                 text-align: center;
+                padding: 8px 22px;
             }
             .rating-note-input {
                 min-height: 80px;
