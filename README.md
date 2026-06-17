@@ -31,6 +31,9 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 ### Plex Import Progress
 <img src="screenshots/plex_import_progress.png" alt="Plex Import Progress" width="800">
 
+### Plex Scheduled Sync
+<img src="screenshots/plex_scheduled_sync.png" alt="Plex Scheduled Sync" width="800">
+
 ---
 
 ## Features
