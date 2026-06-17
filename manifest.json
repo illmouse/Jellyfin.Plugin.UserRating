@@ -13,16 +13,8 @@
         "changelog": "Release 1.7.35",
         "targetAbi": "10.9.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.35/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "6d7924ab961ab4f227aff637335fe074",
-        "timestamp": "2026-06-17T09:41:15Z"
-      },
-      {
-        "version": "1.7.34.0",
-        "changelog": "Rating dialog collapse/expand with mobile responsive layout",
-        "targetAbi": "10.9.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.7.34/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "077369125473373e5dd4284df81038b4",
-        "timestamp": "2026-06-17T09:09:24Z"
+        "checksum": "5bee57095a03bf63bd27e069f9233230",
+        "timestamp": "2026-06-17T09:47:11Z"
       }
     ]
   }
