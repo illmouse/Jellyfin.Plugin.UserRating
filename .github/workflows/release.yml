@@ -72,8 +72,10 @@ jobs:
         sudo apt-get install -y jq
 
         # Extract changelog for this version
+        # Strip trailing .0 (fourth octet) so v1.10.0.0 matches ## v1.10.0 in CHANGELOG
+        CHANGELOG_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
         if [ -f CHANGELOG.md ]; then
-          CHANGELOG_TEXT=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md | head -c 500 | tr '\n' ' ' | sed 's/"/\\"/g')
+          CHANGELOG_TEXT=$(awk "/^## v${CHANGELOG_VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md | head -c 500 | tr '\n' ' ' | sed 's/"/\\"/g')
         else
           CHANGELOG_TEXT="Release $VERSION"
         fi
@@ -130,9 +132,10 @@ jobs:
         CHECKSUM=${{ steps.checksum.outputs.checksum }}
 
         # Extract the section for this version from CHANGELOG.md
-        # We're on main here, so CHANGELOG.md should exist
+        # Strip trailing .0 (fourth octet) so v1.10.0.0 matches ## v1.10.0 in CHANGELOG
+        CHANGELOG_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
         if [ -f CHANGELOG.md ]; then
-          CHANGELOG=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
+          CHANGELOG=$(awk "/^## v${CHANGELOG_VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
         else
           CHANGELOG=""
         fi
