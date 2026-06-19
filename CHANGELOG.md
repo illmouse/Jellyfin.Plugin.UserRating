@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.10.0.1
+
+Middleware-based script injection — works in all Jellyfin deployment modes (root, non-root, Docker).
+
+### Fixed
+
+- **Script Injection in Docker Containers** — Replaced the file-write approach (broken when `index.html` is owned by `root:root` in Jellyfin 10.11 containers) with ASP.NET `ScriptInjectionMiddleware` that injects the `<script>` tag in-memory before `</body>`. No file permissions needed, no disk writes.
+- **Content Encoding Error** — Removes `Accept-Encoding` header on index.html requests so the middleware receives uncompressed HTML instead of gzip/brotli. Prevents "Content Encoding Error" in browsers.
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| `IStartupFilter`-based middleware registration | Wraps the ASP.NET pipeline — our middleware runs outermost, intercepting responses after all other processing |
+| Strip `Accept-Encoding` before `_next` | Prevents compression middleware from gzip-wrapping the response, which would make the HTML injection unreadable |
+
+---
+
 ## v1.10.0
 
 Provider ID resolution, self-healing ratings, database health checks, and automatic backups.
