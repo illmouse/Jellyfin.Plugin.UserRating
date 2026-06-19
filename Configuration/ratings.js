@@ -1177,9 +1177,8 @@
                 const details = item.details;
                 const imageId = details.Type === 'Episode' && details.SeriesId ? details.SeriesId : item.itemId;
                 const imageUrl = ApiClient.getImageUrl(imageId, {
-                    type: 'Thumb',
-                    fillWidth: 426,
-                    fillHeight: 240,
+                    type: 'Primary',
+                    maxWidth: 500,
                     quality: 96
                 });
 
@@ -1217,9 +1216,8 @@
             const buildUnratedGrid = (items) => items.map(item => {
                 const serverId = ApiClient.serverId();
                 const imageUrl = ApiClient.getImageUrl(item.itemId, {
-                    type: 'Thumb',
-                    fillWidth: 426,
-                    fillHeight: 240,
+                    type: 'Primary',
+                    maxWidth: 500,
                     quality: 96
                 });
                 const title = item.name || 'Unknown';
@@ -1399,40 +1397,60 @@
                 renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid);
             }
             
-            // Fetch unrated items asynchronously (non-blocking)
-            fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
-                headers: { 'X-Emby-Token': ApiClient.accessToken() }
-            }).then(r => r.ok ? r.json() : null).then(unratedData => {
-                if (!unratedData || !unratedData.items) return;
-                const unratedItems = unratedData.items;
-                let unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
-                let unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
-                
+            // Fetch unrated items via Jellyfin's fast /Items API (client-side filtering)
+            const userId = ApiClient.getCurrentUserId();
+            const accessToken = ApiClient.accessToken();
+
+            async function fetchUnratedType(itemType) {
+                try {
+                    const url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&IsPlayed=true&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio&Limit=24&SortBy=SortName&SortOrder=Ascending`);
+                    const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
+                    if (!resp.ok) return [];
+                    const data = await resp.json();
+                    if (!data.Items) return [];
+                    // Filter out items the user has already rated
+                    const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.toLowerCase()));
+                    return data.Items.filter(item => !ratedIds.has(item.Id.toLowerCase()));
+                } catch (e) {
+                    console.error('[UserRatings] Error fetching unrated items:', e);
+                    return [];
+                }
+            }
+
+            Promise.all([fetchUnratedType('Movie'), fetchUnratedType('Series')]).then(([unratedMoviesList, unratedSeriesList]) => {
                 const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
-                        sortItems(unratedMoviesList, 'rating-desc');
-                        renderPaginatedSection(unratedMoviesSection, unratedMoviesList, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
+                        const mapped = unratedMoviesList.map(item => ({
+                            itemId: item.Id,
+                            name: item.Name,
+                            type: 'Movie',
+                            averageRating: 0,
+                            totalRatings: 0
+                        }));
+                        sortItems(mapped, 'rating-desc');
+                        renderPaginatedSection(unratedMoviesSection, mapped, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedMoviesSection.innerHTML = '';
                     }
                 }
-                
+
                 const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
                 if (unratedSeriesSection) {
                     if (unratedSeriesList.length > 0) {
-                        sortItems(unratedSeriesList, 'rating-desc');
-                        renderPaginatedSection(unratedSeriesSection, unratedSeriesList, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
+                        const mapped = unratedSeriesList.map(item => ({
+                            itemId: item.Id,
+                            name: item.Name,
+                            type: 'Series',
+                            averageRating: 0,
+                            totalRatings: 0
+                        }));
+                        sortItems(mapped, 'rating-desc');
+                        renderPaginatedSection(unratedSeriesSection, mapped, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedSeriesSection.innerHTML = '';
                     }
                 }
-            }).catch(e => {
-                console.error('[UserRatings] Error loading unrated watched items:', e);
-                const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
-                const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
-                if (unratedMoviesSection) unratedMoviesSection.innerHTML = '';
-                if (unratedSeriesSection) unratedSeriesSection.innerHTML = '';
             });
 
         } catch (error) {
