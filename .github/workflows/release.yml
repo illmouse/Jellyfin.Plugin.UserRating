@@ -111,7 +111,7 @@ jobs:
         git push origin main
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: bin/Release/net9.0/Jellyfin.Plugin.UserRatings.zip
         body: |
