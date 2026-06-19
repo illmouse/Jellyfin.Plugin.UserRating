@@ -1453,7 +1453,7 @@
             // Always add placeholders for unrated sections and all items
             sectionsHTML += '<div id="allItemsSection"></div>';
             sectionsHTML += '<div id="unratedMoviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched movies...</div></div>';
-            sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched shows...</div></div>';
+            sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading watched shows...<br><span style="font-size: 0.85em; opacity: 0.7;">This may take a few seconds</span></div></div>';
             
             // Display the page immediately
             ratingsTabContent.innerHTML = sectionsHTML;
