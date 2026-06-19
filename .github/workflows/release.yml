@@ -116,8 +116,12 @@ jobs:
         CHECKSUM=${{ steps.checksum.outputs.checksum }}
 
         # Extract the section for this version from CHANGELOG.md
-        # Sections start with "## vX.Y.Z" and end at the next "## v" or "---"
-        CHANGELOG=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
+        # We're on main here, so CHANGELOG.md should exist
+        if [ -f CHANGELOG.md ]; then
+          CHANGELOG=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
+        else
+          CHANGELOG=""
+        fi
 
         # Build release body
         {
