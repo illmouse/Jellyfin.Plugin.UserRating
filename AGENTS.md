@@ -10,6 +10,7 @@
     - Patch bump for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
     - Minor bump for new features (e.g., 1.10.0 → 1.11.0)
   - Never overwrite or move existing git tags — always create a new tag for the new version
+  - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
 
 ## Build & Test
