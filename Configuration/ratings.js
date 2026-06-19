@@ -340,32 +340,6 @@
                 padding: 0.75em;
             }
         }
-        #ratingsTab .card.backdropCard {
-            width: 100% !important;
-            max-width: none !important;
-        }
-        #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
-            flex: 0 0 calc(25% - 0.9%) !important;
-            max-width: calc(25% - 0.9%) !important;
-        }
-        @media (max-width: 1200px) {
-            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
-                flex: 0 0 calc(33.33% - 0.9%) !important;
-                max-width: calc(33.33% - 0.9%) !important;
-            }
-        }
-        @media (max-width: 800px) {
-            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
-                flex: 0 0 calc(50% - 0.9%) !important;
-                max-width: calc(50% - 0.9%) !important;
-            }
-        }
-        @media (max-width: 500px) {
-            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
-                flex: 0 0 100% !important;
-                max-width: 100% !important;
-            }
-        }
     `;
     document.head.appendChild(style);
 
@@ -1154,48 +1128,20 @@
                 return;
             }
 
-            // Enrich items missing server-side metadata with individual lookups
-            const itemsNeedingDetails = items.filter(item => !item.name);
-            let detailMap = {};
-            if (itemsNeedingDetails.length > 0) {
-                const detailPromises = itemsNeedingDetails.map(async (item) => {
-                    try {
-                        const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), item.itemId);
-                        return { itemId: item.itemId, details: itemDetails };
-                    } catch (error) {
-                        console.error('[UserRatings] Error loading item details:', error);
-                        return null;
-                    }
-                });
-                const detailResults = (await Promise.all(detailPromises)).filter(r => r !== null);
-                detailMap = Object.fromEntries(detailResults.map(r => [r.itemId, r.details]));
-            }
-
-            const itemsWithDetails = items.map(item => {
-                if (item.name) {
-                    return {
-                        ...item,
-                        lastRatedTimestamp: item.lastRated || 0,
-                        details: {
-                            Name: item.name,
-                            Type: item.type,
-                            SeriesId: item.seriesId,
-                            Id: item.itemId
-                        }
-                    };
+            // Build items with details from server-provided metadata only
+            // No per-item API calls — items without name are filtered out (deleted from library)
+            const itemsWithDetails = items.filter(item => item.name).map(item => ({
+                ...item,
+                lastRatedTimestamp: item.lastRated || 0,
+                details: {
+                    Name: item.name,
+                    Type: item.type,
+                    SeriesId: item.seriesId,
+                    Id: item.itemId
                 }
-                const details = detailMap[item.itemId];
-                if (details) {
-                    return {
-                        ...item,
-                        lastRatedTimestamp: item.lastRated || 0,
-                        details
-                    };
-                }
-                return null;
-            }).filter(item => item !== null);
+            }));
 
-            if (itemsWithDetails.length === 0) {
+            if (itemsWithDetails.length === 0 && items.length > 0) {
                 ratingsTabContent.innerHTML = `
                     <div style="padding: 4em 2em; text-align: center;">
                         <div style="font-size: 1.2em; color: rgba(255, 255, 255, 0.6);">Could not load item details</div>
@@ -1204,13 +1150,25 @@
                 return;
             }
 
-            // Get plugin configuration
+            // Parallelize: fetch config and unrated items at the same time as building sections
+            const [configResult, unratedResult] = await Promise.allSettled([
+                ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e').catch(() => null),
+                fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(r => r.ok ? r.json() : null).catch(() => null)
+            ]);
+
             let recentItemsLimit = 10;
-            try {
-                const pluginConfig = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
-                recentItemsLimit = pluginConfig.RecentlyRatedItemsCount || 10;
-            } catch (error) {
-                // Use default limit of 10
+            if (configResult.status === 'fulfilled' && configResult.value) {
+                recentItemsLimit = configResult.value.RecentlyRatedItemsCount || 10;
+            }
+
+            let unratedMoviesList = [];
+            let unratedSeriesList = [];
+            if (unratedResult.status === 'fulfilled' && unratedResult.value) {
+                const unratedItems = unratedResult.value.items || [];
+                unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
+                unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
             }
 
             // Categorize items by type
@@ -1224,35 +1182,13 @@
             series.sort(sortByRecent);
             episodes.sort(sortByRecent);
             
-            // Slice to show only configured number of recent items
             const recentMovies = movies.slice(0, recentItemsLimit);
             const recentSeries = series.slice(0, recentItemsLimit);
             const recentEpisodes = episodes.slice(0, recentItemsLimit);
 
-            // Fetch watched but unrated items
-            let unratedMoviesList = [];
-            let unratedSeriesList = [];
-            try {
-                const unratedResponse = await fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
-                    headers: {
-                        'X-Emby-Token': ApiClient.accessToken()
-                    }
-                });
-                if (unratedResponse.ok) {
-                    const unratedData = await unratedResponse.json();
-                    const unratedItems = unratedData.items || [];
-                    unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
-                    unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
-                }
-            } catch (e) {
-                console.error('[UserRatings] Error loading unrated watched items:', e);
-            }
-
-            // Function to build the ratings grid HTML for a category
+            // Function to build the ratings grid HTML for a category (backdrop cards in vertical-wrap)
             const buildCategoryGrid = (items) => items.map(item => {
                 const details = item.details;
-                
-                // For episodes, use the series thumbnail instead
                 const imageId = details.Type === 'Episode' && details.SeriesId ? details.SeriesId : item.itemId;
                 const imageUrl = ApiClient.getImageUrl(imageId, {
                     type: 'Primary',
@@ -1290,7 +1226,7 @@
                 `;
             }).join('');
 
-            // Function to build unrated item cards (backdrop style, no rating badge)
+            // Function to build unrated item cards (backdrop cards with "Unrated" badge)
             const buildUnratedGrid = (items) => items.map(item => {
                 const serverId = ApiClient.serverId();
                 const imageUrl = ApiClient.getImageUrl(item.itemId, {
@@ -1323,7 +1259,7 @@
                 `;
             }).join('');
 
-            // Build sections HTML matching native Jellyfin structure with explicit spacing
+            // Build sections HTML matching native Jellyfin structure
             let sectionsHTML = '<div class="readOnlyContent" style="padding-top: 4em;">';
             
             if (recentMovies.length > 0) {
@@ -1332,7 +1268,7 @@
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
                             <h2 class="sectionTitle sectionTitle-cards">Recently Rated Movies</h2>
                         </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${buildCategoryGrid(recentMovies)}
                         </div>
                     </div>
@@ -1345,7 +1281,7 @@
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
                             <h2 class="sectionTitle sectionTitle-cards">Recently Rated Shows</h2>
                         </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${buildCategoryGrid(recentSeries)}
                         </div>
                     </div>
@@ -1358,34 +1294,8 @@
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
                             <h2 class="sectionTitle sectionTitle-cards">Recently Rated Episodes</h2>
                         </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${buildCategoryGrid(recentEpisodes)}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Add watched but unrated sections
-            if (unratedMoviesList.length > 0) {
-                sectionsHTML += `
-                    <div class="verticalSection">
-                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Watched Movies — Not Yet Rated</h2>
-                        </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
-                            ${buildUnratedGrid(unratedMoviesList)}
-                        </div>
-                    </div>
-                `;
-            }
-            if (unratedSeriesList.length > 0) {
-                sectionsHTML += `
-                    <div class="verticalSection">
-                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Watched Shows — Not Yet Rated</h2>
-                        </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
-                            ${buildUnratedGrid(unratedSeriesList)}
                         </div>
                     </div>
                 `;
@@ -1399,67 +1309,34 @@
             let currentSort = 'rating-desc';
             let allItems = [...itemsWithDetails];
             
-            const renderAllItemsSection = (page, sortBy) => {
-                // Sort items
-                switch(sortBy) {
-                    case 'rating-desc':
-                        allItems.sort((a, b) => b.averageRating - a.averageRating);
-                        break;
-                    case 'rating-asc':
-                        allItems.sort((a, b) => a.averageRating - b.averageRating);
-                        break;
-                    case 'recent':
-                        allItems.sort((a, b) => (b.lastRatedTimestamp || 0) - (a.lastRatedTimestamp || 0));
-                        break;
-                    case 'oldest':
-                        allItems.sort((a, b) => (a.lastRatedTimestamp || 0) - (b.lastRatedTimestamp || 0));
-                        break;
-                    case 'title-asc':
-                        allItems.sort((a, b) => (a.details.Name || '').localeCompare(b.details.Name || ''));
-                        break;
-                    case 'title-desc':
-                        allItems.sort((a, b) => (b.details.Name || '').localeCompare(a.details.Name || ''));
-                        break;
-                    case 'count-desc':
-                        allItems.sort((a, b) => b.totalRatings - a.totalRatings);
-                        break;
-                    case 'count-asc':
-                        allItems.sort((a, b) => a.totalRatings - b.totalRatings);
-                        break;
-                }
-                
-                // Pagination
+            const renderPaginatedSection = (container, items, page, sortBy, title, gridBuilder) => {
+                const totalPages = Math.ceil(items.length / itemsPerPage);
                 const startIndex = (page - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
-                const paginatedItems = allItems.slice(startIndex, endIndex);
-                const totalPages = Math.ceil(allItems.length / itemsPerPage);
-                
-                const allItemsSection = document.querySelector('#allItemsSection');
-                if (!allItemsSection) return;
-                
+                const paginatedItems = items.slice(startIndex, endIndex);
                 const startItem = startIndex + 1;
-                const endItem = Math.min(endIndex, allItems.length);
+                const endItem = Math.min(endIndex, items.length);
                 
-                allItemsSection.innerHTML = `
+                container.innerHTML = `
                     <div class="verticalSection">
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">All Rated Items</h2>
+                            <h2 class="sectionTitle sectionTitle-cards">${title}</h2>
                         </div>
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
                                 <div class="listPaging">
-                                    <span style="vertical-align:middle;">${startItem}-${endItem} of ${allItems.length}</span>
+                                    <span style="vertical-align:middle;">${startItem}-${endItem} of ${items.length}</span>
                                     <div style="display:inline-block;">
-                                        <button is="paper-icon-button-light" id="prevPage" class="btnPreviousPage autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
+                                        <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                             <span class="material-icons arrow_back" aria-hidden="true"></span>
                                         </button>
-                                        <button is="paper-icon-button-light" id="nextPage" class="btnNextPage autoSize paper-icon-button-light" ${page === totalPages ? 'disabled' : ''}>
+                                        <button is="paper-icon-button-light" class="nextPageBtn autoSize paper-icon-button-light" ${page === totalPages ? 'disabled' : ''}>
                                             <span class="material-icons arrow_forward" aria-hidden="true"></span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <select is="emby-select" id="sortSelect" class="emby-select-withcolor emby-select" style="width: auto;">
+                            <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
                                 <option value="rating-desc" ${sortBy === 'rating-desc' ? 'selected' : ''}>Rating: High to Low</option>
                                 <option value="rating-asc" ${sortBy === 'rating-asc' ? 'selected' : ''}>Rating: Low to High</option>
                                 <option value="title-asc" ${sortBy === 'title-asc' ? 'selected' : ''}>Title: A-Z</option>
@@ -1470,58 +1347,93 @@
                                 <option value="count-asc" ${sortBy === 'count-asc' ? 'selected' : ''}>Least Ratings</option>
                             </select>
                         </div>
-                        <div is="emby-itemscontainer" class="itemsContainer vertical-wrap padded-left padded-right">
-                            ${buildCategoryGrid(paginatedItems)}
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
+                            ${gridBuilder(paginatedItems)}
                         </div>
                     </div>
                 `;
                 
-                // Add event listeners
-                const sortSelect = document.querySelector('#sortSelect');
+                const sortSelect = container.querySelector('.sortSelect');
                 if (sortSelect) {
                     sortSelect.addEventListener('change', (e) => {
-                        currentSort = e.target.value;
-                        currentPage = 1;
-                        renderAllItemsSection(currentPage, currentSort);
+                        const newSort = e.target.value;
+                        sortItems(items, newSort);
+                        renderPaginatedSection(container, items, 1, newSort, title, gridBuilder);
+                        container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
                 
-                const prevBtn = document.querySelector('#prevPage');
+                const prevBtn = container.querySelector('.prevPageBtn');
                 if (prevBtn && !prevBtn.disabled) {
                     prevBtn.addEventListener('click', () => {
-                        currentPage--;
-                        renderAllItemsSection(currentPage, currentSort);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        renderPaginatedSection(container, items, page - 1, sortBy, title, gridBuilder);
+                        container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
                 
-                const nextBtn = document.querySelector('#nextPage');
+                const nextBtn = container.querySelector('.nextPageBtn');
                 if (nextBtn && !nextBtn.disabled) {
                     nextBtn.addEventListener('click', () => {
-                        currentPage++;
-                        renderAllItemsSection(currentPage, currentSort);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        renderPaginatedSection(container, items, page + 1, sortBy, title, gridBuilder);
+                        container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
             };
             
-            sectionsHTML += '<div id="allItemsSection"></div></div>';
+            const getItemName = (item) => item.details ? (item.details.Name || '') : (item.name || '');
+            const sortItems = (items, sortBy) => {
+                switch(sortBy) {
+                    case 'rating-desc': items.sort((a, b) => b.averageRating - a.averageRating); break;
+                    case 'rating-asc': items.sort((a, b) => a.averageRating - b.averageRating); break;
+                    case 'recent': items.sort((a, b) => (b.lastRatedTimestamp || 0) - (a.lastRatedTimestamp || 0)); break;
+                    case 'oldest': items.sort((a, b) => (a.lastRatedTimestamp || 0) - (b.lastRatedTimestamp || 0)); break;
+                    case 'title-asc': items.sort((a, b) => getItemName(a).localeCompare(getItemName(b))); break;
+                    case 'title-desc': items.sort((a, b) => getItemName(b).localeCompare(getItemName(a))); break;
+                    case 'count-desc': items.sort((a, b) => b.totalRatings - a.totalRatings); break;
+                    case 'count-asc': items.sort((a, b) => a.totalRatings - b.totalRatings); break;
+                }
+            };
+            
+            sortItems(allItems, currentSort);
+            
+            // Add "All Rated Items" section placeholder
+            sectionsHTML += '<div id="allItemsSection"></div>';
+            
+            // Add "Watched Movies — Not Yet Rated" section placeholder
+            if (unratedMoviesList.length > 0) {
+                sectionsHTML += '<div id="unratedMoviesSection"></div>';
+            }
+            
+            // Add "Watched Shows — Not Yet Rated" section placeholder
+            if (unratedSeriesList.length > 0) {
+                sectionsHTML += '<div id="unratedSeriesSection"></div>';
+            }
+            
+            sectionsHTML += '</div>';
             
             // Display the categorized grid
             ratingsTabContent.innerHTML = sectionsHTML;
-            ratingsTabContent.style.pointerEvents = 'auto'; // Ensure clicks work
+            ratingsTabContent.style.pointerEvents = 'auto';
             
-            // Render the "All Items" section
-            renderAllItemsSection(currentPage, currentSort);
+            // Render "All Rated Items" section
+            const allItemsSection = document.querySelector('#allItemsSection');
+            if (allItemsSection) {
+                renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid);
+            }
             
-            // Add click handlers to cards
-            ratingsTabContent.querySelectorAll('.card[data-item-id]').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    const itemId = card.getAttribute('data-item-id');
-                    const serverId = ApiClient.serverId();
-                    window.location.hash = `#/details?id=${itemId}&serverId=${serverId}`;
-                });
-            });
+            // Render "Watched Movies — Not Yet Rated" section with pagination
+            const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
+            if (unratedMoviesSection) {
+                sortItems(unratedMoviesList, 'rating-desc');
+                renderPaginatedSection(unratedMoviesSection, unratedMoviesList, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
+            }
+            
+            // Render "Watched Shows — Not Yet Rated" section with pagination
+            const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
+            if (unratedSeriesSection) {
+                sortItems(unratedSeriesList, 'rating-desc');
+                renderPaginatedSection(unratedSeriesSection, unratedSeriesList, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
+            }
 
         } catch (error) {
             console.error('[UserRatings] Error displaying ratings list:', error);
