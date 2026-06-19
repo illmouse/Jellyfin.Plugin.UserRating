@@ -76,10 +76,10 @@ namespace Jellyfin.Plugin.UserRatings.Services
                     var matched = TryResolveByProviderIds(rating.ProviderIds);
                     if (matched != null)
                     {
-                        report.Healed++;
-
                         if (heal)
                         {
+                            report.Healed++;
+
                             _logger.LogInformation(
                                 "Healed rating: {OldItemId} → {NewItemId} for user {UserId}",
                                 rating.ItemId, matched.Id, rating.UserId);
@@ -92,6 +92,10 @@ namespace Jellyfin.Plugin.UserRatings.Services
                                 healedRating.ProviderIds = new Dictionary<string, string>(matched.ProviderIds);
                                 _repository.SaveRating(healedRating);
                             }
+                        }
+                        else
+                        {
+                            report.Recoverable++;
                         }
 
                         continue;
@@ -111,8 +115,8 @@ namespace Jellyfin.Plugin.UserRatings.Services
             }
 
             _logger.LogInformation(
-                "Health check complete: {Ok} ok, {Healed} healed, {Stale} stale (heal={Heal})",
-                report.Ok, report.Healed, report.Stale, heal);
+                "Health check complete: {Ok} ok, {Recoverable} recoverable, {Healed} healed, {Updated} updated, {Stale} stale (heal={Heal})",
+                report.Ok, report.Recoverable, report.Healed, report.Updated, report.Stale, heal);
 
             return report;
         }

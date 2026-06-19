@@ -35,6 +35,7 @@ namespace Jellyfin.Plugin.UserRatings.Models
     public class HealthReport
     {
         public int Ok { get; set; }
+        public int Recoverable { get; set; }
         public int Healed { get; set; }
         public int Updated { get; set; }
         public int Stale { get; set; }

@@ -30,6 +30,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 {
                     success = true,
                     ok = report.Ok,
+                    recoverable = report.Recoverable,
                     healed = report.Healed,
                     updated = report.Updated,
                     stale = report.Stale,
@@ -61,6 +62,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 {
                     success = true,
                     ok = report.Ok,
+                    recoverable = report.Recoverable,
                     healed = report.Healed,
                     updated = report.Updated,
                     stale = report.Stale,
