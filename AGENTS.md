@@ -2,6 +2,7 @@
 
 ## Rules
 
+- Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes
 - Always ask before committing and pushing changes
 - Always bump the version number when making changes:
   - Bump the third octet (patch) for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
