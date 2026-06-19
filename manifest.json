@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.10.5.0",
+        "changelog": "Release 1.10.5",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.5/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "aa8895f6f3cbab6f749608e505f9c655",
+        "timestamp": "2026-06-19T08:58:07Z"
+      },
+      {
         "version": "1.10.4.0",
         "changelog": "Release 1.10.4",
         "targetAbi": "10.11.0.0",
