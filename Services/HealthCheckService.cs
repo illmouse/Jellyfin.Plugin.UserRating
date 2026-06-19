@@ -27,6 +27,7 @@ namespace Jellyfin.Plugin.UserRatings.Services
 
         public HealthReport RunHealthCheck(bool heal = false)
         {
+            _repository.Reload();
             var report = new HealthReport();
             var allRatings = _repository.GetAllRatings();
 

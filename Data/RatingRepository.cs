@@ -21,6 +21,11 @@ namespace Jellyfin.Plugin.UserRatings.Data
             LoadRatings();
         }
 
+        public void Reload()
+        {
+            LoadRatings();
+        }
+
         private void LoadRatings()
         {
             lock (_lock)
