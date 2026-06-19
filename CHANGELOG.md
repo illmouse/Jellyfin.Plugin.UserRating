@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.10.0
+
+Provider ID resolution, self-healing ratings, database health checks, and automatic backups.
+
+### New Features
+
+- **Provider ID Resolution** — Ratings are now matched by ItemId first, then by provider IDs (IMDB, TMDB, TVDB, etc.). If an item's ID changes in Jellyfin, ratings are automatically re-linked via provider IDs.
+- **Self-Healing Ratings** — When a rating's ItemId no longer matches a library item, the system searches by provider IDs and re-keys the rating to the correct item. Healing runs automatically on all read endpoints and via a scheduled task.
+- **Database Health Check** — New admin section to check database consistency. Reports OK, Recoverable (can be healed), Updated (provider IDs backfilled), and Stale (no match by any ID) counts.
+- **Heal & Clear Stale** — One-click "Heal Database" button to fix all recoverable ratings. "Clear Stale" button in the Danger Zone to remove orphaned ratings that match no library item.
+- **Automatic Backups** — Scheduled backups of the ratings JSON file with configurable interval (default 24h), configurable retention (default 7 backups), and configurable backup directory. Manual "Create Backup Now" button also available.
+- **Fail-Safe Loading** — If a single rating entry is malformed (e.g., corrupted GUID), it is logged and skipped instead of breaking the entire database. Corrupted files are automatically backed up before starting fresh.
+- **Save Guard** — If loading fails and the in-memory database is empty, saves are blocked to prevent overwriting the file with no data.
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| Per-entry JSON deserialization | One malformed entry should not destroy all ratings — skip and log instead |
+| `ProviderIds` dictionary on `UserRating` | Mirrors Jellyfin's `BaseItem.ProviderIds` — flexible, no schema changes for new providers |
+| Linear scan for provider ID fallback | Acceptable for typical DB sizes (hundreds/thousands); can add secondary index later if needed |
+| Separate Recoverable/Healed counts | Check reports what *can* be fixed; Heal reports what *was* fixed — avoids confusion |
+| Backup path configurable | Users may want backups on a different drive or network share |
+| `_loadFailed` flag blocks saves | Prevents catastrophic data loss: empty DB + save = all data gone |
+
+---
+
 ## v1.9.0
 
 Unrated watched items browser, smart image fallbacks, type filters, independent section loading, and CI/release improvements.

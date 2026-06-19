@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Jellyfin 10.11.0+](https://img.shields.io/badge/Jellyfin-10.11.0%2B-blue)](https://jellyfin.org/)
 
-A social rating system for Jellyfin that lets users rate movies, TV shows, and episodes, then browse and discover what other users on the server think. Includes Plex rating import with scheduled auto-sync.
+A social rating system for Jellyfin that lets users rate movies, TV shows, and episodes, then browse and discover what other users on the server think. Includes Plex rating import with scheduled auto-sync, provider ID-based self-healing, database health checks, and automatic backups.
 
 > **Note:** Currently supports **web UI only**.
 
@@ -34,14 +34,20 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 ### Mobile Support
 <img src="screenshots/mobile_app.png" alt="Mobile Interface" width="400">
 
+### Database Health Check
+<img src="screenshots/settings_db_health.png" alt="Database Health Check" width="800">
+
+### Database Backup
+<img src="screenshots/settings_db_backup.png" alt="Database Backup Settings" width="800">
+
 ### Plex Import Settings
-<img src="screenshots/plex_import settings.png" alt="Plex Import Settings" width="800">
+<img src="screenshots/settings_plex_import.png" alt="Plex Import Settings" width="800">
 
 ### Plex Import Progress
-<img src="screenshots/plex_import_progress.png" alt="Plex Import Progress" width="800">
+<img src="screenshots/settings_plex_import_progress.png" alt="Plex Import Progress" width="800">
 
 ### Plex Scheduled Sync
-<img src="screenshots/plex_scheduled_sync.png" alt="Plex Scheduled Sync" width="800">
+<img src="screenshots/settings_plex_scheduled_sync.png" alt="Plex Scheduled Sync" width="800">
 
 ---
 
@@ -63,6 +69,11 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
   - 🖼️ Native Jellyfin card styling with clickable navigation
   - 🖼️ Smart image fallback: Thumb → Backdrop → Primary (always shows something)
   - ⚡ Independent section loading — Movies render instantly without waiting for Series
+- 🔗 **Provider ID Resolution** — Ratings are matched by ItemId first, then by IMDB/TMDB/TVDB provider IDs
+- 🩹 **Self-Healing Ratings** — Stale ItemIds are automatically re-keyed when provider IDs match a library item
+- 🏥 **Database Health Check** — Check, heal, and clear stale ratings from the admin page
+- 💾 **Automatic Backups** — Scheduled backups with rotation (configurable interval and retention)
+- 🛡️ **Fail-Safe Loading** — Malformed entries are skipped instead of breaking the entire database
 - 🌐 Web interface support (desktop & mobile browsers)
 - 🔄 **Plex Rating Import** - Import your existing Plex ratings into Jellyfin
   - 🔁 **Scheduled Auto-Sync** - Automatically sync ratings from Plex on a schedule
@@ -130,6 +141,28 @@ For Plex import, see [Plex Rating Import](#plex-rating-import) below.
 - **Recently Rated Items Count** (5-50, default: 10)
   - Controls how many items appear in each "Recently Rated" section (Movies, Shows, Episodes)
   - The "All Rated Items" section remains paginated at 24 items per page
+
+### Database Health
+
+Check and maintain the consistency of your ratings database.
+
+- **Check Database Health** — Scans all ratings and reports:
+  - **OK** — ItemId directly matches a library item
+  - **Recoverable** — ItemId is stale but provider IDs match a real item (can be healed)
+  - **Updated** — Provider IDs were backfilled or updated from the library
+  - **Stale** — No match by any ID (orphaned rating)
+- **Heal Database** — Fixes all recoverable ratings by re-keying them to the correct ItemId and updating provider IDs
+- **Clear Stale Ratings** (Danger Zone) — Permanently removes ratings that cannot be matched to any library item
+
+### Database Backup
+
+Automatically back up your ratings database on a schedule.
+
+- **Enable Automatic Backup** — Create timestamped JSON backups on a schedule (default: enabled)
+- **Backup Interval** — How often to create a backup (default: every 24 hours)
+- **Max Backups to Keep** — Number of backup files to retain; oldest are deleted automatically (default: 7)
+- **Backup Directory Path** — Where backups are stored (default: `/config/data/data/backups/UserRatings/`)
+- **Create Backup Now** — Manually trigger an immediate backup
 
 ### Plex Rating Import
 
