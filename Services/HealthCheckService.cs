@@ -47,10 +47,10 @@ namespace Jellyfin.Plugin.UserRatings.Services
                         }
                         else
                         {
-                            foreach (var kvp in item.ProviderIds)
+                            foreach (var pkv in item.ProviderIds)
                             {
-                                if (!rating.ProviderIds.TryGetValue(kvp.Key, out var existing)
-                                    || !string.Equals(existing, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                                if (!rating.ProviderIds.TryGetValue(pkv.Key, out var existing)
+                                    || !string.Equals(existing, pkv.Value, StringComparison.OrdinalIgnoreCase))
                                 {
                                     needsUpdate = true;
                                     break;
