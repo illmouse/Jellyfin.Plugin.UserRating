@@ -1474,9 +1474,8 @@
 
             async function fetchUnratedType(itemType, filterByPlayed) {
                 try {
-                    const fields = filterByPlayed
-                        ? 'PrimaryImageAspectRatio,UserData'
-                        : 'PrimaryImageAspectRatio,UserData';
+                    // ItemCounts needed for Series to check UnplayedItemCount/RecursiveItemCount
+                    const fields = 'PrimaryImageAspectRatio,UserData,ItemCounts';
                     const isPlayedParam = filterByPlayed ? '&IsPlayed=true' : '';
                     const limitParam = filterByPlayed ? '&Limit=24' : '&Limit=100';
                     const url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}${isPlayedParam}&Recursive=true&UserId=${userId}&Fields=${fields}${limitParam}&SortBy=DatePlayed&SortOrder=Descending`);
@@ -1487,9 +1486,15 @@
                     let items = data.Items;
                     // Filter by played status client-side when needed
                     if (!filterByPlayed) {
-                        // For Series: use PlayCount > 0 (user watched at least one episode)
-                        // rather than Played (requires ALL episodes to be watched)
-                        items = items.filter(item => item.UserData && (item.UserData.Played || (item.UserData.PlayCount > 0)));
+                        // For Series: user has watched at least one episode
+                        // (UnplayedItemCount < RecursiveItemCount) OR Played (all episodes)
+                        items = items.filter(item => {
+                            if (!item.UserData) return false;
+                            if (item.UserData.Played) return true;
+                            const recursive = item.RecursiveItemCount || 0;
+                            const unplayed = item.UserData.UnplayedItemCount;
+                            return recursive > 0 && unplayed !== undefined && unplayed < recursive;
+                        });
                     }
                     // Filter out items the user has already rated
                     const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.toLowerCase()));
