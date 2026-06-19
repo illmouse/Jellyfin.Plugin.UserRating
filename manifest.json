@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.10.0.1",
-        "changelog": "Fix script injection for Jellyfin 10.11 containers (middleware-based approach, no file writes)",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-19T00:00:00Z"
+        "checksum": "bb6d9ec184fb4562decc032c9f2ea26e",
+        "timestamp": "2026-06-19T15:53:02Z"
       },
       {
         "version": "1.10.0.0",
