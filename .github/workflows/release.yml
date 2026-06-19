@@ -37,8 +37,8 @@ jobs:
     - name: Update .csproj version
       run: |
         VERSION=${{ steps.version.outputs.version }}
-        sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>$VERSION.0<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
-        sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>$VERSION.0<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
+        sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>${VERSION}<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
+        sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>${VERSION}<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
 
     - name: Restore dependencies
       run: dotnet restore
@@ -80,7 +80,7 @@ jobs:
 
         # Build new version entry
         NEW_ENTRY=$(jq -n \
-          --arg ver "$VERSION.0" \
+          --arg ver "$VERSION" \
           --arg changelog "$CHANGELOG_TEXT" \
           --arg targetAbi "10.11.0.0" \
           --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip" \
@@ -96,7 +96,7 @@ jobs:
           }')
 
         # Prepend new version entry to existing manifest (deduplicate)
-        jq --argjson new "$NEW_ENTRY" --arg ver "$VERSION.0" '
+        jq --argjson new "$NEW_ENTRY" --arg ver "$VERSION" '
           if .[0].versions | any(.version == $ver) then
             .[0].versions = (.[0].versions | map(if .version == $ver then $new else . end))
           else
@@ -113,8 +113,8 @@ jobs:
         sed -i "s|https://raw.githubusercontent.com/[^/]*/[^/]*/main/manifest.json|https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json|g" README.md
 
         # Also update csproj on main
-        sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>$VERSION.0<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
-        sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>$VERSION.0<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
+        sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>${VERSION}<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
+        sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>${VERSION}<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
 
     - name: Commit and push version files
       run: |
