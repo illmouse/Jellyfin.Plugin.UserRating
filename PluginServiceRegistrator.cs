@@ -12,12 +12,14 @@ namespace Jellyfin.Plugin.UserRatings
         public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
         {
             serviceCollection.AddSingleton<RatingRepository>();
+            serviceCollection.AddSingleton<BackupService>();
             serviceCollection.AddSingleton<ProgressTracker>();
             serviceCollection.AddSingleton<PlexImportService>();
             serviceCollection.AddSingleton<RatingResolver>();
             serviceCollection.AddSingleton<HealthCheckService>();
             serviceCollection.AddSingleton<PlexSyncScheduledTask>();
             serviceCollection.AddSingleton<RatingsHealthTask>();
+            serviceCollection.AddSingleton<RatingsBackupTask>();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Common.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Data
 {
@@ -13,16 +14,20 @@ namespace Jellyfin.Plugin.UserRatings.Data
         private readonly string _dataPath;
         private Dictionary<string, UserRating> _ratings = new();
         private readonly object _lock = new object();
+        private readonly ILogger<RatingRepository> _logger;
+        private bool _loadFailed;
 
-        public RatingRepository(IApplicationPaths appPaths)
+        public RatingRepository(IApplicationPaths appPaths, ILogger<RatingRepository> logger)
         {
             _dataPath = Path.Combine(appPaths.PluginConfigurationsPath, "UserRatings", "ratings.json");
+            _logger = logger;
             Directory.CreateDirectory(Path.GetDirectoryName(_dataPath)!);
             LoadRatings();
         }
 
         public void Reload()
         {
+            _loadFailed = false;
             LoadRatings();
         }
 
@@ -32,21 +37,96 @@ namespace Jellyfin.Plugin.UserRatings.Data
             {
                 try
                 {
+                    if (!File.Exists(_dataPath))
+                    {
+                        _ratings = new Dictionary<string, UserRating>();
+                        _loadFailed = false;
+                        return;
+                    }
+
+                    var json = File.ReadAllText(_dataPath);
+                    var raw = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                    if (raw == null)
+                    {
+                        _ratings = new Dictionary<string, UserRating>();
+                        _loadFailed = false;
+                        return;
+                    }
+
+                    var loaded = new Dictionary<string, UserRating>();
+                    var skipped = 0;
+
+                    foreach (var kvp in raw)
+                    {
+                        try
+                        {
+                            var rating = kvp.Value.Deserialize<UserRating>();
+                            if (rating == null)
+                            {
+                                skipped++;
+                                _logger.LogWarning("Skipping null rating entry with key {Key}", kvp.Key);
+                                continue;
+                            }
+
+                            var expectedKey = $"{rating.ItemId}_{rating.UserId}";
+                            if (kvp.Key != expectedKey)
+                            {
+                                _logger.LogWarning(
+                                    "Key mismatch for rating entry: dictionary key {DictKey} does not match expected {ExpectedKey} (ItemId={ItemId}, UserId={UserId}). Re-keying under correct key.",
+                                    kvp.Key, expectedKey, rating.ItemId, rating.UserId);
+                            }
+
+                            loaded[expectedKey] = rating;
+                        }
+                        catch (JsonException ex)
+                        {
+                            skipped++;
+                            _logger.LogWarning(ex, "Skipping malformed rating entry with key {Key}", kvp.Key);
+                        }
+                    }
+
+                    _ratings = loaded;
+                    _loadFailed = false;
+
+                    if (skipped > 0)
+                    {
+                        _logger.LogWarning("Skipped {Skipped} malformed rating entries during load", skipped);
+                    }
+
+                    _logger.LogInformation("Loaded {Count} ratings from {Path}", _ratings.Count, _dataPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to load ratings from {Path}", _dataPath);
+
                     if (File.Exists(_dataPath))
                     {
-                        var json = File.ReadAllText(_dataPath);
-                        _ratings = JsonSerializer.Deserialize<Dictionary<string, UserRating>>(json) ?? new();
+                        try
+                        {
+                            var backup = _dataPath + ".corrupt." + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                            File.Copy(_dataPath, backup);
+                            _logger.LogInformation("Corrupted ratings file backed up to {BackupPath}", backup);
+                        }
+                        catch (Exception backupEx)
+                        {
+                            _logger.LogError(backupEx, "Failed to backup corrupted ratings file");
+                        }
                     }
-                }
-                catch (Exception)
-                {
+
                     _ratings = new Dictionary<string, UserRating>();
+                    _loadFailed = true;
                 }
             }
         }
 
         private void SaveRatings()
         {
+            if (_loadFailed && _ratings.Count == 0)
+            {
+                _logger.LogWarning("Skipping save: ratings file failed to load and no ratings in memory — would destroy data");
+                return;
+            }
+
             lock (_lock)
             {
                 try
@@ -54,14 +134,16 @@ namespace Jellyfin.Plugin.UserRatings.Data
                     var json = JsonSerializer.Serialize(_ratings, new JsonSerializerOptions { WriteIndented = true });
                     File.WriteAllText(_dataPath, json);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Log error
+                    _logger.LogError(ex, "Failed to save ratings to {Path}", _dataPath);
                 }
             }
         }
 
         private static string GetKey(Guid itemId, Guid userId) => $"{itemId}_{userId}";
+
+        public string GetDataPath() => _dataPath;
 
         public void SaveRating(UserRating rating)
         {
@@ -134,6 +216,7 @@ namespace Jellyfin.Plugin.UserRatings.Data
             lock (_lock)
             {
                 _ratings.Clear();
+                _loadFailed = false;
                 SaveRatings();
             }
         }
@@ -278,4 +361,3 @@ namespace Jellyfin.Plugin.UserRatings.Data
         }
     }
 }
-

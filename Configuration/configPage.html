@@ -21,7 +21,45 @@
                         <div class="fieldDescription">Number of items to display in each "Recently Rated" section (Movies, Shows, Episodes). Default is 10.</div>
                     </div>
 
+                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                    <h3>Database Backup</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                        Automatically back up the ratings database. Backups are stored as timestamped JSON files and rotated to keep only the most recent ones.
+                    </div>
 
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="enableAutoBackup">Enable Automatic Backup</label>
+                        <div style="display: flex; align-items: center; gap: 0.5em;">
+                            <input type="checkbox" id="enableAutoBackup" is="emby-checkbox" />
+                            <span>Automatically back up ratings on a schedule</span>
+                        </div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="backupIntervalHours">Backup Interval (hours)</label>
+                        <input type="number" id="backupIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
+                        <div class="fieldDescription">How often to create an automatic backup. Default is every 24 hours.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="maxBackups">Max Backups to Keep</label>
+                        <input type="number" id="maxBackups" is="emby-input" min="1" max="100" step="1" value="7" class="emby-input" />
+                        <div class="fieldDescription">Number of backup files to retain. Oldest backups are deleted when this limit is exceeded. Default is 7.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="backupPath">Backup Directory Path</label>
+                        <input type="text" id="backupPath" is="emby-input" class="emby-input" placeholder="/config/data/data/backups/UserRatings" />
+                        <div class="fieldDescription">Directory where backup files are stored. Leave empty to use the default path.</div>
+                    </div>
+
+                    <div style="margin-top: 1em;">
+                        <button type="button" id="btnBackupNow" is="emby-button" class="raised block" style="min-width: 200px;">
+                            <span>Create Backup Now</span>
+                        </button>
+                    </div>
+                    <div id="backupResult" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
+                </div>
 
                 <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
                     <h3>Plex Rating Import</h3>
@@ -183,6 +221,10 @@
                     document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
                     document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
                     document.getElementById('syncUserId').value = config.SyncUserId || '';
+                    document.getElementById('enableAutoBackup').checked = config.EnableAutoBackup !== false;
+                    document.getElementById('backupIntervalHours').value = config.BackupIntervalHours || 24;
+                    document.getElementById('maxBackups').value = config.MaxBackups || 7;
+                    document.getElementById('backupPath').value = config.BackupPath || '';
 
                     if (config.EncryptedPlexToken) {
                         document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
@@ -241,6 +283,10 @@
                     config.EnableAutoSync = document.getElementById('enableAutoSync').checked;
                     config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value) || 24;
                     config.SyncUserId = document.getElementById('syncUserId').value;
+                    config.EnableAutoBackup = document.getElementById('enableAutoBackup').checked;
+                    config.BackupIntervalHours = parseInt(document.getElementById('backupIntervalHours').value) || 24;
+                    config.MaxBackups = parseInt(document.getElementById('maxBackups').value) || 7;
+                    config.BackupPath = document.getElementById('backupPath').value.trim();
 
                     var tokenField = document.getElementById('plexToken');
                     if (tokenField.value) {
@@ -613,6 +659,29 @@
                     resultDiv.innerHTML = 'Error: ' + error.message;
                     resultDiv.style.backgroundColor = '#f44336';
                     resultDiv.style.color = 'white';
+                });
+            });
+
+            document.getElementById('btnBackupNow').addEventListener('click', function () {
+                var resultDiv = document.getElementById('backupResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Creating backup...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                fetch(ApiClient.getUrl('api/UserRatings/Backup'), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = result.message;
+                        resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Backup failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
         </script>

@@ -21,6 +21,14 @@ namespace Jellyfin.Plugin.UserRatings.Configuration
 
         public string SyncUserId { get; set; } = string.Empty;
 
+        public bool EnableAutoBackup { get; set; } = true;
+
+        public int BackupIntervalHours { get; set; } = 24;
+
+        public int MaxBackups { get; set; } = 7;
+
+        public string BackupPath { get; set; } = string.Empty;
+
         [System.Xml.Serialization.XmlIgnore]
         public string PlexToken
         {
