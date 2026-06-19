@@ -30,6 +30,9 @@ public class ScriptInjectionMiddleware
             return;
         }
 
+        // Disable compression so we get plain HTML we can modify
+        context.Request.Headers.Remove("Accept-Encoding");
+
         var originalBodyStream = context.Response.Body;
         using var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
@@ -61,6 +64,7 @@ public class ScriptInjectionMiddleware
             context.Response.Body = originalBodyStream;
             var bytes = Encoding.UTF8.GetBytes(originalContent);
             context.Response.ContentLength = bytes.Length;
+            context.Response.Headers.Remove("Content-Encoding");
             await originalBodyStream.WriteAsync(bytes).ConfigureAwait(false);
             return;
         }
@@ -70,6 +74,7 @@ public class ScriptInjectionMiddleware
 
         var modifiedBytes = Encoding.UTF8.GetBytes(modifiedContent);
         context.Response.ContentLength = modifiedBytes.Length;
+        context.Response.Headers.Remove("Content-Encoding");
         await originalBodyStream.WriteAsync(modifiedBytes).ConfigureAwait(false);
 
         _logger.LogInformation("Injected User Ratings script into index.html response");
@@ -77,13 +82,9 @@ public class ScriptInjectionMiddleware
 
     private static bool IsIndexHtmlRequest(string path)
     {
-        if (path.Length > 0 && path[0] == '/')
-        {
-            path = path.TrimEnd('/');
-        }
-
-        return string.Equals(path, "/web/index.html", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(path, "/web", StringComparison.OrdinalIgnoreCase);
+        var trimmed = path.TrimEnd('/');
+        return string.Equals(trimmed, "/web/index.html", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(trimmed, "/web", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string InjectScript(string html)
