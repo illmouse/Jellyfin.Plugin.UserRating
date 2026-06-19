@@ -1343,6 +1343,12 @@
                                 </div>
                             </div>
                             <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
+                                ${gridBuilder === buildUnratedGrid ? `
+                                <option value="watched-desc" ${sortBy === 'watched-desc' ? 'selected' : ''}>Last Watched</option>
+                                <option value="watched-asc" ${sortBy === 'watched-asc' ? 'selected' : ''}>Oldest Watched</option>
+                                <option value="title-asc" ${sortBy === 'title-asc' ? 'selected' : ''}>Title: A-Z</option>
+                                <option value="title-desc" ${sortBy === 'title-desc' ? 'selected' : ''}>Title: Z-A</option>
+                                ` : `
                                 <option value="rating-desc" ${sortBy === 'rating-desc' ? 'selected' : ''}>Rating: High to Low</option>
                                 <option value="rating-asc" ${sortBy === 'rating-asc' ? 'selected' : ''}>Rating: Low to High</option>
                                 <option value="title-asc" ${sortBy === 'title-asc' ? 'selected' : ''}>Title: A-Z</option>
@@ -1351,6 +1357,7 @@
                                 <option value="oldest" ${sortBy === 'oldest' ? 'selected' : ''}>Oldest Rated</option>
                                 <option value="count-desc" ${sortBy === 'count-desc' ? 'selected' : ''}>Most Ratings</option>
                                 <option value="count-asc" ${sortBy === 'count-asc' ? 'selected' : ''}>Least Ratings</option>
+                                `}
                             </select>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
@@ -1399,6 +1406,18 @@
                     case 'title-desc': items.sort((a, b) => getItemName(b).localeCompare(getItemName(a))); break;
                     case 'count-desc': items.sort((a, b) => b.totalRatings - a.totalRatings); break;
                     case 'count-asc': items.sort((a, b) => a.totalRatings - b.totalRatings); break;
+                    case 'watched-desc': items.sort((a, b) => {
+                        if (a.lastPlayedDate && b.lastPlayedDate) return b.lastPlayedDate.localeCompare(a.lastPlayedDate);
+                        if (a.lastPlayedDate) return -1;
+                        if (b.lastPlayedDate) return 1;
+                        return (a._sortOrder || 0) - (b._sortOrder || 0);
+                    }); break;
+                    case 'watched-asc': items.sort((a, b) => {
+                        if (a.lastPlayedDate && b.lastPlayedDate) return a.lastPlayedDate.localeCompare(b.lastPlayedDate);
+                        if (a.lastPlayedDate) return 1;
+                        if (b.lastPlayedDate) return -1;
+                        return (b._sortOrder || 0) - (a._sortOrder || 0);
+                    }); break;
                 }
             };
             
@@ -1428,14 +1447,12 @@
 
             async function fetchUnratedType(itemType, filterByPlayed) {
                 try {
-                    let url;
-                    if (filterByPlayed) {
-                        // Movies: IsPlayed filter is fast at DB level
-                        url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&IsPlayed=true&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio&Limit=24&SortBy=SortName&SortOrder=Ascending`);
-                    } else {
-                        // Series: IsPlayed is slow (post-filter), fetch without it and filter client-side
-                        url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio,UserData&Limit=100&SortBy=SortName&SortOrder=Ascending`);
-                    }
+                    const fields = filterByPlayed
+                        ? 'PrimaryImageAspectRatio,UserData'
+                        : 'PrimaryImageAspectRatio,UserData';
+                    const isPlayedParam = filterByPlayed ? '&IsPlayed=true' : '';
+                    const limitParam = filterByPlayed ? '&Limit=24' : '&Limit=100';
+                    const url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}${isPlayedParam}&Recursive=true&UserId=${userId}&Fields=${fields}${limitParam}&SortBy=DatePlayed&SortOrder=Descending`);
                     const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
                     if (!resp.ok) return [];
                     const data = await resp.json();
@@ -1460,15 +1477,17 @@
                 const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
-                        const mapped = unratedMoviesList.map(item => ({
+                        const mapped = unratedMoviesList.map((item, idx) => ({
                             itemId: item.Id,
                             name: item.Name,
                             type: 'Movie',
                             averageRating: 0,
-                            totalRatings: 0
+                            totalRatings: 0,
+                            lastPlayedDate: item.UserData?.LastPlayedDate || null,
+                            _sortOrder: idx
                         }));
-                        sortItems(mapped, 'rating-desc');
-                        renderPaginatedSection(unratedMoviesSection, mapped, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
+                        sortItems(mapped, 'watched-desc');
+                        renderPaginatedSection(unratedMoviesSection, mapped, 1, 'watched-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedMoviesSection.innerHTML = '';
                     }
@@ -1477,15 +1496,17 @@
                 const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
                 if (unratedSeriesSection) {
                     if (unratedSeriesList.length > 0) {
-                        const mapped = unratedSeriesList.map(item => ({
+                        const mapped = unratedSeriesList.map((item, idx) => ({
                             itemId: item.Id,
                             name: item.Name,
                             type: 'Series',
                             averageRating: 0,
-                            totalRatings: 0
+                            totalRatings: 0,
+                            lastPlayedDate: item.UserData?.LastPlayedDate || null,
+                            _sortOrder: idx
                         }));
-                        sortItems(mapped, 'rating-desc');
-                        renderPaginatedSection(unratedSeriesSection, mapped, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
+                        sortItems(mapped, 'watched-desc');
+                        renderPaginatedSection(unratedSeriesSection, mapped, 1, 'watched-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedSeriesSection.innerHTML = '';
                     }
