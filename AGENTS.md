@@ -5,10 +5,11 @@
 - Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes
 - Always ask before committing and pushing changes
 - Always bump the version number when making changes:
-  - During a development session, use build suffixes: v1.10.0.1b, v1.10.0.2b, etc. (increment the suffix for each change within the session)
+  - During a development session, use the fourth octet for beta builds: 1.10.0.1, 1.10.0.2, etc. (increment for each change within the session)
+  - Stable releases use fourth octet 0: 1.10.0.0, 1.10.1.0, etc.
   - After the session is complete and the version is stable, decide the final version:
-    - Patch bump for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
-    - Minor bump for new features (e.g., 1.10.0 → 1.11.0)
+    - Patch bump for bug fixes and minor changes (e.g., 1.10.0.0 → 1.10.1.0)
+    - Minor bump for new features (e.g., 1.10.0.0 → 1.11.0.0)
   - Never overwrite or move existing git tags — always create a new tag for the new version
   - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
   - In manifest.json, always add new versions as new entries at the top of the versions array — never replace or remove previous stable versions. Only the latest beta entry may be replaced/superseded

@@ -9,18 +9,10 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
-        "version": "1.9.0.2b",
+        "version": "1.9.0.3",
         "changelog": "Beta: provider ID resolution, self-healing ratings, DB health check",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.2b/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-19T12:00:00Z"
-      },
-      {
-        "version": "1.9.0.1b",
-        "changelog": "Beta: provider ID resolution, self-healing ratings, DB health check",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.1b/Jellyfin.Plugin.UserRatings.zip",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.3/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "00000000000000000000000000000000",
         "timestamp": "2026-06-19T12:00:00Z"
       },
