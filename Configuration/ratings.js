@@ -1309,13 +1309,14 @@
             
             sectionsHTML += '</div>';
             
-            // Add "All Rated Items" section with pagination and sorting
+            // Add "All Rated Items" section with pagination, sorting, and type filter
             let currentPage = 1;
             const itemsPerPage = 24;
             let currentSort = 'rating-desc';
+            let currentTypeFilter = 'all';
             let allItems = [...itemsWithDetails];
             
-            const renderPaginatedSection = (container, items, page, sortBy, title, gridBuilder) => {
+            const renderPaginatedSection = (container, items, page, sortBy, title, gridBuilder, typeFilterValue) => {
                 const totalPages = Math.ceil(items.length / itemsPerPage);
                 const startIndex = (page - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
@@ -1323,6 +1324,14 @@
                 const startItem = startIndex + 1;
                 const endItem = Math.min(endIndex, items.length);
                 
+                const typeFilterHtml = gridBuilder === buildCategoryGrid ? `
+                    <select is="emby-select" class="typeFilterSelect emby-select-withcolor emby-select" style="width: auto;">
+                        <option value="all" ${typeFilterValue === 'all' ? 'selected' : ''}>All</option>
+                        <option value="Movie" ${typeFilterValue === 'Movie' ? 'selected' : ''}>Movies</option>
+                        <option value="Series" ${typeFilterValue === 'Series' ? 'selected' : ''}>Shows</option>
+                        <option value="Episode" ${typeFilterValue === 'Episode' ? 'selected' : ''}>Episodes</option>
+                    </select>` : '';
+
                 container.innerHTML = `
                     <div class="verticalSection">
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
@@ -1342,6 +1351,7 @@
                                     </div>
                                 </div>
                             </div>
+                            ${typeFilterHtml}
                             <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
                                 ${gridBuilder === buildUnratedGrid ? `
                                 <option value="watched-desc" ${sortBy === 'watched-desc' ? 'selected' : ''}>Last Watched</option>
@@ -1372,8 +1382,25 @@
                 if (sortSelect) {
                     sortSelect.addEventListener('change', (e) => {
                         const newSort = e.target.value;
-                        sortItems(items, newSort);
-                        renderPaginatedSection(container, items, 1, newSort, title, gridBuilder);
+                        const sourceItems = gridBuilder === buildCategoryGrid ? allItems : items;
+                        const filtered = gridBuilder === buildCategoryGrid && currentTypeFilter !== 'all'
+                            ? sourceItems.filter(i => i.details.Type === currentTypeFilter)
+                            : sourceItems;
+                        sortItems(filtered, newSort);
+                        renderPaginatedSection(container, filtered, 1, newSort, title, gridBuilder, gridBuilder === buildCategoryGrid ? currentTypeFilter : undefined);
+                        container.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+                
+                const typeFilterSelect = container.querySelector('.typeFilterSelect');
+                if (typeFilterSelect) {
+                    typeFilterSelect.addEventListener('change', (e) => {
+                        currentTypeFilter = e.target.value;
+                        const filtered = currentTypeFilter === 'all'
+                            ? allItems
+                            : allItems.filter(i => i.details.Type === currentTypeFilter);
+                        sortItems(filtered, currentSort);
+                        renderPaginatedSection(container, filtered, 1, currentSort, title, gridBuilder, currentTypeFilter);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1381,7 +1408,7 @@
                 const prevBtn = container.querySelector('.prevPageBtn');
                 if (prevBtn && !prevBtn.disabled) {
                     prevBtn.addEventListener('click', () => {
-                        renderPaginatedSection(container, items, page - 1, sortBy, title, gridBuilder);
+                        renderPaginatedSection(container, items, page - 1, sortBy, title, gridBuilder, typeFilterValue);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1389,7 +1416,7 @@
                 const nextBtn = container.querySelector('.nextPageBtn');
                 if (nextBtn && !nextBtn.disabled) {
                     nextBtn.addEventListener('click', () => {
-                        renderPaginatedSection(container, items, page + 1, sortBy, title, gridBuilder);
+                        renderPaginatedSection(container, items, page + 1, sortBy, title, gridBuilder, typeFilterValue);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1438,7 +1465,7 @@
             // Render "All Rated Items" section immediately
             const allItemsSection = document.querySelector('#allItemsSection');
             if (allItemsSection) {
-                renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid);
+                renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid, currentTypeFilter);
             }
             
             // Fetch unrated items via Jellyfin's fast /Items API (client-side filtering)
@@ -1460,7 +1487,9 @@
                     let items = data.Items;
                     // Filter by played status client-side when needed
                     if (!filterByPlayed) {
-                        items = items.filter(item => item.UserData && item.UserData.Played);
+                        // For Series: use PlayCount > 0 (user watched at least one episode)
+                        // rather than Played (requires ALL episodes to be watched)
+                        items = items.filter(item => item.UserData && (item.UserData.Played || (item.UserData.PlayCount > 0)));
                     }
                     // Filter out items the user has already rated
                     const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.toLowerCase()));
