@@ -1172,16 +1172,40 @@
             const recentSeries = series.slice(0, recentItemsLimit);
             const recentEpisodes = episodes.slice(0, recentItemsLimit);
 
+            function getItemCardImage(itemId, seriesId, itemType) {
+                const imageId = itemType === 'Episode' && seriesId ? seriesId : itemId;
+                return {
+                    thumb: ApiClient.getImageUrl(imageId, { type: 'Thumb', fillWidth: 426, fillHeight: 240, quality: 80 }),
+                    backdrop: ApiClient.getImageUrl(imageId, { type: 'Backdrop', fillWidth: 426, fillHeight: 240, quality: 80 }),
+                    primary: ApiClient.getImageUrl(imageId, { type: 'Primary', fillWidth: 426, fillHeight: 240, quality: 80 })
+                };
+            }
+
+            function applyImageFallback(el) {
+                const thumb = el.getAttribute('data-thumb');
+                const backdrop = el.getAttribute('data-backdrop');
+                const primary = el.getAttribute('data-primary');
+                const step = parseInt(el.getAttribute('data-fallback-step') || '0');
+                const urls = [thumb, backdrop, primary];
+                if (step < urls.length) {
+                    const testImg = new Image();
+                    testImg.onload = function() {
+                        el.style.backgroundImage = "url('" + urls[step] + "')";
+                    };
+                    testImg.onerror = function() {
+                        el.setAttribute('data-fallback-step', String(step + 1));
+                        applyImageFallback(el);
+                    };
+                    testImg.src = urls[step];
+                } else {
+                    el.style.backgroundImage = 'none';
+                }
+            }
+
             // Function to build the ratings grid HTML for a category (backdrop cards in vertical-wrap)
             const buildCategoryGrid = (items) => items.map(item => {
                 const details = item.details;
-                const imageId = details.Type === 'Episode' && details.SeriesId ? details.SeriesId : item.itemId;
-                const imageUrl = ApiClient.getImageUrl(imageId, {
-                    type: 'Primary',
-                    maxWidth: 500,
-                    quality: 96
-                });
-
+                const urls = getItemCardImage(item.itemId, details.SeriesId, details.Type);
                 const title = details.Name || 'Unknown';
                 const rating = item.averageRating.toFixed(1);
                 const count = item.totalRatings;
@@ -1192,7 +1216,7 @@
                         <div class="cardBox cardBox-bottompadded">
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
-                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" style="background-image: url('${imageUrl}');"></a>
+                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div style="background: rgba(0,0,0,0.85); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
                                         <span style="color: #ffd700; font-size: 1.1em;">★</span>
@@ -1215,11 +1239,7 @@
             // Function to build unrated item cards (backdrop cards with "Unrated" badge)
             const buildUnratedGrid = (items) => items.map(item => {
                 const serverId = ApiClient.serverId();
-                const imageUrl = ApiClient.getImageUrl(item.itemId, {
-                    type: 'Primary',
-                    maxWidth: 500,
-                    quality: 96
-                });
+                const urls = getItemCardImage(item.itemId, item.seriesId, item.type);
                 const title = item.name || 'Unknown';
 
                 return `
@@ -1227,7 +1247,7 @@
                         <div class="cardBox cardBox-bottompadded">
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
-                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" style="background-image: url('${imageUrl}');"></a>
+                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
                                         <span style="font-weight: 600; font-size: 0.9em;">Unrated</span>
@@ -1339,6 +1359,8 @@
                     </div>
                 `;
                 
+                container.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
+                
                 const sortSelect = container.querySelector('.sortSelect');
                 if (sortSelect) {
                     sortSelect.addEventListener('change', (e) => {
@@ -1391,6 +1413,9 @@
             ratingsTabContent.innerHTML = sectionsHTML;
             ratingsTabContent.style.pointerEvents = 'auto';
             
+            // Initialize image fallbacks for all cards
+            ratingsTabContent.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
+            
             // Render "All Rated Items" section immediately
             const allItemsSection = document.querySelector('#allItemsSection');
             if (allItemsSection) {
@@ -1401,23 +1426,37 @@
             const userId = ApiClient.getCurrentUserId();
             const accessToken = ApiClient.accessToken();
 
-            async function fetchUnratedType(itemType) {
+            async function fetchUnratedType(itemType, filterByPlayed) {
                 try {
-                    const url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&IsPlayed=true&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio&Limit=24&SortBy=SortName&SortOrder=Ascending`);
+                    let url;
+                    if (filterByPlayed) {
+                        // Movies: IsPlayed filter is fast at DB level
+                        url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&IsPlayed=true&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio&Limit=24&SortBy=SortName&SortOrder=Ascending`);
+                    } else {
+                        // Series: IsPlayed is slow (post-filter), fetch without it and filter client-side
+                        url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio,UserData&Limit=100&SortBy=SortName&SortOrder=Ascending`);
+                    }
                     const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
                     if (!resp.ok) return [];
                     const data = await resp.json();
                     if (!data.Items) return [];
+                    let items = data.Items;
+                    // Filter by played status client-side when needed
+                    if (!filterByPlayed) {
+                        items = items.filter(item => item.UserData && item.UserData.Played);
+                    }
                     // Filter out items the user has already rated
                     const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.toLowerCase()));
-                    return data.Items.filter(item => !ratedIds.has(item.Id.toLowerCase()));
+                    items = items.filter(item => !ratedIds.has(item.Id.toLowerCase()));
+                    // Apply limit after filtering
+                    return items.slice(0, 24);
                 } catch (e) {
                     console.error('[UserRatings] Error fetching unrated items:', e);
                     return [];
                 }
             }
 
-            Promise.all([fetchUnratedType('Movie'), fetchUnratedType('Series')]).then(([unratedMoviesList, unratedSeriesList]) => {
+            Promise.all([fetchUnratedType('Movie', true), fetchUnratedType('Series', false)]).then(([unratedMoviesList, unratedSeriesList]) => {
                 const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
