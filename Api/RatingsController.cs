@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Data;
@@ -6,6 +7,7 @@ using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Querying;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api
@@ -213,6 +215,80 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 });
 
                 return Ok(new { success = true, items = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("UnratedWatchedItems")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public ActionResult GetUnratedWatchedItems([FromQuery] Guid userId)
+        {
+            try
+            {
+                // Get all items this user has rated
+                var ratedItemIds = _repository.GetRatingsForUser(userId)
+                    .Select(r => r.ItemId)
+                    .ToHashSet();
+
+                // Get all movies and series the user has played/watched
+                var watchedUnrated = new List<object>();
+
+                // Query library for Movies
+                var movieQuery = new InternalItemsQuery
+                {
+                    IncludeItemTypes = new[] { "Movie" },
+                    IsPlayed = true,
+                    UserId = userId,
+                    SortBy = new[] { "DatePlayed" },
+                    SortOrder = new[] { SortOrder.Descending },
+                    Limit = 100
+                };
+                var movies = _libraryManager.GetItemsResult(movieQuery);
+
+                foreach (var item in movies.Items)
+                {
+                    if (!ratedItemIds.Contains(item.Id))
+                    {
+                        watchedUnrated.Add(new
+                        {
+                            itemId = item.Id,
+                            name = item.Name,
+                            type = item.GetType().Name,
+                            seriesId = (string?)null
+                        });
+                    }
+                }
+
+                // Query library for Series
+                var seriesQuery = new InternalItemsQuery
+                {
+                    IncludeItemTypes = new[] { "Series" },
+                    IsPlayed = true,
+                    UserId = userId,
+                    SortBy = new[] { "DatePlayed" },
+                    SortOrder = new[] { SortOrder.Descending },
+                    Limit = 100
+                };
+                var series = _libraryManager.GetItemsResult(seriesQuery);
+
+                foreach (var item in series.Items)
+                {
+                    if (!ratedItemIds.Contains(item.Id))
+                    {
+                        watchedUnrated.Add(new
+                        {
+                            itemId = item.Id,
+                            name = item.Name,
+                            type = item.GetType().Name,
+                            seriesId = (string?)null
+                        });
+                    }
+                }
+
+                return Ok(new { success = true, items = watchedUnrated });
             }
             catch (Exception ex)
             {

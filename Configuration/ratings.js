@@ -340,6 +340,32 @@
                 padding: 0.75em;
             }
         }
+        #ratingsTab .card.backdropCard {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
+            flex: 0 0 calc(25% - 0.9%) !important;
+            max-width: calc(25% - 0.9%) !important;
+        }
+        @media (max-width: 1200px) {
+            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
+                flex: 0 0 calc(33.33% - 0.9%) !important;
+                max-width: calc(33.33% - 0.9%) !important;
+            }
+        }
+        @media (max-width: 800px) {
+            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
+                flex: 0 0 calc(50% - 0.9%) !important;
+                max-width: calc(50% - 0.9%) !important;
+            }
+        }
+        @media (max-width: 500px) {
+            #ratingsTab .itemsContainer.vertical-wrap .card.backdropCard {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
     `;
     document.head.appendChild(style);
 
@@ -1203,6 +1229,25 @@
             const recentSeries = series.slice(0, recentItemsLimit);
             const recentEpisodes = episodes.slice(0, recentItemsLimit);
 
+            // Fetch watched but unrated items
+            let unratedMoviesList = [];
+            let unratedSeriesList = [];
+            try {
+                const unratedResponse = await fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
+                    headers: {
+                        'X-Emby-Token': ApiClient.accessToken()
+                    }
+                });
+                if (unratedResponse.ok) {
+                    const unratedData = await unratedResponse.json();
+                    const unratedItems = unratedData.items || [];
+                    unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
+                    unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
+                }
+            } catch (e) {
+                console.error('[UserRatings] Error loading unrated watched items:', e);
+            }
+
             // Function to build the ratings grid HTML for a category
             const buildCategoryGrid = (items) => items.map(item => {
                 const details = item.details;
@@ -1211,7 +1256,7 @@
                 const imageId = details.Type === 'Episode' && details.SeriesId ? details.SeriesId : item.itemId;
                 const imageUrl = ApiClient.getImageUrl(imageId, {
                     type: 'Primary',
-                    maxHeight: 400,
+                    maxHeight: 300,
                     quality: 90
                 });
 
@@ -1221,10 +1266,10 @@
                 const serverId = ApiClient.serverId();
 
                 return `
-                    <div data-index="0" data-isfolder="false" data-serverid="${serverId}" data-id="${item.itemId}" data-type="${details.Type}" data-mediatype="Video" class="card portraitCard card-hoverable card-withuserdata" style="min-width: 150px; max-width: 250px;">
+                    <div data-index="0" data-isfolder="false" data-serverid="${serverId}" data-id="${item.itemId}" data-type="${details.Type}" data-mediatype="Video" class="card backdropCard card-hoverable card-withuserdata">
                         <div class="cardBox cardBox-bottompadded">
                             <div class="cardScalable">
-                                <div class="cardPadder cardPadder-portrait"></div>
+                                <div class="cardPadder cardPadder-backdrop"></div>
                                 <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" style="background-image: url('${imageUrl}');"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div style="background: rgba(0,0,0,0.85); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
@@ -1237,6 +1282,39 @@
                             <div class="cardText cardTextCentered cardText-first">
                                 <bdi>
                                     <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-id="${item.itemId}" data-serverid="${serverId}" data-type="${details.Type}" data-action="link" class="itemAction textActionButton" title="${title}">${title}</a>
+                                </bdi>
+                            </div>
+                            <div class="cardText cardTextCentered">&nbsp;</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Function to build unrated item cards (backdrop style, no rating badge)
+            const buildUnratedGrid = (items) => items.map(item => {
+                const serverId = ApiClient.serverId();
+                const imageUrl = ApiClient.getImageUrl(item.itemId, {
+                    type: 'Primary',
+                    maxHeight: 300,
+                    quality: 90
+                });
+                const title = item.name || 'Unknown';
+
+                return `
+                    <div data-index="0" data-isfolder="false" data-serverid="${serverId}" data-id="${item.itemId}" data-type="${item.type}" data-mediatype="Video" class="card backdropCard card-hoverable card-withuserdata">
+                        <div class="cardBox cardBox-bottompadded">
+                            <div class="cardScalable">
+                                <div class="cardPadder cardPadder-backdrop"></div>
+                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" style="background-image: url('${imageUrl}');"></a>
+                                <div class="cardIndicators cardIndicators-bottomright">
+                                    <div style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
+                                        <span style="font-weight: 600; font-size: 0.9em;">Unrated</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cardText cardTextCentered cardText-first">
+                                <bdi>
+                                    <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-id="${item.itemId}" data-serverid="${serverId}" data-type="${item.type}" data-action="link" class="itemAction textActionButton" title="${title}">${title}</a>
                                 </bdi>
                             </div>
                             <div class="cardText cardTextCentered">&nbsp;</div>
@@ -1282,6 +1360,32 @@
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
                             ${buildCategoryGrid(recentEpisodes)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add watched but unrated sections
+            if (unratedMoviesList.length > 0) {
+                sectionsHTML += `
+                    <div class="verticalSection">
+                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
+                            <h2 class="sectionTitle sectionTitle-cards">Watched Movies — Not Yet Rated</h2>
+                        </div>
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
+                            ${buildUnratedGrid(unratedMoviesList)}
+                        </div>
+                    </div>
+                `;
+            }
+            if (unratedSeriesList.length > 0) {
+                sectionsHTML += `
+                    <div class="verticalSection">
+                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
+                            <h2 class="sectionTitle sectionTitle-cards">Watched Shows — Not Yet Rated</h2>
+                        </div>
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x" data-margin="0.9%">
+                            ${buildUnratedGrid(unratedSeriesList)}
                         </div>
                     </div>
                 `;
