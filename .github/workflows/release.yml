@@ -11,10 +11,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
+    - name: Checkout main branch
       uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -27,6 +30,9 @@ jobs:
         VERSION=${GITHUB_REF#refs/tags/v}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
+
+    - name: Checkout tag for build
+      run: git checkout "v$VERSION"
 
     - name: Update .csproj version
       run: |
@@ -53,36 +59,42 @@ jobs:
         echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
         echo "Checksum: $CHECKSUM"
 
-    - name: Update manifest.json
+    - name: Switch back to main and update manifest
       run: |
         VERSION=${{ steps.version.outputs.version }}
         CHECKSUM=${{ steps.checksum.outputs.checksum }}
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        
-        # Update manifest with new version
-        cat > manifest.json << EOF
-        [
-          {
-            "guid": "b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e",
-            "name": "User Ratings",
-            "description": "Allow users to rate and review movies, TV shows, and music. See what other users on your server think!",
-            "overview": "Social rating system for Jellyfin - rate content and see ratings from other users on your server",
-            "owner": "davidhenry",
-            "category": "General",
-            "imageUrl": "https://raw.githubusercontent.com/${{ github.repository }}/main/icon.png",
-            "versions": [
-              {
-                "version": "$VERSION.0",
-                "changelog": "Release $VERSION",
-                "targetAbi": "10.11.0.0",
-                "sourceUrl": "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip",
-                "checksum": "$CHECKSUM",
-                "timestamp": "$TIMESTAMP"
-              }
-            ]
-          }
-        ]
-        EOF
+
+        # Switch back to main
+        git checkout main
+
+        # Install jq for JSON manipulation
+        sudo apt-get install -y jq
+
+        # Build new version entry
+        NEW_ENTRY=$(jq -n \
+          --arg ver "$VERSION.0" \
+          --arg changelog "Release $VERSION" \
+          --arg targetAbi "10.11.0.0" \
+          --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip" \
+          --arg checksum "$CHECKSUM" \
+          --arg timestamp "$TIMESTAMP" \
+          '{
+            version: $ver,
+            changelog: $changelog,
+            targetAbi: $targetAbi,
+            sourceUrl: $sourceUrl,
+            checksum: $checksum,
+            timestamp: $timestamp
+          }')
+
+        # Prepend new version entry to existing manifest
+        jq --argjson new "$NEW_ENTRY" '.[0].versions = [$new] + .[0].versions' manifest.json > manifest.json.tmp
+        mv manifest.json.tmp manifest.json
+
+        # Also update csproj on main
+        sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>$VERSION.0<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
+        sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>$VERSION.0<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
 
     - name: Commit and push version files
       run: |
@@ -90,7 +102,7 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add manifest.json Jellyfin.Plugin.UserRatings.csproj
         git commit -m "Update manifest and csproj for version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
-        git push origin HEAD:main || echo "Nothing to push"
+        git push origin main
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -98,13 +110,13 @@ jobs:
         files: bin/Release/net9.0/Jellyfin.Plugin.UserRatings.zip
         body: |
           ## Jellyfin User Ratings v${{ steps.version.outputs.version }}
-          
+
           ### Installation
           Add this repository to Jellyfin:
           ```
           https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json
           ```
-          
+
           ### Checksums
           - MD5: ${{ steps.checksum.outputs.checksum }}
         draft: false
