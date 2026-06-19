@@ -10,59 +10,11 @@
     "versions": [
       {
         "version": "1.10.0.0",
-        "changelog": " Provider ID resolution, self-healing ratings, database health checks, and automatic backups.  ### New Features  - **Provider ID Resolution** — Ratings are now matched by ItemId first, then by provider IDs (IMDB, TMDB, TVDB, etc.). If an item's ID changes in Jellyfin, ratings are automatically re-linked via provider IDs. - **Self-Healing Ratings** — When a rating's ItemId no longer matches a library item, the system searches by provider IDs and re-keys the rating to the correct item. Healing",
+        "changelog": "Provider ID resolution, self-healing ratings, database health checks, automatic backups, fail-safe loading",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0.0/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "d71d2a82b407dc4207b5c56990aba9d7",
         "timestamp": "2026-06-19T14:42:38Z"
-      },
-      {
-        "version": "1.9.0.11",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.11/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "a309b0064824eece10583ac5482a80d3",
-        "timestamp": "2026-06-19T14:21:01Z"
-      },
-      {
-        "version": "1.9.0.10",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.10/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "54c06dd991e826faec4c9381fe3a9cad",
-        "timestamp": "2026-06-19T13:50:46Z"
-      },
-      {
-        "version": "1.9.0.9",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.9/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "e7caac431c38f64ebc08c796ab916402",
-        "timestamp": "2026-06-19T13:33:03Z"
-      },
-      {
-        "version": "1.9.0.8",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.8/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "c61832a8aab0610914857d3c0009ba31",
-        "timestamp": "2026-06-19T13:26:49Z"
-      },
-      {
-        "version": "1.9.0.7",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.6/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "212a6ccb40489048b002b8e2d9674162",
-        "timestamp": "2026-06-19T13:11:26Z"
-      },
-      {
-        "version": "1.9.0.5",
-        "changelog": "",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.5/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "cf106ed15ed7484abb75839cd12de84f",
-        "timestamp": "2026-06-19T12:57:20Z"
       },
       {
         "version": "1.9.0.0",

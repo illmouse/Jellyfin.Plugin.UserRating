@@ -14,6 +14,7 @@
   - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
   - In manifest.json, always add new versions as new entries at the top of the versions array — never replace or remove previous stable versions. Only the latest beta entry may be replaced/superseded
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
+- After a stable release is ready: remove transitional/beta tags from the repo (both local and remote) and remove beta entries from manifest.json — keep only stable versions
 
 ## Build & Test
 
