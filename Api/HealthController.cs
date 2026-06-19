@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Services;
 using Microsoft.AspNetCore.Mvc;

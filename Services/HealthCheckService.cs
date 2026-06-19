@@ -117,7 +117,7 @@ namespace Jellyfin.Plugin.UserRatings.Services
                 return null;
             }
 
-            var query = new MediaBrowser.Model.Querying.InternalItemsQuery
+            var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
             {
                 HasAnyProviderId = providerIds
                     .Where(kv => !string.IsNullOrEmpty(kv.Value))
