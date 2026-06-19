@@ -5,8 +5,10 @@
 - Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes
 - Always ask before committing and pushing changes
 - Always bump the version number when making changes:
-  - Bump the third octet (patch) for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
-  - Bump the second octet (minor) for new features (e.g., 1.10.0 → 1.11.0)
+  - During a development session, use build suffixes: v1.10.0.1b, v1.10.0.2b, etc. (increment the suffix for each change within the session)
+  - After the session is complete and the version is stable, decide the final version:
+    - Patch bump for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
+    - Minor bump for new features (e.g., 1.10.0 → 1.11.0)
   - Never overwrite or move existing git tags — always create a new tag for the new version
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
 
@@ -19,12 +21,17 @@
 ## Project Structure
 
 - `Api/RatingsController.cs` — REST API endpoints for ratings
+- `Api/HealthController.cs` — REST endpoints for health report, heal, and clear stale ratings
 - `Data/RatingRepository.cs` — JSON-file-based rating storage
-- `Models/UserRating.cs` — Data models
+- `Models/UserRating.cs` — Data models (UserRating, RatingStats, RatedItemSummary, HealthReport, StaleItem)
 - `Configuration/ratings.js` — Client-side JS injected into Jellyfin UI (detail page rating widget + home tab dashboard)
-- `Configuration/configPage.html` — Admin config page
+- `Configuration/configPage.html` — Admin config page (includes Database Health section)
 - `Plugin.cs` — Plugin entry point, injects ratings.js into index.html
 - `PluginServiceRegistrator.cs` — DI registration
+- `Services/RatingResolver.cs` — Self-healing lookup: resolves ratings by ItemId, falls back to provider IDs
+- `Services/HealthCheckService.cs` — DB consistency scanner (ok/healed/stale categorization, healing, stale cleanup)
+- `Services/PlexImportService.cs` — Plex rating import with provider ID extraction
+- `ScheduledTasks/RatingsHealthTask.cs` — Scheduled task for automatic DB health checks
 - `manifest.json` — Plugin repository manifest (version, changelog, checksum)
 
 ## Key Patterns
@@ -33,3 +40,6 @@
 - Card layout uses Jellyfin's native CSS classes: `backdropCard`, `cardPadder-backdrop`, `vertical-wrap`
 - API calls use `ApiClient.getUrl()` and `ApiClient.accessToken()` for auth
 - Version must be updated in both `Jellyfin.Plugin.UserRatings.csproj` (AssemblyVersion/FileVersion) and `manifest.json`
+- Provider ID resolution: match by ItemId first, then by ProviderIds (Imdb/Tmdb/Tvdb/etc.). On provider ID match, the ItemId is healed (re-keyed) in the DB automatically
+- Health check task runs as a Jellyfin scheduled task (category: "User Ratings"). Can also be triggered from the admin config page
+- All repository mutations are lock-protected (`lock _lock`)

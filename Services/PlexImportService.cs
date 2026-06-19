@@ -146,7 +146,11 @@ namespace Jellyfin.Plugin.UserRatings.Services
                     Rating = r.convertedRating,
                     Note = $"Imported from Plex (original: {r.plexItem.UserRating}/10)",
                     Timestamp = DateTime.UtcNow,
-                    UserName = null
+                    UserName = null,
+                    ProviderIds = r.plexItem.Guids
+                        .Where(g => !string.IsNullOrEmpty(g.JellyfinProviderKey) && !string.IsNullOrEmpty(g.ExternalId))
+                        .GroupBy(g => g.JellyfinProviderKey)
+                        .ToDictionary(g => g.Key, g => g.First().ExternalId)
                 }).ToList();
 
                 _progressTracker.UpdateProgress(operationId, p =>

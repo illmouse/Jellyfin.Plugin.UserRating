@@ -222,6 +222,55 @@ namespace Jellyfin.Plugin.UserRatings.Data
 
             return (imported, skipped, overwritten);
         }
+
+        public UserRating? FindByProviderIds(Guid userId, Dictionary<string, string> providerIds)
+        {
+            lock (_lock)
+            {
+                foreach (var rating in _ratings.Values)
+                {
+                    if (rating.UserId != userId) continue;
+                    if (rating.ProviderIds == null || rating.ProviderIds.Count == 0) continue;
+
+                    foreach (var kvp in providerIds)
+                    {
+                        if (rating.ProviderIds.TryGetValue(kvp.Key, out var value)
+                            && !string.IsNullOrEmpty(value)
+                            && !string.IsNullOrEmpty(kvp.Value)
+                            && string.Equals(value, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return rating;
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        public void RepairRatingKey(Guid oldItemId, Guid newItemId, Guid userId)
+        {
+            lock (_lock)
+            {
+                var oldKey = GetKey(oldItemId, userId);
+                if (_ratings.TryGetValue(oldKey, out var rating))
+                {
+                    _ratings.Remove(oldKey);
+                    rating.ItemId = newItemId;
+                    var newKey = GetKey(newItemId, userId);
+                    _ratings[newKey] = rating;
+                    SaveRatings();
+                }
+            }
+        }
+
+        public Dictionary<string, UserRating> GetAllRatings()
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, UserRating>(_ratings);
+            }
+        }
     }
 }
 

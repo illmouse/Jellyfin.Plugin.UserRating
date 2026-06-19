@@ -126,16 +126,45 @@
                 </div>
                 </form>
 
-                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h3 style="color: #e53935;">Danger Zone</h3>
+                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                    <h3>Database Health</h3>
                     <div class="fieldDescription" style="margin-bottom: 1em;">
-                        Permanently delete all user ratings from the database. This action cannot be undone.
+                        Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
                     </div>
-                    <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
-                        <span>Delete All Ratings</span>
-                    </button>
-                    <div id="deleteResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: 4px;"></div>
+                    <div style="display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
+                        <button type="button" id="btnHealthCheck" is="emby-button" class="raised block" style="min-width: 200px;">
+                            <span>Check Database Health</span>
+                        </button>
+                        <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit block" style="min-width: 200px;">
+                            <span>Heal Database</span>
+                        </button>
+                    </div>
+                    <div id="healthResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
+                    <div id="staleList" style="display: none; margin-top: 1em;">
+                        <h4>Stale Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
+                        <div id="staleItems" style="max-height: 300px; overflow-y: auto; background: var(--selectorBackgroundColor, rgba(255,255,255,0.05)); border-radius: var(--smallRadius, 4px); padding: 0.5em;"></div>
+                    </div>
                 </div>
+
+                 <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                     <h3 style="color: #e53935;">Danger Zone</h3>
+                     <div class="fieldDescription" style="margin-bottom: 1em;">
+                         Permanently delete all user ratings from the database. This action cannot be undone.
+                     </div>
+                     <div style="display: flex; gap: 1em; flex-wrap: wrap;">
+                         <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
+                             <span>Delete All Ratings</span>
+                         </button>
+                         <button id="btnClearStale" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
+                             <span>Clear Stale Ratings</span>
+                         </button>
+                     </div>
+                     <div class="fieldDescription" style="margin-top: 0.5em; color: #ff9800;">
+                         Clear Stale: removes ratings that cannot be matched to any library item by any ID. Run "Check Database Health" first to see which ratings are stale.
+                     </div>
+                     <div id="deleteResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: 4px;"></div>
+                 </div>
             </div>
         </div>
 
@@ -455,6 +484,124 @@
                         resultDiv.style.color = 'white';
                     } else {
                         resultDiv.innerHTML = result.message || 'Error deleting ratings';
+                        resultDiv.style.backgroundColor = '#f44336';
+                        resultDiv.style.color = 'white';
+                    }
+                }).catch(function (error) {
+                    Dashboard.hideLoadingMsg();
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = 'Error: ' + error.message;
+                    resultDiv.style.backgroundColor = '#f44336';
+                    resultDiv.style.color = 'white';
+                });
+            });
+
+            document.getElementById('btnHealthCheck').addEventListener('click', function () {
+                var resultDiv = document.getElementById('healthResult');
+                var staleSection = document.getElementById('staleList');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Checking database health...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                staleSection.style.display = 'none';
+
+                fetch(ApiClient.getUrl('api/UserRatings/HealthReport'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = '<strong>Health Check Results</strong><br>' +
+                            'OK: ' + result.ok + '<br>' +
+                            'Healed: ' + result.healed + '<br>' +
+                            'Stale: ' + result.stale;
+                        resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : 'rgba(76, 175, 80, 0.2)';
+
+                        if (result.staleItems && result.staleItems.length > 0) {
+                            staleSection.style.display = 'block';
+                            var staleDiv = document.getElementById('staleItems');
+                            staleDiv.innerHTML = '';
+                            result.staleItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.style.padding = '0.3em 0.5em';
+                                div.style.borderBottom = '1px solid var(--defaultBorder, rgba(255,255,255,0.05))';
+                                var providerInfo = '';
+                                if (item.providerIds && Object.keys(item.providerIds).length > 0) {
+                                    providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
+                                        Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                }
+                                div.innerHTML = '<strong>Rating: ' + item.rating + '/5</strong> ' +
+                                    '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
+                                    (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
+                                    providerInfo;
+                                staleDiv.appendChild(div);
+                            });
+                        }
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Health check failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                });
+            });
+
+            document.getElementById('btnHealRatings').addEventListener('click', function () {
+                var resultDiv = document.getElementById('healthResult');
+                var staleSection = document.getElementById('staleList');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Healing database...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                staleSection.style.display = 'none';
+
+                fetch(ApiClient.getUrl('api/UserRatings/HealRatings'), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = '<strong>Heal Complete</strong><br>' +
+                            'OK: ' + result.ok + '<br>' +
+                            'Healed: ' + result.healed + '<br>' +
+                            'Stale: ' + result.stale + '<br>' +
+                            result.message;
+                        resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Heal failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                });
+            });
+
+            document.getElementById('btnClearStale').addEventListener('click', function () {
+                var resultDiv = document.getElementById('deleteResult');
+                resultDiv.style.display = 'none';
+
+                if (!confirm('Are you sure you want to clear all stale ratings? These ratings cannot be matched to any library item. This cannot be undone!')) {
+                    return;
+                }
+
+                if (!confirm('This will permanently remove stale ratings. Continue?')) {
+                    return;
+                }
+
+                Dashboard.showLoadingMsg();
+
+                fetch(ApiClient.getUrl('api/UserRatings/ClearStale'), {
+                    method: 'DELETE',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (result) {
+                    Dashboard.hideLoadingMsg();
+                    resultDiv.style.display = 'block';
+
+                    if (result.success) {
+                        resultDiv.innerHTML = result.message || 'Stale ratings cleared';
+                        resultDiv.style.backgroundColor = '#4CAF50';
+                        resultDiv.style.color = 'white';
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Error clearing stale ratings';
                         resultDiv.style.backgroundColor = '#f44336';
                         resultDiv.style.color = 'white';
                     }

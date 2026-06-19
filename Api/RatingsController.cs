@@ -6,6 +6,7 @@ using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
+using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -21,12 +22,18 @@ namespace Jellyfin.Plugin.UserRatings.Api
         private readonly RatingRepository _repository;
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
+        private readonly RatingResolver _resolver;
 
-        public RatingsController(RatingRepository repository, ILibraryManager libraryManager, IUserManager userManager)
+        public RatingsController(
+            RatingRepository repository,
+            ILibraryManager libraryManager,
+            IUserManager userManager,
+            RatingResolver resolver)
         {
             _repository = repository;
             _libraryManager = libraryManager;
             _userManager = userManager;
+            _resolver = resolver;
         }
 
         [HttpPost("Rate")]
@@ -50,6 +57,12 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     UserName = userName ?? "Unknown"
                 };
 
+                var providerIds = _resolver.GetProviderIdsForItem(itemId);
+                if (providerIds != null)
+                {
+                    userRating.ProviderIds = providerIds;
+                }
+
                 _repository.SaveRating(userRating);
 
                 return Ok(new { success = true, message = "Rating saved successfully" });
@@ -66,7 +79,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
         {
             try
             {
-                var ratings = _repository.GetRatingsForItem(itemId);
+                var ratings = _resolver.ResolveRatingsForItem(itemId);
                 var stats = _repository.GetStatsForItem(itemId);
 
                 return Ok(new
@@ -138,7 +151,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
         {
             try
             {
-                var rating = _repository.GetRating(itemId, userId);
+                var rating = _resolver.ResolveRating(itemId, userId);
 
                 if (rating == null)
                 {

@@ -11,6 +11,7 @@ namespace Jellyfin.Plugin.UserRatings.Models
         public string? Note { get; set; }
         public DateTime Timestamp { get; set; }
         public string? UserName { get; set; } // Cached for display
+        public Dictionary<string, string> ProviderIds { get; set; } = new(); // Imdb, Tmdb, Tvdb, etc.
     }
 
     public class RatingStats
@@ -29,6 +30,24 @@ namespace Jellyfin.Plugin.UserRatings.Models
         public string? Name { get; set; }
         public string? Type { get; set; }
         public Guid? SeriesId { get; set; }
+    }
+
+    public class HealthReport
+    {
+        public int Ok { get; set; }
+        public int Healed { get; set; }
+        public int Stale { get; set; }
+        public List<StaleItem> StaleItems { get; set; } = new();
+    }
+
+    public class StaleItem
+    {
+        public Guid ItemId { get; set; }
+        public Guid UserId { get; set; }
+        public int Rating { get; set; }
+        public string? Note { get; set; }
+        public Dictionary<string, string> ProviderIds { get; set; } = new();
+        public DateTime Timestamp { get; set; }
     }
 }
 

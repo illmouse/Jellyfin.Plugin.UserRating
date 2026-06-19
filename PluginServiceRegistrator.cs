@@ -14,7 +14,10 @@ namespace Jellyfin.Plugin.UserRatings
             serviceCollection.AddSingleton<RatingRepository>();
             serviceCollection.AddSingleton<ProgressTracker>();
             serviceCollection.AddSingleton<PlexImportService>();
+            serviceCollection.AddSingleton<RatingResolver>();
+            serviceCollection.AddSingleton<HealthCheckService>();
             serviceCollection.AddSingleton<PlexSyncScheduledTask>();
+            serviceCollection.AddSingleton<RatingsHealthTask>();
         }
     }
 }
