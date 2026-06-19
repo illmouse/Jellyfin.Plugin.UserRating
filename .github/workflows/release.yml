@@ -32,7 +32,7 @@ jobs:
         echo "Version: $VERSION"
 
     - name: Checkout tag for build
-      run: git checkout "v$VERSION"
+      run: git checkout "v${{ steps.version.outputs.version }}"
 
     - name: Update .csproj version
       run: |
