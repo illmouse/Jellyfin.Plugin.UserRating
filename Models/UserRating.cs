@@ -36,6 +36,7 @@ namespace Jellyfin.Plugin.UserRatings.Models
     {
         public int Ok { get; set; }
         public int Healed { get; set; }
+        public int Updated { get; set; }
         public int Stale { get; set; }
         public List<StaleItem> StaleItems { get; set; } = new();
     }

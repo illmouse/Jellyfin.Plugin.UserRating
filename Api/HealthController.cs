@@ -28,6 +28,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     success = true,
                     ok = report.Ok,
                     healed = report.Healed,
+                    updated = report.Updated,
                     stale = report.Stale,
                     staleItems = report.StaleItems.Select(s => new
                     {
@@ -58,8 +59,9 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     success = true,
                     ok = report.Ok,
                     healed = report.Healed,
+                    updated = report.Updated,
                     stale = report.Stale,
-                    message = $"Healed {report.Healed} ratings. {report.Stale} stale entries remain."
+                    message = $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
                 });
             }
             catch (System.Exception ex)

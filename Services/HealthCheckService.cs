@@ -37,15 +37,36 @@ namespace Jellyfin.Plugin.UserRatings.Services
                 var item = _libraryManager.GetItemById(rating.ItemId);
                 if (item != null)
                 {
-                    report.Ok++;
-
-                    if ((rating.ProviderIds == null || rating.ProviderIds.Count == 0)
-                        && item.ProviderIds != null && item.ProviderIds.Count > 0)
+                    if (item.ProviderIds != null && item.ProviderIds.Count > 0)
                     {
-                        rating.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
-                        _repository.SaveRating(rating);
+                        bool needsUpdate = false;
+
+                        if (rating.ProviderIds == null || rating.ProviderIds.Count == 0)
+                        {
+                            needsUpdate = true;
+                        }
+                        else
+                        {
+                            foreach (var kvp in item.ProviderIds)
+                            {
+                                if (!rating.ProviderIds.TryGetValue(kvp.Key, out var existing)
+                                    || !string.Equals(existing, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    needsUpdate = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (needsUpdate)
+                        {
+                            rating.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
+                            _repository.SaveRating(rating);
+                            report.Updated++;
+                        }
                     }
 
+                    report.Ok++;
                     continue;
                 }
 
