@@ -1490,7 +1490,9 @@
                 }
             }
 
-            Promise.all([fetchUnratedType('Movie'), fetchUnratedType('Series')]).then(([unratedMoviesList, unratedSeriesList]) => {
+            // Render each unrated section independently as data arrives
+            // so Movies (~30ms) don't wait for Series (~5s)
+            fetchUnratedType('Movie').then(unratedMoviesList => {
                 const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
@@ -1509,7 +1511,9 @@
                         unratedMoviesSection.innerHTML = '';
                     }
                 }
+            });
 
+            fetchUnratedType('Series').then(unratedSeriesList => {
                 const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
                 if (unratedSeriesSection) {
                     if (unratedSeriesList.length > 0) {
