@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.10.1.0",
+        "changelog": "Fix card layout width; improve thumbnail quality; optimize unrated items loading",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-19T12:00:00Z"
+      },
+      {
         "version": "1.10.0.0",
         "changelog": "Release 1.10.0",
         "targetAbi": "10.11.0.0",

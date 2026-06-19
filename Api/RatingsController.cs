@@ -251,9 +251,8 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 {
                     IncludeItemTypes = new[] { BaseItemKind.Movie },
                     IsPlayed = true,
-                    OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
-                    Limit = 100,
-                    Recursive = true
+                    OrderBy = new[] { (ItemSortBy.SortName, SortOrder.Ascending) },
+                    Limit = 24
                 };
                 var movies = _libraryManager.GetItemsResult(movieQuery);
 
@@ -276,9 +275,8 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 {
                     IncludeItemTypes = new[] { BaseItemKind.Series },
                     IsPlayed = true,
-                    OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
-                    Limit = 100,
-                    Recursive = true
+                    OrderBy = new[] { (ItemSortBy.SortName, SortOrder.Ascending) },
+                    Limit = 24
                 };
                 var series = _libraryManager.GetItemsResult(seriesQuery);
 

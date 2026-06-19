@@ -1150,26 +1150,12 @@
                 return;
             }
 
-            // Parallelize: fetch config and unrated items at the same time as building sections
-            const [configResult, unratedResult] = await Promise.allSettled([
-                ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e').catch(() => null),
-                fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
-                }).then(r => r.ok ? r.json() : null).catch(() => null)
-            ]);
-
+            // Get config only (fast, no blocking on unrated fetch)
             let recentItemsLimit = 10;
-            if (configResult.status === 'fulfilled' && configResult.value) {
-                recentItemsLimit = configResult.value.RecentlyRatedItemsCount || 10;
-            }
-
-            let unratedMoviesList = [];
-            let unratedSeriesList = [];
-            if (unratedResult.status === 'fulfilled' && unratedResult.value) {
-                const unratedItems = unratedResult.value.items || [];
-                unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
-                unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
-            }
+            try {
+                const pluginConfig = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
+                recentItemsLimit = pluginConfig.RecentlyRatedItemsCount || 10;
+            } catch (error) {}
 
             // Categorize items by type
             const movies = itemsWithDetails.filter(item => item.details.Type === 'Movie');
@@ -1191,9 +1177,10 @@
                 const details = item.details;
                 const imageId = details.Type === 'Episode' && details.SeriesId ? details.SeriesId : item.itemId;
                 const imageUrl = ApiClient.getImageUrl(imageId, {
-                    type: 'Primary',
-                    maxHeight: 300,
-                    quality: 90
+                    type: 'Thumb',
+                    fillWidth: 426,
+                    fillHeight: 240,
+                    quality: 96
                 });
 
                 const title = details.Name || 'Unknown';
@@ -1230,9 +1217,10 @@
             const buildUnratedGrid = (items) => items.map(item => {
                 const serverId = ApiClient.serverId();
                 const imageUrl = ApiClient.getImageUrl(item.itemId, {
-                    type: 'Primary',
-                    maxHeight: 300,
-                    quality: 90
+                    type: 'Thumb',
+                    fillWidth: 426,
+                    fillHeight: 240,
+                    quality: 96
                 });
                 const title = item.name || 'Unknown';
 
@@ -1260,7 +1248,7 @@
             }).join('');
 
             // Build sections HTML matching native Jellyfin structure
-            let sectionsHTML = '<div class="readOnlyContent" style="padding-top: 4em;">';
+            let sectionsHTML = '<div style="padding-top: 4em;">';
             
             if (recentMovies.length > 0) {
                 sectionsHTML += `
@@ -1396,44 +1384,56 @@
             
             sortItems(allItems, currentSort);
             
-            // Add "All Rated Items" section placeholder
+            // Always add placeholders for unrated sections and all items
             sectionsHTML += '<div id="allItemsSection"></div>';
+            sectionsHTML += '<div id="unratedMoviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched movies...</div></div>';
+            sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched shows...</div></div>';
             
-            // Add "Watched Movies — Not Yet Rated" section placeholder
-            if (unratedMoviesList.length > 0) {
-                sectionsHTML += '<div id="unratedMoviesSection"></div>';
-            }
-            
-            // Add "Watched Shows — Not Yet Rated" section placeholder
-            if (unratedSeriesList.length > 0) {
-                sectionsHTML += '<div id="unratedSeriesSection"></div>';
-            }
-            
-            sectionsHTML += '</div>';
-            
-            // Display the categorized grid
+            // Display the page immediately
             ratingsTabContent.innerHTML = sectionsHTML;
             ratingsTabContent.style.pointerEvents = 'auto';
             
-            // Render "All Rated Items" section
+            // Render "All Rated Items" section immediately
             const allItemsSection = document.querySelector('#allItemsSection');
             if (allItemsSection) {
                 renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid);
             }
             
-            // Render "Watched Movies — Not Yet Rated" section with pagination
-            const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
-            if (unratedMoviesSection) {
-                sortItems(unratedMoviesList, 'rating-desc');
-                renderPaginatedSection(unratedMoviesSection, unratedMoviesList, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
-            }
-            
-            // Render "Watched Shows — Not Yet Rated" section with pagination
-            const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
-            if (unratedSeriesSection) {
-                sortItems(unratedSeriesList, 'rating-desc');
-                renderPaginatedSection(unratedSeriesSection, unratedSeriesList, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
-            }
+            // Fetch unrated items asynchronously (non-blocking)
+            fetch(ApiClient.getUrl('api/UserRatings/UnratedWatchedItems?userId=' + ApiClient.getCurrentUserId()), {
+                headers: { 'X-Emby-Token': ApiClient.accessToken() }
+            }).then(r => r.ok ? r.json() : null).then(unratedData => {
+                if (!unratedData || !unratedData.items) return;
+                const unratedItems = unratedData.items;
+                let unratedMoviesList = unratedItems.filter(i => i.type === 'Movie');
+                let unratedSeriesList = unratedItems.filter(i => i.type === 'Series');
+                
+                const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
+                if (unratedMoviesSection) {
+                    if (unratedMoviesList.length > 0) {
+                        sortItems(unratedMoviesList, 'rating-desc');
+                        renderPaginatedSection(unratedMoviesSection, unratedMoviesList, 1, 'rating-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
+                    } else {
+                        unratedMoviesSection.innerHTML = '';
+                    }
+                }
+                
+                const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
+                if (unratedSeriesSection) {
+                    if (unratedSeriesList.length > 0) {
+                        sortItems(unratedSeriesList, 'rating-desc');
+                        renderPaginatedSection(unratedSeriesSection, unratedSeriesList, 1, 'rating-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
+                    } else {
+                        unratedSeriesSection.innerHTML = '';
+                    }
+                }
+            }).catch(e => {
+                console.error('[UserRatings] Error loading unrated watched items:', e);
+                const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
+                const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
+                if (unratedMoviesSection) unratedMoviesSection.innerHTML = '';
+                if (unratedSeriesSection) unratedSeriesSection.innerHTML = '';
+            });
 
         } catch (error) {
             console.error('[UserRatings] Error displaying ratings list:', error);
