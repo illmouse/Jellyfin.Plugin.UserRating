@@ -8,6 +8,7 @@
   - Bump the third octet (patch) for bug fixes and minor changes (e.g., 1.10.0 → 1.10.1)
   - Bump the second octet (minor) for new features (e.g., 1.10.0 → 1.11.0)
   - Never overwrite or move existing git tags — always create a new tag for the new version
+- Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
 
 ## Build & Test
 

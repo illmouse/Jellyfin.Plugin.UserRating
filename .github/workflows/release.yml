@@ -110,21 +110,38 @@ jobs:
         git commit -m "Update manifest and csproj for version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
         git push origin main
 
+    - name: Build release body
+      run: |
+        VERSION=${{ steps.version.outputs.version }}
+        CHECKSUM=${{ steps.checksum.outputs.checksum }}
+
+        # Extract the section for this version from CHANGELOG.md
+        # Sections start with "## vX.Y.Z" and end at the next "## v" or "---"
+        CHANGELOG=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
+
+        # Build release body
+        {
+          echo "## Jellyfin User Ratings v${VERSION}"
+          echo ""
+          if [ -n "$CHANGELOG" ]; then
+            echo "$CHANGELOG"
+            echo ""
+          fi
+          echo "### Installation"
+          echo "Add this repository to Jellyfin:"
+          echo "\`\`\`"
+          echo "https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json"
+          echo "\`\`\`"
+          echo ""
+          echo "### Checksums"
+          echo "- MD5: ${CHECKSUM}"
+        } > /tmp/release_body.txt
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         files: bin/Release/net9.0/Jellyfin.Plugin.UserRatings.zip
-        body: |
-          ## Jellyfin User Ratings v${{ steps.version.outputs.version }}
-
-          ### Installation
-          Add this repository to Jellyfin:
-          ```
-          https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json
-          ```
-
-          ### Checksums
-          - MD5: ${{ steps.checksum.outputs.checksum }}
+        body_path: /tmp/release_body.txt
         draft: false
         prerelease: false
       env:

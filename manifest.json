@@ -10,107 +10,19 @@
     "versions": [
       {
         "version": "1.9.0.0",
-        "changelog": "Release 1.9.0",
+        "changelog": "Unrated watched items browser, smart image fallbacks, type filters, independent section loading, changelog-driven release notes",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "fdf9afdde41152ac0e8a67b153135b70",
-        "timestamp": "2026-06-19T10:27:26Z"
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-19T12:00:00Z"
       },
       {
-        "version": "1.10.11.0",
-        "changelog": "Release 1.10.11",
+        "version": "1.8.4.0",
+        "changelog": "Stable release",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.11/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "0778b0ac4642ac8399bd473a5381dd38",
-        "timestamp": "2026-06-19T09:59:50Z"
-      },
-      {
-        "version": "1.10.10.0",
-        "changelog": "Release 1.10.10",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.10/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "49dd35bf7a7d67ff01a0ada30d59cfff",
-        "timestamp": "2026-06-19T09:53:15Z"
-      },
-      {
-        "version": "1.10.9.0",
-        "changelog": "Release 1.10.9",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.9/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "16c931e3e72a79a456844d81f6b4e23d",
-        "timestamp": "2026-06-19T09:46:16Z"
-      },
-      {
-        "version": "1.10.8.0",
-        "changelog": "Release 1.10.8",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.8/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "e620f808554e632ffa091e6283e6dd10",
-        "timestamp": "2026-06-19T09:38:46Z"
-      },
-      {
-        "version": "1.10.7.0",
-        "changelog": "Release 1.10.7",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.7/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "7c0ac4fe692a861006654dd7e9c10a3b",
-        "timestamp": "2026-06-19T09:25:46Z"
-      },
-      {
-        "version": "1.10.6.0",
-        "changelog": "Release 1.10.6",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.6/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "90d138f8a80762b8482cca6a5a7d1194",
-        "timestamp": "2026-06-19T09:10:27Z"
-      },
-      {
-        "version": "1.10.5.0",
-        "changelog": "Release 1.10.5",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.5/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "aa8895f6f3cbab6f749608e505f9c655",
-        "timestamp": "2026-06-19T08:58:07Z"
-      },
-      {
-        "version": "1.10.4.0",
-        "changelog": "Release 1.10.4",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.4/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "c1f2f053c8d27d62a7fc481a2dfff76f",
-        "timestamp": "2026-06-19T08:41:50Z"
-      },
-      {
-        "version": "1.10.3.0",
-        "changelog": "Release 1.10.3",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "8725d48cff7c084c577096028c6b41b2",
-        "timestamp": "2026-06-19T08:38:19Z"
-      },
-      {
-        "version": "1.10.2.0",
-        "changelog": "Fix broken thumbnails by using Primary image type; replace slow UnratedWatchedItems server endpoint with fast Jellyfin /Items API calls",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "fa5f6bda1f615dd091ad9f9feec4d7ad",
-        "timestamp": "2026-06-19T08:28:52Z"
-      },
-      {
-        "version": "1.10.1.0",
-        "changelog": "Fix card layout width; improve thumbnail quality; optimize unrated items loading",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "f6a14779353befa35c0680f3231d6db7",
-        "timestamp": "2026-06-19T08:10:20Z"
-      },
-      {
-        "version": "1.10.0.0",
-        "changelog": "Release 1.10.0",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "7fab97160a76fb40b159f23a2abb6d39",
-        "timestamp": "2026-06-19T07:47:12Z"
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.4/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "2b3982e0000000000000000000000000",
+        "timestamp": "2025-01-01T00:00:00Z"
       }
     ]
   }

@@ -19,8 +19,17 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 ### Rating Items (expanded)
 <img src="screenshots/browser_expanded.png" alt="Rating Interface - Expanded" width="800">
 
-### Viewer Ratings Page
-<img src="screenshots/view user ratings.png" alt="Viewer Ratings Page" width="800">
+### Viewer Ratings — Recently Rated
+<img src="screenshots/dashboard_recently_rated.png" alt="Viewer Ratings - Recently Rated" width="800">
+
+### Viewer Ratings — All Rated Items (with type filter)
+<img src="screenshots/dashboard_all_rated.png" alt="Viewer Ratings - All Rated Items" width="800">
+
+### Viewer Ratings — Unrated Movies
+<img src="screenshots/dashboard_movies_unrated.png" alt="Viewer Ratings - Unrated Movies" width="800">
+
+### Viewer Ratings — Unrated Shows
+<img src="screenshots/dashboard_shows_unrated.png" alt="Viewer Ratings - Unrated Shows" width="800">
 
 ### Mobile Support
 <img src="screenshots/mobile_app.png" alt="Mobile Interface" width="400">
@@ -45,16 +54,24 @@ A social rating system for Jellyfin that lets users rate movies, TV shows, and e
 - 📺 Works on movies, TV shows, and episodes
 - 🎬 **Viewer Ratings Page** - Dedicated browsing interface with:
   - 📋 Recently Rated sections (Movies, Shows, Episodes)
+  - 🎞️ **Unrated Watched Items** — find content you've watched but haven't rated yet
   - 🔢 Paginated "All Rated Items" view (24 items per page)
-  - 🔄 8 sorting options: Rating (High/Low), Title (A-Z/Z-A), Recently/Oldest Rated, Most/Least Ratings
+  - 🔄 8 sorting options for rated items: Rating (High/Low), Title (A-Z/Z-A), Recently/Oldest Rated, Most/Least Ratings
+  - 📊 4 sorting options for unrated items: Last Watched, Oldest Watched, Title A-Z, Title Z-A
+  - 🎛️ Type filter for "All Rated Items": All / Movies / Shows / Episodes
   - ⚙️ Configurable limit for recently rated items (5-50)
   - 🖼️ Native Jellyfin card styling with clickable navigation
-  - 📺 Smart thumbnails (episodes show series posters)
+  - 🖼️ Smart image fallback: Thumb → Backdrop → Primary (always shows something)
+  - ⚡ Independent section loading — Movies render instantly without waiting for Series
 - 🌐 Web interface support (desktop & mobile browsers)
 - 🔄 **Plex Rating Import** - Import your existing Plex ratings into Jellyfin
   - 🔁 **Scheduled Auto-Sync** - Automatically sync ratings from Plex on a schedule
   - 🔒 AES-256-CBC encrypted Plex token storage
   - 📊 Real-time progress tracking during import
+
+## What's New
+
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 
 ## Installation
 
@@ -88,13 +105,13 @@ For Plex import, see [Plex Rating Import](#plex-rating-import) below.
 
 1. Go to **Dashboard** → **Plugins** → **User Ratings** → **View Ratings** tab
 2. Browse **Recently Rated** sections for Movies, Shows, and Episodes
-3. Scroll to **All Rated Items** for the complete paginated list
-4. Use the **dropdown menu** to sort by:
-   - Rating: High to Low / Low to High
-   - Title: A-Z / Z-A
-   - Recently Rated / Oldest Rated
-   - Most Ratings / Least Ratings
-5. Click any card to navigate to that item's detail page
+3. Check **Unrated Watched Items** to find content you've watched but haven't rated
+4. Scroll to **All Rated Items** for the complete paginated list
+5. Use the **type filter** to show only Movies, Shows, or Episodes
+6. Use the **sort dropdown** to sort by:
+   - **Rated items:** Rating (High/Low), Title (A-Z/Z-A), Recently/Oldest Rated, Most/Least Ratings
+   - **Unrated items:** Last Watched, Oldest Watched, Title A-Z, Title Z-A
+7. Click any card to navigate to that item's detail page
 
 ### Rating Features
 
@@ -182,6 +199,7 @@ When enabled, Jellyfin's built-in scheduled task system will run the import at t
 - Browse the Viewer Ratings page to see what family members are watching and enjoying
 - Check ratings before picking your next movie night selection
 - See trending content based on recent ratings
+- Find content you've watched but haven't rated yet
 - Import ratings from a shared Plex server
 
 **Friend Group**
