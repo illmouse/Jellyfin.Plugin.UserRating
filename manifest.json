@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.9.0.8",
-        "changelog": "Beta: provider ID resolution, self-healing ratings, DB health check",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0.8/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-19T12:00:00Z"
+        "checksum": "c61832a8aab0610914857d3c0009ba31",
+        "timestamp": "2026-06-19T13:26:49Z"
       },
       {
         "version": "1.9.0.7",
