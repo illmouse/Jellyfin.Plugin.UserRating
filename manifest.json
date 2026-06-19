@@ -13,16 +13,24 @@
         "changelog": "Fix broken thumbnails by using Primary image type; replace slow UnratedWatchedItems server endpoint with fast Jellyfin /Items API calls",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-19T12:00:00Z"
+        "checksum": "fa5f6bda1f615dd091ad9f9feec4d7ad",
+        "timestamp": "2026-06-19T08:28:52Z"
       },
       {
         "version": "1.10.1.0",
-        "changelog": "Release 1.10.1",
+        "changelog": "Fix card layout width; improve thumbnail quality; optimize unrated items loading",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.1/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "f6a14779353befa35c0680f3231d6db7",
         "timestamp": "2026-06-19T08:10:20Z"
+      },
+      {
+        "version": "1.10.0.0",
+        "changelog": "Release 1.10.0",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "7fab97160a76fb40b159f23a2abb6d39",
+        "timestamp": "2026-06-19T07:47:12Z"
       }
     ]
   }
