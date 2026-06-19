@@ -17,14 +17,6 @@
         "timestamp": "2026-06-19T08:38:19Z"
       },
       {
-        "version": "1.10.3.0",
-        "changelog": "Fix broken thumbnails; replace slow unrated items loading with fast client-side API calls; fix release workflow manifest handling",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-19T12:00:00Z"
-      },
-      {
         "version": "1.10.2.0",
         "changelog": "Fix broken thumbnails by using Primary image type; replace slow UnratedWatchedItems server endpoint with fast Jellyfin /Items API calls",
         "targetAbi": "10.11.0.0",

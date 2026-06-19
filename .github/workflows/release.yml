@@ -88,8 +88,14 @@ jobs:
             timestamp: $timestamp
           }')
 
-        # Prepend new version entry to existing manifest
-        jq --argjson new "$NEW_ENTRY" '.[0].versions = [$new] + .[0].versions' manifest.json > manifest.json.tmp
+        # Prepend new version entry to existing manifest (deduplicate)
+        jq --argjson new "$NEW_ENTRY" --arg ver "$VERSION.0" '
+          if .[0].versions | any(.version == $ver) then
+            .[0].versions = (.[0].versions | map(if .version == $ver then $new else . end))
+          else
+            .[0].versions = [$new] + .[0].versions
+          end
+        ' manifest.json > manifest.json.tmp
         mv manifest.json.tmp manifest.json
 
         # Also update csproj on main
