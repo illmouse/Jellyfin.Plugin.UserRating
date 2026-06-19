@@ -1,8 +1,10 @@
 using Jellyfin.Plugin.UserRatings.Data;
+using Jellyfin.Plugin.UserRatings.Middleware;
 using Jellyfin.Plugin.UserRatings.ScheduledTasks;
 using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.UserRatings
@@ -20,6 +22,7 @@ namespace Jellyfin.Plugin.UserRatings
             serviceCollection.AddSingleton<PlexSyncScheduledTask>();
             serviceCollection.AddSingleton<RatingsHealthTask>();
             serviceCollection.AddSingleton<RatingsBackupTask>();
+            serviceCollection.AddSingleton<IStartupFilter, ScriptInjectionStartupFilter>();
         }
     }
 }

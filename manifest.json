@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.10.0.1",
+        "changelog": "Fix script injection for Jellyfin 10.11 containers (middleware-based approach, no file writes)",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-19T00:00:00Z"
+      },
+      {
         "version": "1.10.0.0",
         "changelog": " Provider ID resolution, self-healing ratings, database health checks, and automatic backups.  ### New Features  - **Provider ID Resolution** — Ratings are now matched by ItemId first, then by provider IDs (IMDB, TMDB, TVDB, etc.). If an item's ID changes in Jellyfin, ratings are automatically re-linked via provider IDs. - **Self-Healing Ratings** — When a rating's ItemId no longer matches a library item, the system searches by provider IDs and re-keys the rating to the correct item. Healing",
         "targetAbi": "10.11.0.0",
