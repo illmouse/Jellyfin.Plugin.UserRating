@@ -71,10 +71,17 @@ jobs:
         # Install jq for JSON manipulation
         sudo apt-get install -y jq
 
+        # Extract changelog for this version
+        if [ -f CHANGELOG.md ]; then
+          CHANGELOG_TEXT=$(awk "/^## v${VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md | head -c 500 | tr '\n' ' ' | sed 's/"/\\"/g')
+        else
+          CHANGELOG_TEXT="Release $VERSION"
+        fi
+
         # Build new version entry
         NEW_ENTRY=$(jq -n \
           --arg ver "$VERSION.0" \
-          --arg changelog "Release $VERSION" \
+          --arg changelog "$CHANGELOG_TEXT" \
           --arg targetAbi "10.11.0.0" \
           --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip" \
           --arg checksum "$CHECKSUM" \
@@ -98,6 +105,13 @@ jobs:
         ' manifest.json > manifest.json.tmp
         mv manifest.json.tmp manifest.json
 
+        # Update imageUrl to use this repository
+        jq --arg repo "${{ github.repository }}" '.[0].imageUrl = ("https://raw.githubusercontent.com/" + $repo + "/main/icon.png")' manifest.json > manifest.json.tmp2
+        mv manifest.json.tmp2 manifest.json
+
+        # Update README repo URL to use this repository
+        sed -i "s|https://raw.githubusercontent.com/[^/]*/[^/]*/main/manifest.json|https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json|g" README.md
+
         # Also update csproj on main
         sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>$VERSION.0<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
         sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>$VERSION.0<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
@@ -106,8 +120,8 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add manifest.json Jellyfin.Plugin.UserRatings.csproj
-        git commit -m "Update manifest and csproj for version ${{ steps.version.outputs.version }}" || echo "No changes to commit"
+        git add manifest.json Jellyfin.Plugin.UserRatings.csproj README.md
+        git commit -m "Release v${{ steps.version.outputs.version }}: update manifest, csproj, and README" || echo "No changes to commit"
         git push origin main
 
     - name: Build release body
