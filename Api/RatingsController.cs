@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
+using Jellyfin.Data.Enums;
+using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Controller.Entities;
@@ -18,11 +20,13 @@ namespace Jellyfin.Plugin.UserRatings.Api
     {
         private readonly RatingRepository _repository;
         private readonly ILibraryManager _libraryManager;
+        private readonly IUserManager _userManager;
 
-        public RatingsController(RatingRepository repository, ILibraryManager libraryManager)
+        public RatingsController(RatingRepository repository, ILibraryManager libraryManager, IUserManager userManager)
         {
             _repository = repository;
             _libraryManager = libraryManager;
+            _userManager = userManager;
         }
 
         [HttpPost("Rate")]
@@ -236,15 +240,20 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 // Get all movies and series the user has played/watched
                 var watchedUnrated = new List<object>();
 
-                // Query library for Movies
-                var movieQuery = new InternalItemsQuery
+                var user = _userManager.GetUserById(userId);
+                if (user == null)
                 {
-                    IncludeItemTypes = new[] { "Movie" },
+                    return NotFound(new { success = false, message = "User not found" });
+                }
+
+                // Query library for Movies
+                var movieQuery = new InternalItemsQuery(user)
+                {
+                    IncludeItemTypes = new[] { BaseItemKind.Movie },
                     IsPlayed = true,
-                    UserId = userId,
-                    SortBy = new[] { "DatePlayed" },
-                    SortOrder = new[] { SortOrder.Descending },
-                    Limit = 100
+                    OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
+                    Limit = 100,
+                    Recursive = true
                 };
                 var movies = _libraryManager.GetItemsResult(movieQuery);
 
@@ -263,14 +272,13 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 }
 
                 // Query library for Series
-                var seriesQuery = new InternalItemsQuery
+                var seriesQuery = new InternalItemsQuery(user)
                 {
-                    IncludeItemTypes = new[] { "Series" },
+                    IncludeItemTypes = new[] { BaseItemKind.Series },
                     IsPlayed = true,
-                    UserId = userId,
-                    SortBy = new[] { "DatePlayed" },
-                    SortOrder = new[] { SortOrder.Descending },
-                    Limit = 100
+                    OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
+                    Limit = 100,
+                    Recursive = true
                 };
                 var series = _libraryManager.GetItemsResult(seriesQuery);
 
