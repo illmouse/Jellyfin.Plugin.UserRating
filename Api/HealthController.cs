@@ -31,12 +31,12 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     stale = report.Stale,
                     staleItems = report.StaleItems.Select(s => new
                     {
-                        s.ItemId,
-                        s.UserId,
-                        s.Rating,
-                        s.Note,
-                        s.ProviderIds,
-                        s.Timestamp
+                        itemId = s.ItemId,
+                        userId = s.UserId,
+                        rating = s.Rating,
+                        note = s.Note,
+                        providerIds = s.ProviderIds,
+                        timestamp = s.Timestamp
                     })
                 });
             }
