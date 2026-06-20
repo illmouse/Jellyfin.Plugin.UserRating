@@ -60,4 +60,5 @@ Wait for explicit user confirmation before proceeding.
 Only after user confirmation:
 1. `git add -A && git commit -m "vX.Y.Z.W: <summary>"`
 2. `git tag vX.Y.Z.W`
-3. `git push --follow-tags`
+3. `git push` (pushes commits)
+4. `git push origin vX.Y.Z.W` (pushes the tag explicitly — `--follow-tags` does not reliably push lightweight tags)

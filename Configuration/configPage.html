@@ -3,6 +3,72 @@
 <head>
     <meta charset="utf-8">
     <title>User Ratings</title>
+    <style>
+        .save-btn {
+            display: inline-block;
+            min-width: 200px;
+            padding: 0.7em 1.5em;
+            background: #2196F3;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .save-btn:hover {
+            background: #1976D2;
+        }
+        .section-divider {
+            margin-top: 2em;
+            padding-top: 2em;
+            border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));
+        }
+        .subsection {
+            margin-top: 1.5em;
+            padding-top: 1em;
+            border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));
+        }
+        .backup-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5em;
+        }
+        .backup-table th, .backup-table td {
+            padding: 0.5em 0.8em;
+            text-align: left;
+            border-bottom: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));
+            font-size: 0.9em;
+        }
+        .backup-table th {
+            font-weight: 600;
+            color: var(--dimTextColor, #aaa);
+        }
+        .btn-small {
+            font-size: 0.85em;
+            padding: 0.3em 0.8em;
+            margin-right: 0.3em;
+        }
+        .item-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--selectorBackgroundColor, rgba(255,255,255,0.05));
+            border-radius: var(--smallRadius, 4px);
+            padding: 0.5em;
+        }
+        .item-entry {
+            padding: 0.3em 0.5em;
+            border-bottom: 1px solid var(--defaultBorder, rgba(255,255,255,0.05));
+        }
+        .upload-area {
+            display: flex;
+            align-items: center;
+            gap: 1em;
+            margin-top: 0.5em;
+        }
+    </style>
 </head>
 <body>
     <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
@@ -20,8 +86,9 @@
                         <input type="number" id="recentlyRatedCount" is="emby-input" min="5" max="50" step="1" class="emby-input" />
                         <div class="fieldDescription">Number of items to display in each "Recently Rated" section (Movies, Shows, Episodes). Default is 10.</div>
                     </div>
+                </form>
 
-                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                <div class="section-divider">
                     <h3>Database Backup</h3>
                     <div class="fieldDescription" style="margin-bottom: 1.5em;">
                         Automatically back up the ratings database. Backups are stored as timestamped JSON files and rotated to keep only the most recent ones.
@@ -53,18 +120,37 @@
                         <div class="fieldDescription">Directory where backup files are stored. Leave empty to use the default path.</div>
                     </div>
 
-                    <div style="margin-top: 1em;">
+                    <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
                         <button type="button" id="btnBackupNow" is="emby-button" class="raised block" style="min-width: 200px;">
                             <span>Create Backup Now</span>
                         </button>
                     </div>
                     <div id="backupResult" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
+
+                    <div class="subsection">
+                        <h4>Backup Files on Disk</h4>
+                        <div id="backupListContainer" style="margin-top: 0.5em;">
+                            <div class="fieldDescription">Loading backup files...</div>
+                        </div>
+
+                        <div style="margin-top: 1em;">
+                            <h4 style="margin-bottom: 0.3em;">Upload Backup File</h4>
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
+                            <div class="upload-area">
+                                <input type="file" id="backupFileInput" accept=".json" style="color: var(--textColor, #fff);" />
+                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small">
+                                    <span>Upload</span>
+                                </button>
+                            </div>
+                            <div id="uploadResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px); font-size: 0.9em;"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
-                    <h3>Plex Rating Import</h3>
+                <div class="section-divider">
+                    <h3>Plex Sync</h3>
                     <div class="fieldDescription" style="margin-bottom: 1.5em;">
-                        Import your ratings from a Plex Media Server. Ratings are matched to Jellyfin items using IMDB, TMDB, and TVDB identifiers.
+                        Synchronize your ratings from a Plex Media Server. Ratings are matched to Jellyfin items using IMDB, TMDB, and TVDB identifiers.
                     </div>
 
                     <div class="inputContainer">
@@ -80,36 +166,74 @@
                     </div>
 
                     <div style="margin: 0.5em 0;">
-                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised" style="font-size: 0.85em; padding: 0.3em 0.8em;">
+                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">
                             <span>Clear Stored Token</span>
                         </button>
+                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">
+                            <span>Test Connection</span>
+                        </button>
+                    </div>
+                    <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
+
+                    <div class="subsection">
+                        <h4>Import Ratings (One-Time)</h4>
+                        <div class="fieldDescription" style="margin-bottom: 1em;">
+                            Perform a one-time import of ratings from Plex. This is an immediate action, not a saved setting.
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
+                            <select id="importTargetUser" is="emby-select" class="emby-select">
+                                <option value="">Loading users...</option>
+                            </select>
+                            <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings. This is a one-time action, not a saved setting.</div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="plexConflictMode">On Conflict</label>
+                            <select id="plexConflictMode" is="emby-select" class="emby-select">
+                                <option value="skip">Skip existing ratings</option>
+                                <option value="overwrite">Overwrite existing ratings</option>
+                                <option value="keepHigher">Keep higher rating</option>
+                            </select>
+                            <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
+                        </div>
+
+                        <div style="margin-top: 1em;">
+                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit block" style="min-width: 200px; background: #4CAF50; color: white;">
+                                <span>Import Ratings from Plex</span>
+                            </button>
+                        </div>
+
+                        <div id="importProgress" style="display: none; margin-top: 1.5em;">
+                            <h4>Import Progress</h4>
+                            <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
+                                <div id="progressBar" style="height: 100%; background: #4CAF50; width: 0%; transition: width 0.3s ease; border-radius: var(--smallRadius, 4px);"></div>
+                            </div>
+                            <div id="progressText" style="font-size: 0.9em; color: var(--dimTextColor, #ccc);">Preparing...</div>
+                            <div id="progressStats" style="font-size: 0.85em; color: var(--dimTextColor, #aaa); margin-top: 0.3em;"></div>
+                        </div>
+
+                        <div id="importResult" style="display: none; margin-top: 1.5em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
+
+                        <div id="unmatchedSection" style="display: none; margin-top: 1em;">
+                            <h4>Unmatched Items</h4>
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex ratings could not be matched to Jellyfin items.</div>
+                            <div id="unmatchedList" class="item-list"></div>
+                        </div>
                     </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="plexConflictMode">On Conflict</label>
-                        <select id="plexConflictMode" is="emby-select" class="emby-select">
-                            <option value="skip">Skip existing ratings</option>
-                            <option value="overwrite">Overwrite existing ratings</option>
-                            <option value="keepHigher">Keep higher rating</option>
-                        </select>
-                        <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
-                    </div>
+                    <div class="subsection">
+                        <h4>Automatic Sync (Scheduled)</h4>
+                        <div class="fieldDescription" style="margin-bottom: 1em;">
+                            Automatically sync ratings from Plex on a schedule. These settings are saved and applied periodically.
+                        </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
-                        <select id="importTargetUser" is="emby-select" class="emby-select">
-                            <option value="">Loading users...</option>
-                        </select>
-                        <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings.</div>
-                    </div>
-
-                    <div style="margin-top: 1.5em; padding-top: 1em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
-                        <h4>Automatic Sync</h4>
                         <div class="inputContainer">
                             <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enableAutoSync" is="emby-checkbox" />
-                                <span>Automatically import ratings from Plex on a schedule</span>
+                                <span>Automatically sync ratings from Plex on a schedule</span>
                             </div>
                         </div>
 
@@ -124,47 +248,18 @@
                             <select id="syncUserId" is="emby-select" class="emby-select">
                                 <option value="">Loading users...</option>
                             </select>
-                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for. Uses the same conflict mode as manual import.</div>
+                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for. Uses the same conflict mode as one-time import.</div>
                         </div>
-                    </div>
-
-                    <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised block" style="min-width: 180px;">
-                            <span>Test Connection</span>
-                        </button>
-                        <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit block" style="min-width: 220px;">
-                            <span>Import Ratings from Plex</span>
-                        </button>
-                    </div>
-
-                    <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
-
-                    <div id="importProgress" style="display: none; margin-top: 1.5em;">
-                        <h4>Import Progress</h4>
-                        <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
-                            <div id="progressBar" style="height: 100%; background: var(--btnSubmitColor, #e53935); width: 0%; transition: width 0.3s ease; border-radius: var(--smallRadius, 4px);"></div>
-                        </div>
-                        <div id="progressText" style="font-size: 0.9em; color: var(--dimTextColor, #ccc);">Preparing...</div>
-                        <div id="progressStats" style="font-size: 0.85em; color: var(--dimTextColor, #aaa); margin-top: 0.3em;"></div>
-                    </div>
-
-                    <div id="importResult" style="display: none; margin-top: 1.5em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
-
-                    <div id="unmatchedSection" style="display: none; margin-top: 1em;">
-                        <h4>Unmatched Items</h4>
-                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex ratings could not be matched to Jellyfin items.</div>
-                        <div id="unmatchedList" style="max-height: 300px; overflow-y: auto; background: var(--selectorBackgroundColor, rgba(255,255,255,0.05)); border-radius: var(--smallRadius, 4px); padding: 0.5em;"></div>
                     </div>
                 </div>
 
-                <div style="margin-top: 1.5em;">
-                    <button type="submit" is="emby-button" class="raised button-submit block">
-                        <span>Save</span>
+                <div class="section-divider">
+                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm">
+                        Save Settings
                     </button>
                 </div>
-                </form>
 
-                <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid var(--defaultBorder, rgba(255,255,255,0.1));">
+                <div class="section-divider">
                     <h3>Database Health</h3>
                     <div class="fieldDescription" style="margin-bottom: 1em;">
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
@@ -178,10 +273,20 @@
                         </button>
                     </div>
                     <div id="healthResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
+                    <div id="recoverableList" style="display: none; margin-top: 1em;">
+                        <h4>Recoverable Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings can be healed by matching their provider IDs (IMDB, TMDB, TVDB) to items in your library.</div>
+                        <div id="recoverableItems" class="item-list"></div>
+                    </div>
+                    <div id="healedList" style="display: none; margin-top: 1em;">
+                        <h4>Healed Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings were successfully re-linked to items in your library.</div>
+                        <div id="healedItems" class="item-list"></div>
+                    </div>
                     <div id="staleList" style="display: none; margin-top: 1em;">
                         <h4>Stale Items</h4>
                         <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
-                        <div id="staleItems" style="max-height: 300px; overflow-y: auto; background: var(--selectorBackgroundColor, rgba(255,255,255,0.05)); border-radius: var(--smallRadius, 4px); padding: 0.5em;"></div>
+                        <div id="staleItems" class="item-list"></div>
                     </div>
                 </div>
 
@@ -235,6 +340,7 @@
                     }
 
                     loadUsers();
+                    loadBackupList();
                     Dashboard.hideLoadingMsg();
                     Dashboard.hideLoadingMsg();
                 });
@@ -258,7 +364,6 @@
                         syncSelect.appendChild(syncOption);
                     });
 
-                    var config = Plugin.Instance ? null : null;
                     ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (cfg) {
                         if (cfg.SyncUserId) {
                             syncSelect.value = cfg.SyncUserId;
@@ -269,6 +374,76 @@
                     var syncSelect = document.getElementById('syncUserId');
                     select.innerHTML = '<option value="">Failed to load users</option>';
                     syncSelect.innerHTML = '<option value="">Failed to load users</option>';
+                });
+            }
+
+            function loadBackupList() {
+                var container = document.getElementById('backupListContainer');
+                fetch(ApiClient.getUrl('api/UserRatings/Backups'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (!result.success || !result.backups || result.backups.length === 0) {
+                        container.innerHTML = '<div class="fieldDescription">No backup files found on disk.</div>';
+                        return;
+                    }
+
+                    var html = '<table class="backup-table">';
+                    html += '<thead><tr><th>File</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>';
+                    html += '<tbody>';
+                    result.backups.forEach(function (b) {
+                        var dateStr = new Date(b.lastModified).toLocaleString();
+                        var sizeStr = b.fileSize < 1024 ? b.fileSize + ' B'
+                            : b.fileSize < 1048576 ? (b.fileSize / 1024).toFixed(1) + ' KB'
+                            : (b.fileSize / 1048576).toFixed(1) + ' MB';
+                        html += '<tr>';
+                        html += '<td>' + b.fileName + '</td>';
+                        html += '<td>' + dateStr + '</td>';
+                        html += '<td>' + sizeStr + '</td>';
+                        html += '<td>';
+                        html += '<button type="button" class="raised btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
+                        html += '<button type="button" class="raised btn-small" style="background: #FF9800; color: white;" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }).catch(function (err) {
+                    container.innerHTML = '<div class="fieldDescription" style="color: #f44336;">Error loading backups: ' + err.message + '</div>';
+                });
+            }
+
+            function downloadBackup(fileName) {
+                var url = ApiClient.getUrl('api/UserRatings/DownloadBackup?fileName=' + encodeURIComponent(fileName));
+                var token = ApiClient.accessToken();
+                var separator = url.indexOf('?') >= 0 ? '&' : '?';
+                window.open(url + separator + 'X-Emby-Token=' + encodeURIComponent(token), '_blank');
+            }
+
+            function restoreBackup(fileName) {
+                if (!confirm('Are you sure you want to restore from "' + fileName + '"? This will replace ALL current ratings with the backup data. A pre-restore backup will be created automatically.')) {
+                    return;
+                }
+
+                var resultDiv = document.getElementById('backupResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Restoring from backup...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                fetch(ApiClient.getUrl('api/UserRatings/RestoreBackup?fileName=' + encodeURIComponent(fileName)), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = result.message;
+                        resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                        loadBackupList();
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Restore failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             }
 
@@ -299,6 +474,14 @@
                         Dashboard.processPluginConfigurationUpdateResult();
                         tokenField.value = '';
                         tokenField.placeholder = 'Token is stored (leave blank to keep)';
+
+                        var saveBtn = document.querySelector('.save-btn');
+                        saveBtn.textContent = 'Saved!';
+                        saveBtn.style.background = '#1565C0';
+                        setTimeout(function () {
+                            saveBtn.textContent = 'Save Settings';
+                            saveBtn.style.background = '';
+                        }, 2000);
                     });
                 });
 
@@ -482,8 +665,7 @@
 
                     data.unmatched.forEach(function (item) {
                         var div = document.createElement('div');
-                        div.style.padding = '0.3em 0.5em';
-                        div.style.borderBottom = '1px solid var(--defaultBorder, rgba(255,255,255,0.05))';
+                        div.className = 'item-entry';
                         div.innerHTML = '<strong>' + item.plexType + '</strong>: ' + item.title +
                             ' <span style="color: var(--dimTextColor, #aaa);">(Plex rating: ' + item.plexRating + '/10 → ' + Math.round(item.plexRating / 2) + '/5)</span>' +
                             '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + item.guids.join(', ') + '</span>';
@@ -497,6 +679,12 @@
                 div.style.display = 'block';
                 div.innerHTML = message;
                 div.style.backgroundColor = isSuccess ? 'rgba(76, 175, 80, 0.2)' : 'rgba(244, 67, 54, 0.2)';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(1) + ' MB';
             }
 
             document.getElementById('btnDeleteAllRatings').addEventListener('click', function () {
@@ -544,22 +732,42 @@
 
             document.getElementById('btnHealthCheck').addEventListener('click', function () {
                 var resultDiv = document.getElementById('healthResult');
+                var recoverableSection = document.getElementById('recoverableList');
                 var staleSection = document.getElementById('staleList');
+                var healedSection = document.getElementById('healedList');
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = 'Checking database health...';
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
+                healedSection.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealthReport'), {
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
-                        resultDiv.innerHTML = '<strong>Health Check Results</strong><br>' +
+                        var html = '<strong>Health Check Results</strong><br>' +
                             'OK: ' + result.ok + '<br>' +
                             'Recoverable: ' + result.recoverable + '<br>' +
                             'Updated: ' + result.updated + '<br>' +
                             'Stale: ' + result.stale;
-                        resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : 'rgba(76, 175, 80, 0.2)';
+                        resultDiv.innerHTML = html;
+                        resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.recoverable > 0 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(76, 175, 80, 0.2)');
+
+                        if (result.recoverableItems && result.recoverableItems.length > 0) {
+                            recoverableSection.style.display = 'block';
+                            var recDiv = document.getElementById('recoverableItems');
+                            recDiv.innerHTML = '';
+                            result.recoverableItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.className = 'item-entry';
+                                div.innerHTML = '<strong style="color: #FFC107;">' + (item.itemName || 'Unknown') + '</strong>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/5)</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Can be re-linked to: ' + item.newItemId.substring(0, 8) + '...' +
+                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                recDiv.appendChild(div);
+                            });
+                        }
 
                         if (result.staleItems && result.staleItems.length > 0) {
                             staleSection.style.display = 'block';
@@ -567,8 +775,7 @@
                             staleDiv.innerHTML = '';
                             result.staleItems.forEach(function (item) {
                                 var div = document.createElement('div');
-                                div.style.padding = '0.3em 0.5em';
-                                div.style.borderBottom = '1px solid var(--defaultBorder, rgba(255,255,255,0.05))';
+                                div.className = 'item-entry';
                                 var providerInfo = '';
                                 if (item.providerIds && Object.keys(item.providerIds).length > 0) {
                                     providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
@@ -593,11 +800,15 @@
 
             document.getElementById('btnHealRatings').addEventListener('click', function () {
                 var resultDiv = document.getElementById('healthResult');
+                var recoverableSection = document.getElementById('recoverableList');
                 var staleSection = document.getElementById('staleList');
+                var healedSection = document.getElementById('healedList');
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = 'Healing database...';
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
+                healedSection.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealRatings'), {
                     method: 'POST',
@@ -611,6 +822,40 @@
                             'Stale: ' + result.stale + '<br>' +
                             result.message;
                         resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+
+                        if (result.healedItems && result.healedItems.length > 0) {
+                            healedSection.style.display = 'block';
+                            var healedDiv = document.getElementById('healedItems');
+                            healedDiv.innerHTML = '';
+                            result.healedItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.className = 'item-entry';
+                                div.innerHTML = '<strong style="color: #4CAF50;">' + (item.itemName || 'Unknown') + '</strong>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/5)</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Re-linked: ' + item.oldItemId.substring(0, 8) + '... → ' + item.newItemId.substring(0, 8) + '...</span>';
+                                healedDiv.appendChild(div);
+                            });
+                        }
+
+                        if (result.staleItems && result.staleItems.length > 0) {
+                            staleSection.style.display = 'block';
+                            var staleDiv = document.getElementById('staleItems');
+                            staleDiv.innerHTML = '';
+                            result.staleItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.className = 'item-entry';
+                                var providerInfo = '';
+                                if (item.providerIds && Object.keys(item.providerIds).length > 0) {
+                                    providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
+                                        Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                }
+                                div.innerHTML = '<strong>Rating: ' + item.rating + '/5</strong> ' +
+                                    '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
+                                    (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
+                                    providerInfo;
+                                staleDiv.appendChild(div);
+                            });
+                        }
                     } else {
                         resultDiv.innerHTML = result.message || 'Heal failed';
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
@@ -675,8 +920,47 @@
                     if (result.success) {
                         resultDiv.innerHTML = result.message;
                         resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                        loadBackupList();
                     } else {
                         resultDiv.innerHTML = result.message || 'Backup failed';
+                        resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                });
+            });
+
+            document.getElementById('btnUploadBackup').addEventListener('click', function () {
+                var fileInput = document.getElementById('backupFileInput');
+                var resultDiv = document.getElementById('uploadResult');
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = 'Please select a file to upload.';
+                    resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Uploading...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                fetch(ApiClient.getUrl('api/UserRatings/UploadBackup'), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() },
+                    body: formData
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = result.message;
+                        resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                        fileInput.value = '';
+                        loadBackupList();
+                    } else {
+                        resultDiv.innerHTML = result.message || 'Upload failed';
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {

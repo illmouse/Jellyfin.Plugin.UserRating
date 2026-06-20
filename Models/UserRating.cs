@@ -40,6 +40,8 @@ namespace Jellyfin.Plugin.UserRatings.Models
         public int Updated { get; set; }
         public int Stale { get; set; }
         public List<StaleItem> StaleItems { get; set; } = new();
+        public List<RecoverableItem> RecoverableItems { get; set; } = new();
+        public List<HealedItem> HealedItems { get; set; } = new();
     }
 
     public class StaleItem
@@ -50,6 +52,32 @@ namespace Jellyfin.Plugin.UserRatings.Models
         public string? Note { get; set; }
         public Dictionary<string, string> ProviderIds { get; set; } = new();
         public DateTime Timestamp { get; set; }
+    }
+
+    public class RecoverableItem
+    {
+        public Guid OldItemId { get; set; }
+        public Guid NewItemId { get; set; }
+        public string? ItemName { get; set; }
+        public Guid UserId { get; set; }
+        public int Rating { get; set; }
+        public Dictionary<string, string> ProviderIds { get; set; } = new();
+    }
+
+    public class HealedItem
+    {
+        public Guid OldItemId { get; set; }
+        public Guid NewItemId { get; set; }
+        public string? ItemName { get; set; }
+        public Guid UserId { get; set; }
+        public int Rating { get; set; }
+    }
+
+    public class BackupFileInfo
+    {
+        public string FileName { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }
 

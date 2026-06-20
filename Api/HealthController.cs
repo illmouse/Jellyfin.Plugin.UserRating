@@ -1,7 +1,10 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api
@@ -34,6 +37,15 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     healed = report.Healed,
                     updated = report.Updated,
                     stale = report.Stale,
+                    recoverableItems = report.RecoverableItems.Select(r => new
+                    {
+                        oldItemId = r.OldItemId,
+                        newItemId = r.NewItemId,
+                        itemName = r.ItemName,
+                        userId = r.UserId,
+                        rating = r.Rating,
+                        providerIds = r.ProviderIds
+                    }),
                     staleItems = report.StaleItems.Select(s => new
                     {
                         itemId = s.ItemId,
@@ -42,6 +54,14 @@ namespace Jellyfin.Plugin.UserRatings.Api
                         note = s.Note,
                         providerIds = s.ProviderIds,
                         timestamp = s.Timestamp
+                    }),
+                    healedItems = report.HealedItems.Select(h => new
+                    {
+                        oldItemId = h.OldItemId,
+                        newItemId = h.NewItemId,
+                        itemName = h.ItemName,
+                        userId = h.UserId,
+                        rating = h.Rating
                     })
                 });
             }
@@ -66,6 +86,23 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     healed = report.Healed,
                     updated = report.Updated,
                     stale = report.Stale,
+                    healedItems = report.HealedItems.Select(h => new
+                    {
+                        oldItemId = h.OldItemId,
+                        newItemId = h.NewItemId,
+                        itemName = h.ItemName,
+                        userId = h.UserId,
+                        rating = h.Rating
+                    }),
+                    staleItems = report.StaleItems.Select(s => new
+                    {
+                        itemId = s.ItemId,
+                        userId = s.UserId,
+                        rating = s.Rating,
+                        note = s.Note,
+                        providerIds = s.ProviderIds,
+                        timestamp = s.Timestamp
+                    }),
                     message = $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
                 });
             }
@@ -105,6 +142,97 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 {
                     return Ok(new { success = false, message = "Failed to create backup. No ratings file found." });
                 }
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("Backups")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public ActionResult ListBackups()
+        {
+            try
+            {
+                var backups = _backupService.ListBackups();
+                return Ok(new { success = true, backups });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("RestoreBackup")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public ActionResult RestoreBackup([FromQuery] string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { success = false, message = "fileName is required" });
+            }
+
+            try
+            {
+                var (success, message) = _backupService.RestoreBackup(fileName);
+                return Ok(new { success, message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("DownloadBackup")]
+        public IActionResult DownloadBackup([FromQuery] string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest("fileName is required");
+            }
+
+            var filePath = _backupService.GetBackupFilePath(fileName);
+            if (filePath == null)
+            {
+                return NotFound($"Backup file '{fileName}' not found.");
+            }
+
+            var contentType = "application/json";
+            return PhysicalFile(filePath, contentType, fileName);
+        }
+
+        [HttpPost("UploadBackup")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public ActionResult UploadBackup(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { success = false, message = "No file uploaded." });
+            }
+
+            if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { success = false, message = "Only JSON files are accepted." });
+            }
+
+            try
+            {
+                var backupDir = _backupService.GetBackupDir();
+                Directory.CreateDirectory(backupDir);
+
+                var safeName = file.FileName.Contains("/")  || file.FileName.Contains("\\")
+                    ? $"uploaded_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json"
+                    : $"uploaded_{file.FileName}";
+
+                var destPath = Path.Combine(backupDir, safeName);
+
+                using (var stream = new FileStream(destPath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+
+                return Ok(new { success = true, message = $"Backup uploaded as {safeName}" });
             }
             catch (System.Exception ex)
             {

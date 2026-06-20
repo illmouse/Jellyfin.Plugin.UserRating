@@ -92,10 +92,28 @@ namespace Jellyfin.Plugin.UserRatings.Services
                                 healedRating.ProviderIds = new Dictionary<string, string>(matched.ProviderIds);
                                 _repository.SaveRating(healedRating);
                             }
+
+                            report.HealedItems.Add(new HealedItem
+                            {
+                                OldItemId = rating.ItemId,
+                                NewItemId = matched.Id,
+                                ItemName = matched.Name,
+                                UserId = rating.UserId,
+                                Rating = rating.Rating
+                            });
                         }
                         else
                         {
                             report.Recoverable++;
+                            report.RecoverableItems.Add(new RecoverableItem
+                            {
+                                OldItemId = rating.ItemId,
+                                NewItemId = matched.Id,
+                                ItemName = matched.Name,
+                                UserId = rating.UserId,
+                                Rating = rating.Rating,
+                                ProviderIds = rating.ProviderIds
+                            });
                         }
 
                         continue;
