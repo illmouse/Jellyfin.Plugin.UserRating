@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.4.0
+
+### Fixed
+
+- **Back Button Returns to User Ratings Tab** — When navigating from the User Ratings tab to a details page and pressing back, the browser now returns to the User Ratings tab instead of always landing on Home or Favourites. Uses `history.replaceState` to annotate the current history entry with `userRatingsActive`, so the `hashchange` handler restores the correct tab. Switching to a native tab (Home/Favourites) clears the flag — last-clicked native tab wins on back. No refetch on re-activation; existing DOM content is restored.
+
+---
+
 ## v1.11.3.0
 
 ### Fixed
