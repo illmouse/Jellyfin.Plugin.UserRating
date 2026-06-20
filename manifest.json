@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.2.0",
-        "changelog": " Backup files table now renders compactly instead of stretching full-width. ",
+        "changelog": " ### Fixed  - **Backup Files Table Width** — Changed table from full-width (`width: 100%`) to auto-fit (`width: auto`) so it renders compactly instead of stretching across the entire config page.  ",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.2.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T15:00:00Z"
+        "checksum": "a5af35ea68a817aac6d5a3dbba4f19b3",
+        "timestamp": "2026-06-20T11:04:41Z"
       },
       {
         "version": "1.11.1.0",
