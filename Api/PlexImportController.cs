@@ -8,118 +8,107 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.UserRatings.Api
+namespace Jellyfin.Plugin.UserRatings.Api;
+
+[ApiController]
+[Route("api/UserRatings")]
+public class PlexImportController(
+PlexImportService importService,
+ProgressTracker progressTracker,
+ILogger<PlexImportController> logger) : ControllerBase
 {
-    [ApiController]
-    [Route("api/UserRatings")]
-    public class PlexImportController : ControllerBase
+
+    private PluginConfiguration GetConfig()
     {
-        private readonly PlexImportService _importService;
-        private readonly ProgressTracker _progressTracker;
-        private readonly ILogger<PlexImportController> _logger;
+        return Plugin.Instance?.Configuration ?? new PluginConfiguration();
+    }
 
-        public PlexImportController(
-            PlexImportService importService,
-            ProgressTracker progressTracker,
-            ILogger<PlexImportController> logger)
+    [HttpPost("ImportFromPlex")]
+    [Produces("application/json")]
+    public ActionResult StartImport([FromQuery] Guid userId)
+    {
+        if (userId == Guid.Empty)
         {
-            _importService = importService;
-            _progressTracker = progressTracker;
-            _logger = logger;
+            return BadRequest(new { success = false, message = "userId is required" });
         }
 
-        private PluginConfiguration GetConfig()
+        var config = GetConfig();
+        if (string.IsNullOrEmpty(config.PlexServerUrl) || string.IsNullOrEmpty(config.PlexToken))
         {
-            return Plugin.Instance?.Configuration ?? new PluginConfiguration();
+            return BadRequest(new { success = false, message = "Plex server URL and token must be configured in plugin settings" });
         }
 
-        [HttpPost("ImportFromPlex")]
-        [Produces("application/json")]
-        public ActionResult StartImport([FromQuery] Guid userId)
+        var operationId = progressTracker.StartOperation();
+
+        _ = Task.Run(async () =>
         {
-            if (userId == Guid.Empty)
+            try
             {
-                return BadRequest(new { success = false, message = "userId is required" });
+                await importService.ImportFromPlexAsync(userId, operationId, CancellationToken.None).ConfigureAwait(false);
             }
-
-            var config = GetConfig();
-            if (string.IsNullOrEmpty(config.PlexServerUrl) || string.IsNullOrEmpty(config.PlexToken))
+            catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = "Plex server URL and token must be configured in plugin settings" });
+                logger.LogError(ex, "Unhandled error in Plex import task");
+                progressTracker.FailOperation(operationId, $"Unhandled error: {ex.Message}");
             }
+        });
 
-            var operationId = _progressTracker.StartOperation();
+        return Ok(new { success = true, operationId });
+    }
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _importService.ImportFromPlexAsync(userId, operationId, CancellationToken.None).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unhandled error in Plex import task");
-                    _progressTracker.FailOperation(operationId, $"Unhandled error: {ex.Message}");
-                }
-            });
+    [HttpGet("ImportProgress/{operationId}")]
+    public async Task StreamProgress(string operationId, CancellationToken cancellationToken)
+    {
+        Response.ContentType = "text/event-stream";
+        Response.Headers["Cache-Control"] = "no-cache";
+        Response.Headers["Connection"] = "keep-alive";
 
-            return Ok(new { success = true, operationId });
-        }
-
-        [HttpGet("ImportProgress/{operationId}")]
-        public async Task StreamProgress(string operationId, CancellationToken cancellationToken)
+        var options = new JsonSerializerOptions
         {
-            Response.ContentType = "text/event-stream";
-            Response.Headers["Cache-Control"] = "no-cache";
-            Response.Headers["Connection"] = "keep-alive";
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
-            var options = new JsonSerializerOptions
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var progress = progressTracker.GetProgress(operationId);
+
+            if (progress == null)
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var progress = _progressTracker.GetProgress(operationId);
-
-                if (progress == null)
-                {
-                    var errorJson = JsonSerializer.Serialize(new { status = "not_found", message = "Operation not found" }, options);
-                    await Response.WriteAsync($"data: {errorJson}\n\n", cancellationToken).ConfigureAwait(false);
-                    await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
-                    break;
-                }
-
-                var json = JsonSerializer.Serialize(progress, options);
-                await Response.WriteAsync($"data: {json}\n\n", cancellationToken).ConfigureAwait(false);
+                var errorJson = JsonSerializer.Serialize(new { status = "not_found", message = "Operation not found" }, options);
+                await Response.WriteAsync($"data: {errorJson}\n\n", cancellationToken).ConfigureAwait(false);
                 await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
-
-                if (progress.Status == "completed" || progress.Status == "failed" || progress.Status == "cancelled")
-                {
-                    _progressTracker.RemoveOperation(operationId);
-                    break;
-                }
-
-                await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                break;
             }
-        }
 
-        [HttpGet("PlexStatus")]
-        [Produces("application/json")]
-        public async Task<ActionResult> CheckPlexStatus()
-        {
-            var config = GetConfig();
-            var plexUrl = config.PlexServerUrl?.TrimEnd('/') ?? string.Empty;
-            var plexToken = config.PlexToken;
+            var json = JsonSerializer.Serialize(progress, options);
+            await Response.WriteAsync($"data: {json}\n\n", cancellationToken).ConfigureAwait(false);
+            await Response.Body.FlushAsync(cancellationToken).ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
+            if (progress.Status == "completed" || progress.Status == "failed" || progress.Status == "cancelled")
             {
-                return Ok(new { success = false, message = "Plex server URL and token not configured" });
+                progressTracker.RemoveOperation(operationId);
+                break;
             }
 
-            var (success, message, libraryCount) = await _importService.ValidatePlexConnectionAsync(plexUrl, plexToken, HttpContext.RequestAborted).ConfigureAwait(false);
-
-            return Ok(new { success, message, libraryCount });
+            await Task.Delay(500, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    [HttpGet("PlexStatus")]
+    [Produces("application/json")]
+    public async Task<ActionResult> CheckPlexStatus()
+    {
+        var config = GetConfig();
+        var plexUrl = config.PlexServerUrl?.TrimEnd('/') ?? string.Empty;
+        var plexToken = config.PlexToken;
+
+        if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
+        {
+            return Ok(new { success = false, message = "Plex server URL and token not configured" });
+        }
+
+        var (success, message, libraryCount) = await importService.ValidatePlexConnectionAsync(plexUrl, plexToken, HttpContext.RequestAborted).ConfigureAwait(false);
+
+        return Ok(new { success, message, libraryCount });
     }
 }

@@ -7,26 +7,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Middleware;
 
-public class ScriptInjectionMiddleware
+public class ScriptInjectionMiddleware(RequestDelegate next, ILogger<ScriptInjectionMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ScriptInjectionMiddleware> _logger;
     private const string ScriptTag = "<script plugin=\"UserRatings\" src=\"/web/ConfigurationPage?name=ratings.js\"></script>";
     private const string BodyClosingTag = "</body>";
     private const string InjectMarker = "plugin=\"UserRatings\"";
-
-    public ScriptInjectionMiddleware(RequestDelegate next, ILogger<ScriptInjectionMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
 
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value;
         if (path == null || !IsIndexHtmlRequest(path))
         {
-            await _next(context).ConfigureAwait(false);
+            await next(context).ConfigureAwait(false);
             return;
         }
 
@@ -37,7 +29,7 @@ public class ScriptInjectionMiddleware
         using var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
 
-        await _next(context).ConfigureAwait(false);
+        await next(context).ConfigureAwait(false);
 
         responseBody.Seek(0, SeekOrigin.Begin);
 
@@ -77,7 +69,7 @@ public class ScriptInjectionMiddleware
         context.Response.Headers.Remove("Content-Encoding");
         await originalBodyStream.WriteAsync(modifiedBytes).ConfigureAwait(false);
 
-        _logger.LogDebug("Injected User Ratings script into index.html response");
+        logger.LogDebug("Injected User Ratings script into index.html response");
     }
 
     private static bool IsIndexHtmlRequest(string path)

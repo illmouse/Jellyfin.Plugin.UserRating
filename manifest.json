@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.5.1",
+        "changelog": "Modern C# syntax: file-scoped namespaces, primary constructors, record types. No behavioral changes.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.5.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T19:00:00Z"
+      },
+      {
         "version": "1.11.5.0",
         "changelog": " ### Fixed  - **Series Query Performance** — Changed from `IsPlayed`-on-Series (required scanning all episodes, 40s) to episode-based watched lookup with SeriesId deduplication (<50ms). - **Series Sort by Last Watched** — `lastPlayedDate` now uses the episode's actual play date instead of the always-null series-level `UserData.LastPlayedDate`. Sorting unrated series by Last Watched now works correctly. - **Rating Oscillation** — `RatingResolver.ResolveRating` now guards against re-keying w",
         "targetAbi": "10.11.0.0",
