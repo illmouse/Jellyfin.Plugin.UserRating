@@ -5,65 +5,66 @@
     <title>User Ratings</title>
     <style>
         .save-btn {
-            display: inline-block;
+            display: inline-block !important;
             min-width: 200px;
-            padding: 0.6em 1.4em;
-            background: #2196F3;
-            color: #fff;
+            padding: 0.6em 1.4em !important;
+            background: #2196F3 !important;
+            color: #fff !important;
             font-size: 0.9375rem;
-            font-weight: 600;
+            font-weight: 600 !important;
             line-height: 1.75;
             letter-spacing: 0.02em;
-            border: none;
-            border-radius: 4px;
+            border: none !important;
+            border-radius: 4px !important;
             cursor: pointer;
-            text-align: center;
+            text-align: center !important;
             text-decoration: none;
+            text-transform: none !important;
             box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
             transition: background 0.2s, filter 0.15s;
         }
-        .save-btn:hover { background: #1976D2; }
+        .save-btn:hover { background: #1976D2 !important; }
         .save-btn:active { transform: scale(0.98); }
         .save-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; }
         .ur-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             position: relative;
             box-sizing: border-box;
             outline: 0;
-            margin: 0;
+            margin: 0 !important;
             cursor: pointer;
             user-select: none;
-            vertical-align: middle;
-            text-decoration: none;
+            vertical-align: middle !important;
+            text-decoration: none !important;
             font-family: inherit;
-            font-weight: 500;
+            font-weight: 500 !important;
             font-size: 0.9375rem;
             line-height: 1.75;
             letter-spacing: 0.02857em;
-            text-transform: uppercase;
+            text-transform: uppercase !important;
             min-width: 64px;
-            padding: 6px 16px;
-            border-radius: 4px;
+            padding: 6px 16px !important;
+            border-radius: 4px !important;
+            border: none !important;
             transition: background-color 250ms, box-shadow 250ms, filter 125ms;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            border: none;
+            background: #5a5a5a !important;
+            color: #fff !important;
             box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
         }
         .ur-btn:hover { filter: brightness(1.2); }
         .ur-btn:active { filter: brightness(1.2); transform: scale(0.98); }
         .ur-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; box-shadow: none; filter: none; }
-        .ur-btn-small { font-size: 0.85em; padding: 4px 10px; min-width: unset; }
-        .ur-btn-green { background-color: #4CAF50; color: #fff; }
-        .ur-btn-green:hover { background-color: #43A047; }
-        .ur-btn-blue { background-color: #2196F3; color: #fff; }
-        .ur-btn-blue:hover { background-color: #1976D2; }
-        .ur-btn-warn { background-color: #FF9800; color: #fff; }
-        .ur-btn-warn:hover { background-color: #F57C00; }
-        .ur-btn-danger { background-color: #e53935; color: #fff; }
-        .ur-btn-danger:hover { background-color: #c62828; }
+        .ur-btn-small { font-size: 0.85em; padding: 4px 10px !important; min-width: unset; }
+        .ur-btn-green { background-color: #4CAF50 !important; color: #fff !important; }
+        .ur-btn-green:hover { background-color: #43A047 !important; }
+        .ur-btn-blue { background-color: #2196F3 !important; color: #fff !important; }
+        .ur-btn-blue:hover { background-color: #1976D2 !important; }
+        .ur-btn-warn { background-color: #FF9800 !important; color: #fff !important; }
+        .ur-btn-warn:hover { background-color: #F57C00 !important; }
+        .ur-btn-danger { background-color: #e53935 !important; color: #fff !important; }
+        .ur-btn-danger:hover { background-color: #c62828 !important; }
         .section-divider {
             margin-top: 2em;
             padding-top: 2em;
@@ -106,6 +107,9 @@
             gap: 1em;
             margin-top: 0.5em;
         }
+        .inputContainer { max-width: 480px; }
+        .inputContainer-num { max-width: 150px; }
+        .inputContainer-select { max-width: 300px; }
     </style>
 </head>
 <body>
@@ -119,7 +123,7 @@
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
 
-                    <div class="inputContainer">
+                    <div class="inputContainer inputContainer-num">
                         <label class="inputLabel" for="recentlyRatedCount">Recently Rated Items Count</label>
                         <input type="number" id="recentlyRatedCount" is="emby-input" min="5" max="50" step="1" class="emby-input" />
                         <div class="fieldDescription">Number of items to display in each "Recently Rated" section (Movies, Shows, Episodes). Default is 10.</div>
@@ -140,13 +144,13 @@
                         </div>
                     </div>
 
-                    <div class="inputContainer">
+                    <div class="inputContainer inputContainer-num">
                         <label class="inputLabel" for="backupIntervalHours">Backup Interval (hours)</label>
                         <input type="number" id="backupIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
                         <div class="fieldDescription">How often to create an automatic backup. Default is every 24 hours.</div>
                     </div>
 
-                    <div class="inputContainer">
+                    <div class="inputContainer inputContainer-num">
                         <label class="inputLabel" for="maxBackups">Max Backups to Keep</label>
                         <input type="number" id="maxBackups" is="emby-input" min="1" max="100" step="1" value="7" class="emby-input" />
                         <div class="fieldDescription">Number of backup files to retain. Oldest backups are deleted when this limit is exceeded. Default is 7.</div>
@@ -219,7 +223,7 @@
                             Perform a one-time import of ratings from Plex. This is an immediate action, not a saved setting.
                         </div>
 
-                        <div class="inputContainer">
+                        <div class="inputContainer inputContainer-select">
                             <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
                             <select id="importTargetUser" is="emby-select" class="emby-select">
                                 <option value="">Loading users...</option>
@@ -227,7 +231,7 @@
                             <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings. This is a one-time action, not a saved setting.</div>
                         </div>
 
-                        <div class="inputContainer">
+                        <div class="inputContainer inputContainer-select">
                             <label class="inputLabel" for="plexConflictMode">On Conflict</label>
                             <select id="plexConflictMode" is="emby-select" class="emby-select">
                                 <option value="skip">Skip existing ratings</option>
@@ -275,13 +279,13 @@
                             </div>
                         </div>
 
-                        <div class="inputContainer">
+                        <div class="inputContainer inputContainer-num">
                             <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
                             <input type="number" id="syncIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
                             <div class="fieldDescription">How often to sync ratings from Plex. Default is every 24 hours.</div>
                         </div>
 
-                        <div class="inputContainer">
+                        <div class="inputContainer inputContainer-select">
                             <label class="inputLabel" for="syncUserId">Sync As User</label>
                             <select id="syncUserId" is="emby-select" class="emby-select">
                                 <option value="">Loading users...</option>
