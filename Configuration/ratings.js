@@ -1132,7 +1132,7 @@
             // No per-item API calls — items without name are filtered out (deleted from library)
             const itemsWithDetails = items.filter(item => item.name).map(item => ({
                 ...item,
-                lastRatedTimestamp: item.lastRated || 0,
+                lastRatedTimestamp: item.lastRated ? new Date(item.lastRated).getTime() : 0,
                 details: {
                     Name: item.name,
                     Type: item.type,
@@ -1312,11 +1312,12 @@
             // Add "All Rated Items" section with pagination, sorting, and type filter
             let currentPage = 1;
             const itemsPerPage = 24;
-            let currentSort = 'rating-desc';
+            let currentSortField = 'rating';
+            let currentSortDir = 'desc';
             let currentTypeFilter = 'all';
             let allItems = [...itemsWithDetails];
             
-            const renderPaginatedSection = (container, items, page, sortBy, title, gridBuilder, typeFilterValue) => {
+            const renderPaginatedSection = (container, items, page, sortField, sortDir, title, gridBuilder, typeFilterValue) => {
                 const totalPages = Math.ceil(items.length / itemsPerPage);
                 const startIndex = (page - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
@@ -1331,6 +1332,9 @@
                         <option value="Series" ${typeFilterValue === 'Series' ? 'selected' : ''}>Shows</option>
                         <option value="Episode" ${typeFilterValue === 'Episode' ? 'selected' : ''}>Episodes</option>
                     </select>` : '';
+
+                const isUnrated = gridBuilder === buildUnratedGrid;
+                const dirArrow = sortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
 
                 container.innerHTML = `
                     <div class="verticalSection">
@@ -1353,22 +1357,19 @@
                             </div>
                             ${typeFilterHtml}
                             <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                ${gridBuilder === buildUnratedGrid ? `
-                                <option value="watched-desc" ${sortBy === 'watched-desc' ? 'selected' : ''}>Last Watched</option>
-                                <option value="watched-asc" ${sortBy === 'watched-asc' ? 'selected' : ''}>Oldest Watched</option>
-                                <option value="title-asc" ${sortBy === 'title-asc' ? 'selected' : ''}>Title: A-Z</option>
-                                <option value="title-desc" ${sortBy === 'title-desc' ? 'selected' : ''}>Title: Z-A</option>
+                                ${isUnrated ? `
+                                <option value="watched" ${sortField === 'watched' ? 'selected' : ''}>Last Watched</option>
+                                <option value="title" ${sortField === 'title' ? 'selected' : ''}>Title</option>
                                 ` : `
-                                <option value="rating-desc" ${sortBy === 'rating-desc' ? 'selected' : ''}>Rating: High to Low</option>
-                                <option value="rating-asc" ${sortBy === 'rating-asc' ? 'selected' : ''}>Rating: Low to High</option>
-                                <option value="title-asc" ${sortBy === 'title-asc' ? 'selected' : ''}>Title: A-Z</option>
-                                <option value="title-desc" ${sortBy === 'title-desc' ? 'selected' : ''}>Title: Z-A</option>
-                                <option value="recent" ${sortBy === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                <option value="oldest" ${sortBy === 'oldest' ? 'selected' : ''}>Oldest Rated</option>
-                                <option value="count-desc" ${sortBy === 'count-desc' ? 'selected' : ''}>Most Ratings</option>
-                                <option value="count-asc" ${sortBy === 'count-asc' ? 'selected' : ''}>Least Ratings</option>
+                                <option value="rating" ${sortField === 'rating' ? 'selected' : ''}>Rating</option>
+                                <option value="title" ${sortField === 'title' ? 'selected' : ''}>Title</option>
+                                <option value="recent" ${sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
+                                <option value="count" ${sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
                                 `}
                             </select>
+                            <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
+                            </button>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${gridBuilder(paginatedItems)}
@@ -1381,13 +1382,29 @@
                 const sortSelect = container.querySelector('.sortSelect');
                 if (sortSelect) {
                     sortSelect.addEventListener('change', (e) => {
-                        const newSort = e.target.value;
+                        const newField = e.target.value;
                         const sourceItems = gridBuilder === buildCategoryGrid ? allItems : items;
                         const filtered = gridBuilder === buildCategoryGrid && currentTypeFilter !== 'all'
                             ? sourceItems.filter(i => i.details.Type === currentTypeFilter)
                             : sourceItems;
-                        sortItems(filtered, newSort);
-                        renderPaginatedSection(container, filtered, 1, newSort, title, gridBuilder, gridBuilder === buildCategoryGrid ? currentTypeFilter : undefined);
+                        if (gridBuilder === buildCategoryGrid) currentSortField = newField;
+                        sortItems(filtered, newField, currentSortDir);
+                        renderPaginatedSection(container, filtered, 1, newField, currentSortDir, title, gridBuilder, gridBuilder === buildCategoryGrid ? currentTypeFilter : undefined);
+                        container.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+
+                const sortDirBtn = container.querySelector('.sortDirBtn');
+                if (sortDirBtn) {
+                    sortDirBtn.addEventListener('click', () => {
+                        const newDir = sortDir === 'desc' ? 'asc' : 'desc';
+                        if (gridBuilder === buildCategoryGrid) currentSortDir = newDir;
+                        const sourceItems = gridBuilder === buildCategoryGrid ? allItems : items;
+                        const filtered = gridBuilder === buildCategoryGrid && currentTypeFilter !== 'all'
+                            ? sourceItems.filter(i => i.details.Type === currentTypeFilter)
+                            : sourceItems;
+                        sortItems(filtered, sortField, newDir);
+                        renderPaginatedSection(container, filtered, 1, sortField, newDir, title, gridBuilder, gridBuilder === buildCategoryGrid ? currentTypeFilter : undefined);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1399,8 +1416,8 @@
                         const filtered = currentTypeFilter === 'all'
                             ? allItems
                             : allItems.filter(i => i.details.Type === currentTypeFilter);
-                        sortItems(filtered, currentSort);
-                        renderPaginatedSection(container, filtered, 1, currentSort, title, gridBuilder, currentTypeFilter);
+                        sortItems(filtered, currentSortField, currentSortDir);
+                        renderPaginatedSection(container, filtered, 1, currentSortField, currentSortDir, title, gridBuilder, currentTypeFilter);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1408,7 +1425,7 @@
                 const prevBtn = container.querySelector('.prevPageBtn');
                 if (prevBtn && !prevBtn.disabled) {
                     prevBtn.addEventListener('click', () => {
-                        renderPaginatedSection(container, items, page - 1, sortBy, title, gridBuilder, typeFilterValue);
+                        renderPaginatedSection(container, items, page - 1, sortField, sortDir, title, gridBuilder, typeFilterValue);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
@@ -1416,39 +1433,32 @@
                 const nextBtn = container.querySelector('.nextPageBtn');
                 if (nextBtn && !nextBtn.disabled) {
                     nextBtn.addEventListener('click', () => {
-                        renderPaginatedSection(container, items, page + 1, sortBy, title, gridBuilder, typeFilterValue);
+                        renderPaginatedSection(container, items, page + 1, sortField, sortDir, title, gridBuilder, typeFilterValue);
                         container.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
             };
             
             const getItemName = (item) => item.details ? (item.details.Name || '') : (item.name || '');
-            const sortItems = (items, sortBy) => {
-                switch(sortBy) {
-                    case 'rating-desc': items.sort((a, b) => b.averageRating - a.averageRating); break;
-                    case 'rating-asc': items.sort((a, b) => a.averageRating - b.averageRating); break;
-                    case 'recent': items.sort((a, b) => (b.lastRatedTimestamp || 0) - (a.lastRatedTimestamp || 0)); break;
-                    case 'oldest': items.sort((a, b) => (a.lastRatedTimestamp || 0) - (b.lastRatedTimestamp || 0)); break;
-                    case 'title-asc': items.sort((a, b) => getItemName(a).localeCompare(getItemName(b))); break;
-                    case 'title-desc': items.sort((a, b) => getItemName(b).localeCompare(getItemName(a))); break;
-                    case 'count-desc': items.sort((a, b) => b.totalRatings - a.totalRatings); break;
-                    case 'count-asc': items.sort((a, b) => a.totalRatings - b.totalRatings); break;
-                    case 'watched-desc': items.sort((a, b) => {
-                        if (a.lastPlayedDate && b.lastPlayedDate) return b.lastPlayedDate.localeCompare(a.lastPlayedDate);
+            const sortItems = (items, sortField, sortDir) => {
+                const dir = sortDir === 'asc' ? 1 : -1;
+                switch(sortField) {
+                    case 'rating': items.sort((a, b) => (a.averageRating - b.averageRating) * dir); break;
+                    case 'recent': items.sort((a, b) => ((a.lastRatedTimestamp || 0) - (b.lastRatedTimestamp || 0)) * dir); break;
+                    case 'title': items.sort((a, b) => getItemName(a).localeCompare(getItemName(b)) * dir); break;
+                    case 'count': items.sort((a, b) => (a.totalRatings - b.totalRatings) * dir); break;
+                    case 'watched': items.sort((a, b) => {
+                        if (a.lastPlayedDate && b.lastPlayedDate) return dir === -1
+                            ? b.lastPlayedDate.localeCompare(a.lastPlayedDate)
+                            : a.lastPlayedDate.localeCompare(b.lastPlayedDate);
                         if (a.lastPlayedDate) return -1;
                         if (b.lastPlayedDate) return 1;
                         return (a._sortOrder || 0) - (b._sortOrder || 0);
                     }); break;
-                    case 'watched-asc': items.sort((a, b) => {
-                        if (a.lastPlayedDate && b.lastPlayedDate) return a.lastPlayedDate.localeCompare(b.lastPlayedDate);
-                        if (a.lastPlayedDate) return 1;
-                        if (b.lastPlayedDate) return -1;
-                        return (b._sortOrder || 0) - (a._sortOrder || 0);
-                    }); break;
                 }
             };
             
-            sortItems(allItems, currentSort);
+            sortItems(allItems, currentSortField, currentSortDir);
             
             // Always add placeholders for unrated sections and all items
             sectionsHTML += '<div id="allItemsSection"></div>';
@@ -1465,7 +1475,7 @@
             // Render "All Rated Items" section immediately
             const allItemsSection = document.querySelector('#allItemsSection');
             if (allItemsSection) {
-                renderPaginatedSection(allItemsSection, allItems, currentPage, currentSort, 'All Rated Items', buildCategoryGrid, currentTypeFilter);
+                renderPaginatedSection(allItemsSection, allItems, currentPage, currentSortField, currentSortDir, 'All Rated Items', buildCategoryGrid, currentTypeFilter);
             }
             
             // Fetch unrated items via Jellyfin's fast /Items API (client-side filtering)
@@ -1505,8 +1515,8 @@
                             lastPlayedDate: item.UserData?.LastPlayedDate || null,
                             _sortOrder: idx
                         }));
-                        sortItems(mapped, 'watched-desc');
-                        renderPaginatedSection(unratedMoviesSection, mapped, 1, 'watched-desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
+                        sortItems(mapped, 'watched', 'desc');
+                        renderPaginatedSection(unratedMoviesSection, mapped, 1, 'watched', 'desc', 'Watched Movies — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedMoviesSection.innerHTML = '';
                     }
@@ -1526,8 +1536,8 @@
                             lastPlayedDate: item.UserData?.LastPlayedDate || null,
                             _sortOrder: idx
                         }));
-                        sortItems(mapped, 'watched-desc');
-                        renderPaginatedSection(unratedSeriesSection, mapped, 1, 'watched-desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
+                        sortItems(mapped, 'watched', 'desc');
+                        renderPaginatedSection(unratedSeriesSection, mapped, 1, 'watched', 'desc', 'Watched Shows — Not Yet Rated', buildUnratedGrid);
                     } else {
                         unratedSeriesSection.innerHTML = '';
                     }
