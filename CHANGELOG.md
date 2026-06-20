@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.11.3.0
+
+### Fixed
+
+- **Recently Rated / Oldest Rated Sort Broken** — `lastRatedTimestamp` was stored as an ISO date string from the API, causing `NaN` in the arithmetic sort comparisons — the "Recently Rated" and "Oldest Rated" sort options were silent no-ops. Now converted to epoch milliseconds at mapping time via `new Date(item.lastRated).getTime()`.
+
+### Changed
+
+- **Sort Direction Toggle** — Replaced paired sort options (e.g. `Rating: High to Low` / `Rating: Low to High`, `Recently Rated` / `Oldest Rated`) with a single sort-field dropdown plus an arrow direction-toggle button (▼/▲). Applies to all three sortable blocks: All Rated Items, Watched Movies — Not Yet Rated, and Watched Shows — Not Yet Rated. Direction state is per-section; only the All Rated Items block syncs to global so the type-filter handler can read it.
+
+---
+
 ## v1.11.2.0
 
 ### Fixed
