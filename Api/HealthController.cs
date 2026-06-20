@@ -156,7 +156,12 @@ namespace Jellyfin.Plugin.UserRatings.Api
             try
             {
                 var backups = _backupService.ListBackups();
-                return Ok(new { success = true, backups });
+                return Ok(new { success = true, backups = backups.Select(b => new
+                {
+                    fileName = b.FileName,
+                    fileSize = b.FileSize,
+                    lastModified = b.LastModified
+                })});
             }
             catch (System.Exception ex)
             {

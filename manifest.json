@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.0.2",
+        "changelog": "Fix backup list API (camelCase properties), disconnect buttons from Jellyfin emby-button styling for consistent appearance",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.0.2/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T00:00:00Z"
+      },
+      {
         "version": "1.11.0.1",
         "changelog": "",
         "targetAbi": "10.11.0.0",

@@ -7,20 +7,63 @@
         .save-btn {
             display: inline-block;
             min-width: 200px;
-            padding: 0.7em 1.5em;
+            padding: 0.6em 1.4em;
             background: #2196F3;
-            color: white;
-            font-size: 1em;
-            font-weight: bold;
+            color: #fff;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            line-height: 1.75;
+            letter-spacing: 0.02em;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             text-align: center;
-            transition: background 0.2s;
+            text-decoration: none;
+            box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+            transition: background 0.2s, filter 0.15s;
         }
-        .save-btn:hover {
-            background: #1976D2;
+        .save-btn:hover { background: #1976D2; }
+        .save-btn:active { transform: scale(0.98); }
+        .save-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; }
+        .ur-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-sizing: border-box;
+            outline: 0;
+            margin: 0;
+            cursor: pointer;
+            user-select: none;
+            vertical-align: middle;
+            text-decoration: none;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            line-height: 1.75;
+            letter-spacing: 0.02857em;
+            text-transform: uppercase;
+            min-width: 64px;
+            padding: 6px 16px;
+            border-radius: 4px;
+            transition: background-color 250ms, box-shadow 250ms, filter 125ms;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: none;
+            box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
         }
+        .ur-btn:hover { filter: brightness(1.2); }
+        .ur-btn:active { filter: brightness(1.2); transform: scale(0.98); }
+        .ur-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; box-shadow: none; filter: none; }
+        .ur-btn-small { font-size: 0.85em; padding: 4px 10px; min-width: unset; }
+        .ur-btn-green { background-color: #4CAF50; color: #fff; }
+        .ur-btn-green:hover { background-color: #43A047; }
+        .ur-btn-blue { background-color: #2196F3; color: #fff; }
+        .ur-btn-blue:hover { background-color: #1976D2; }
+        .ur-btn-warn { background-color: #FF9800; color: #fff; }
+        .ur-btn-warn:hover { background-color: #F57C00; }
+        .ur-btn-danger { background-color: #e53935; color: #fff; }
+        .ur-btn-danger:hover { background-color: #c62828; }
         .section-divider {
             margin-top: 2em;
             padding-top: 2em;
@@ -46,11 +89,6 @@
             font-weight: 600;
             color: var(--dimTextColor, #aaa);
         }
-        .btn-small {
-            font-size: 0.85em;
-            padding: 0.3em 0.8em;
-            margin-right: 0.3em;
-        }
         .item-list {
             max-height: 300px;
             overflow-y: auto;
@@ -71,7 +109,7 @@
     </style>
 </head>
 <body>
-    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
+    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <form id="UserRatingsConfigForm">
@@ -121,8 +159,8 @@
                     </div>
 
                     <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnBackupNow" is="emby-button" class="raised block" style="min-width: 200px;">
-                            <span>Create Backup Now</span>
+                        <button type="button" id="btnBackupNow" class="ur-btn" style="min-width: 200px;">
+                            Create Backup Now
                         </button>
                     </div>
                     <div id="backupResult" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
@@ -138,8 +176,8 @@
                             <div class="fieldDescription" style="margin-bottom: 0.5em;">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
                             <div class="upload-area">
                                 <input type="file" id="backupFileInput" accept=".json" style="color: var(--textColor, #fff);" />
-                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small">
-                                    <span>Upload</span>
+                                <button type="button" id="btnUploadBackup" class="ur-btn ur-btn-small">
+                                    Upload
                                 </button>
                             </div>
                             <div id="uploadResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px); font-size: 0.9em;"></div>
@@ -166,11 +204,11 @@
                     </div>
 
                     <div style="margin: 0.5em 0;">
-                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">
-                            <span>Clear Stored Token</span>
+                        <button type="button" id="btnClearPlexToken" class="ur-btn ur-btn-small">
+                            Clear Stored Token
                         </button>
-                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">
-                            <span>Test Connection</span>
+                        <button type="button" id="btnTestPlexConnection" class="ur-btn ur-btn-small">
+                            Test Connection
                         </button>
                     </div>
                     <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
@@ -200,8 +238,8 @@
                         </div>
 
                         <div style="margin-top: 1em;">
-                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit block" style="min-width: 200px; background: #4CAF50; color: white;">
-                                <span>Import Ratings from Plex</span>
+                            <button type="button" id="btnImportFromPlex" class="ur-btn ur-btn-green" style="min-width: 200px;">
+                                Import Ratings from Plex
                             </button>
                         </div>
 
@@ -254,7 +292,7 @@
                 </div>
 
                 <div class="section-divider">
-                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm">
+                    <button type="submit" class="save-btn" form="UserRatingsConfigForm">
                         Save Settings
                     </button>
                 </div>
@@ -265,11 +303,11 @@
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
                     </div>
                     <div style="display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnHealthCheck" is="emby-button" class="raised block" style="min-width: 200px;">
-                            <span>Check Database Health</span>
+                        <button type="button" id="btnHealthCheck" class="ur-btn" style="min-width: 200px;">
+                            Check Database Health
                         </button>
-                        <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit block" style="min-width: 200px;">
-                            <span>Heal Database</span>
+                        <button type="button" id="btnHealRatings" class="ur-btn ur-btn-green" style="min-width: 200px;">
+                            Heal Database
                         </button>
                     </div>
                     <div id="healthResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
@@ -296,11 +334,11 @@
                          Permanently delete all user ratings from the database. This action cannot be undone.
                      </div>
                      <div style="display: flex; gap: 1em; flex-wrap: wrap;">
-                         <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
-                             <span>Delete All Ratings</span>
+                         <button id="btnDeleteAllRatings" type="button" class="ur-btn ur-btn-danger">
+                             Delete All Ratings
                          </button>
-                         <button id="btnClearStale" type="button" is="emby-button" class="raised" style="background: #e53935; color: white;">
-                             <span>Clear Stale Ratings</span>
+                         <button id="btnClearStale" type="button" class="ur-btn ur-btn-danger">
+                             Clear Stale Ratings
                          </button>
                      </div>
                      <div class="fieldDescription" style="margin-top: 0.5em; color: #ff9800;">
@@ -400,8 +438,8 @@
                         html += '<td>' + dateStr + '</td>';
                         html += '<td>' + sizeStr + '</td>';
                         html += '<td>';
-                        html += '<button type="button" class="raised btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
-                        html += '<button type="button" class="raised btn-small" style="background: #FF9800; color: white;" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
+                        html += '<button type="button" class="ur-btn ur-btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
+                        html += '<button type="button" class="ur-btn ur-btn-small ur-btn-warn" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
                         html += '</td>';
                         html += '</tr>';
                     });
