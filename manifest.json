@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.3.1",
+        "changelog": " Beta: Back button now returns to the User Ratings tab when you opened a details page from it (previously always went to Home or Favourites). No refetch on tab re-activation; last-clicked native tab wins on back. ",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.3.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T15:00:00Z"
+      },
+      {
         "version": "1.11.3.0",
         "changelog": " ### Fixed  - **Recently Rated / Oldest Rated Sort Broken** — `lastRatedTimestamp` was stored as an ISO date string from the API, causing `NaN` in the arithmetic sort comparisons — the \\\"Recently Rated\\\" and \\\"Oldest Rated\\\" sort options were silent no-ops. Now converted to epoch milliseconds at mapping time via `new Date(item.lastRated).getTime()`.  ### Changed  - **Sort Direction Toggle** — Replaced paired sort options (e.g. `Rating: High to Low` / `Rating: Low to High`, `Recently Rated` / `",
         "targetAbi": "10.11.0.0",

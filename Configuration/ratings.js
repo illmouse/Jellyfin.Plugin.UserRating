@@ -1014,26 +1014,45 @@
                 ratingsTab.style.display = 'none';
                 ratingsTab.classList.add('hide');
             } else if (currentHash.includes('home')) {
-                // Navigating back to home - ensure ratings page is hidden and only show home page
-                console.log('[UserRatings] Navigating to home - ensuring clean state');
-                ratingsTab.style.display = 'none';
-                ratingsTab.classList.add('hide');
-                
-                // Hide ALL pages except home
-                const allPages = document.querySelectorAll('[data-role="page"]');
-                allPages.forEach(page => {
-                    if (page.id === 'ratingsTab' || !page.classList.contains('homePage')) {
-                        page.classList.add('hide');
-                        page.style.display = 'none';
+                // Back to home - check whether User Ratings was the active tab
+                const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
+
+                if (wasUserRatings) {
+                    // Back from details -> restore User Ratings tab (existing DOM, no refetch)
+                    console.log('[UserRatings] Restoring User Ratings tab (history.state.userRatingsActive)');
+                    const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
+                    if (homePage) homePage.classList.add('hide');
+                    ratingsTab.classList.remove('hide');
+                    ratingsTab.style.display = 'block';
+
+                    // Re-mark the User Ratings tab button as active
+                    const tabBtn = document.querySelector('[data-ratings-tab="true"]');
+                    if (tabBtn) {
+                        document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
+                        tabBtn.classList.add('emby-tab-button-active');
                     }
-                });
-                
-                // Show only the home page
-                const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
-                if (homePage) {
-                    homePage.classList.remove('hide');
-                    homePage.style.display = '';
-                    console.log('[UserRatings] Restored home page only');
+                } else {
+                    // Native home navigation - hide ratings, show home
+                    console.log('[UserRatings] Navigating to home - ensuring clean state');
+                    ratingsTab.style.display = 'none';
+                    ratingsTab.classList.add('hide');
+
+                    // Hide ALL pages except home
+                    const allPages = document.querySelectorAll('[data-role="page"]');
+                    allPages.forEach(page => {
+                        if (page.id === 'ratingsTab' || !page.classList.contains('homePage')) {
+                            page.classList.add('hide');
+                            page.style.display = 'none';
+                        }
+                    });
+
+                    // Show only the home page
+                    const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
+                    if (homePage) {
+                        homePage.classList.remove('hide');
+                        homePage.style.display = '';
+                        console.log('[UserRatings] Restored home page only');
+                    }
                 }
             }
         }
@@ -1602,18 +1621,31 @@
         // Add click handler
         ratingsTab.addEventListener('click', async function(e) {
             e.preventDefault();
-            
+
+            // Skip if already active (no refetch)
+            if (ratingsTab.classList.contains('emby-tab-button-active')) {
+                return;
+            }
+
             // Remove active class from all tabs
             tabsSlider.querySelectorAll('.emby-tab-button').forEach(tab => {
                 tab.classList.remove('emby-tab-button-active');
             });
-            
+
             // Add active class to this tab
             ratingsTab.classList.add('emby-tab-button-active');
-            
+
             try {
                 // Load and display ratings list in the home page
                 await displayRatingsList();
+                // Annotate current history entry so back-button restores us
+                try {
+                    const state = window.history.state || {};
+                    state.userRatingsActive = true;
+                    window.history.replaceState(state, '', window.location.href);
+                } catch (err) {
+                    console.warn('[UserRatings] Could not replaceState on tab click:', err);
+                }
             } catch (error) {
                 console.error('[UserRatings] Error in displayRatingsList:', error);
             }
@@ -1629,12 +1661,21 @@
                     ratingsTabContent.style.display = 'none';
                     ratingsTabContent.classList.add('hide');
                 }
-                
+
                 // Show the home page
                 const homePage = document.querySelector('[data-role="page"].hide:not(#ratingsTab)');
                 if (homePage) {
                     homePage.classList.remove('hide');
                 }
+
+                // Clear userRatingsActive so last-clicked native tab wins on back
+                try {
+                    const state = window.history.state || {};
+                    if (state.userRatingsActive) {
+                        delete state.userRatingsActive;
+                        window.history.replaceState(state, '', window.location.href);
+                    }
+                } catch (err) { /* ignore */ }
             }, true); // Use capture to run before Jellyfin's handler
         });
 
@@ -1659,6 +1700,16 @@
     setTimeout(injectRatingsTab, 2000);
     setTimeout(injectRatingsTab, 3000);
     setInterval(injectRatingsTab, 2000);
+
+    // On initial load, if history state says User Ratings was active, restore it (handles refresh)
+    setTimeout(() => {
+        if (window.location.hash.includes('home')
+            && window.history.state
+            && window.history.state.userRatingsActive) {
+            console.log('[UserRatings] Initial load - restoring User Ratings from state');
+            displayRatingsList().catch(() => {});
+        }
+    }, 800);
 
     // Watch for page changes
     window.addEventListener('hashchange', () => {
