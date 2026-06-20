@@ -29,13 +29,13 @@ ILogger<PlexImportController> logger) : ControllerBase
     {
         if (userId == Guid.Empty)
         {
-            return BadRequest(new { success = false, message = "userId is required" });
+            return BadRequest(new ApiResponse(false, "userId is required"));
         }
 
         var config = GetConfig();
         if (string.IsNullOrEmpty(config.PlexServerUrl) || string.IsNullOrEmpty(config.PlexToken))
         {
-            return BadRequest(new { success = false, message = "Plex server URL and token must be configured in plugin settings" });
+            return BadRequest(new ApiResponse(false, "Plex server URL and token must be configured in plugin settings"));
         }
 
         var operationId = progressTracker.StartOperation();
@@ -53,7 +53,7 @@ ILogger<PlexImportController> logger) : ControllerBase
             }
         });
 
-        return Ok(new { success = true, operationId });
+        return Ok(new StartImportResponse(true, operationId));
     }
 
     [HttpGet("ImportProgress/{operationId}")]
@@ -104,11 +104,11 @@ ILogger<PlexImportController> logger) : ControllerBase
 
         if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
         {
-            return Ok(new { success = false, message = "Plex server URL and token not configured" });
+            return Ok(new CheckPlexStatusResponse(false, "Plex server URL and token not configured", 0));
         }
 
         var (success, message, libraryCount) = await importService.ValidatePlexConnectionAsync(plexUrl, plexToken, HttpContext.RequestAborted).ConfigureAwait(false);
 
-        return Ok(new { success, message, libraryCount });
+        return Ok(new CheckPlexStatusResponse(success, message, libraryCount));
     }
 }

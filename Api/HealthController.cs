@@ -20,147 +20,65 @@ BackupService backupService) : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult GetHealthReport([FromQuery] bool heal = false)
     {
-        try
-        {
-            var report = healthCheckService.RunHealthCheck(heal);
-            return Ok(new
-            {
-                success = true,
-                ok = report.Ok,
-                recoverable = report.Recoverable,
-                healed = report.Healed,
-                updated = report.Updated,
-                stale = report.Stale,
-                recoverableItems = report.RecoverableItems.Select(r => new
-                {
-                    oldItemId = r.OldItemId,
-                    newItemId = r.NewItemId,
-                    itemName = r.ItemName,
-                    userId = r.UserId,
-                    rating = r.Rating,
-                    providerIds = r.ProviderIds
-                }),
-                staleItems = report.StaleItems.Select(s => new
-                {
-                    itemId = s.ItemId,
-                    userId = s.UserId,
-                    rating = s.Rating,
-                    note = s.Note,
-                    providerIds = s.ProviderIds,
-                    timestamp = s.Timestamp
-                }),
-                healedItems = report.HealedItems.Select(h => new
-                {
-                    oldItemId = h.OldItemId,
-                    newItemId = h.NewItemId,
-                    itemName = h.ItemName,
-                    userId = h.UserId,
-                    rating = h.Rating
-                })
-            });
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var report = healthCheckService.RunHealthCheck(heal);
+        return Ok(new HealthReportResponse(
+            true,
+            report.Ok,
+            report.Recoverable,
+            report.Healed,
+            report.Updated,
+            report.Stale,
+            report.RecoverableItems,
+            report.StaleItems,
+            report.HealedItems
+        ));
     }
 
     [HttpPost("HealRatings")]
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult HealRatings()
     {
-        try
-        {
-            var report = healthCheckService.RunHealthCheck(heal: true);
-            return Ok(new
-            {
-                success = true,
-                ok = report.Ok,
-                recoverable = report.Recoverable,
-                healed = report.Healed,
-                updated = report.Updated,
-                stale = report.Stale,
-                healedItems = report.HealedItems.Select(h => new
-                {
-                    oldItemId = h.OldItemId,
-                    newItemId = h.NewItemId,
-                    itemName = h.ItemName,
-                    userId = h.UserId,
-                    rating = h.Rating
-                }),
-                staleItems = report.StaleItems.Select(s => new
-                {
-                    itemId = s.ItemId,
-                    userId = s.UserId,
-                    rating = s.Rating,
-                    note = s.Note,
-                    providerIds = s.ProviderIds,
-                    timestamp = s.Timestamp
-                }),
-                message = $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
-            });
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var report = healthCheckService.RunHealthCheck(heal: true);
+        return Ok(new HealResponse(
+            true,
+            report.Ok,
+            report.Recoverable,
+            report.Healed,
+            report.Updated,
+            report.Stale,
+            report.HealedItems,
+            report.StaleItems,
+            $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
+        ));
     }
 
     [HttpDelete("ClearStale")]
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult ClearStale()
     {
-        try
-        {
-            var removed = healthCheckService.ClearStale();
-            return Ok(new { success = true, message = $"Cleared {removed} stale ratings", removed });
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var removed = healthCheckService.ClearStale();
+        return Ok(new ClearStaleResponse(true, $"Cleared {removed} stale ratings", removed));
     }
 
     [HttpPost("Backup")]
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult CreateBackup()
     {
-        try
+        var (success, backupPath, totalBackups) = backupService.CreateBackup();
+        if (success)
         {
-            var (success, backupPath, totalBackups) = backupService.CreateBackup();
-            if (success)
-            {
-                return Ok(new { success = true, message = $"Backup created at {backupPath}", backupPath, totalBackups });
-            }
-            else
-            {
-                return Ok(new { success = false, message = "Failed to create backup. No ratings file found." });
-            }
+            return Ok(new CreateBackupResponse(true, $"Backup created at {backupPath}", backupPath, totalBackups));
         }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+
+        return Ok(new CreateBackupResponse(false, "Failed to create backup. No ratings file found.", null, null));
     }
 
     [HttpGet("Backups")]
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult ListBackups()
     {
-        try
-        {
-            var backups = backupService.ListBackups();
-            return Ok(new { success = true, backups = backups.Select(b => new
-            {
-                fileName = b.FileName,
-                fileSize = b.FileSize,
-                lastModified = b.LastModified
-            })});
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var backups = backupService.ListBackups();
+        return Ok(new BackupListResponse(true, backups));
     }
 
     [HttpPost("RestoreBackup")]
@@ -169,18 +87,11 @@ BackupService backupService) : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            return BadRequest(new { success = false, message = "fileName is required" });
+            return BadRequest(new ApiResponse(false, "fileName is required"));
         }
 
-        try
-        {
-            var (success, message) = backupService.RestoreBackup(fileName);
-            return Ok(new { success, message });
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var (success, message) = backupService.RestoreBackup(fileName);
+        return Ok(new ApiResponse(success, message));
     }
 
     [HttpGet("DownloadBackup")]
@@ -207,36 +118,29 @@ BackupService backupService) : ControllerBase
     {
         if (file == null || file.Length == 0)
         {
-            return BadRequest(new { success = false, message = "No file uploaded." });
+            return BadRequest(new ApiResponse(false, "No file uploaded."));
         }
 
         if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
-            return BadRequest(new { success = false, message = "Only JSON files are accepted." });
+            return BadRequest(new ApiResponse(false, "Only JSON files are accepted."));
         }
 
-        try
+        var backupDir = backupService.GetBackupDir();
+        Directory.CreateDirectory(backupDir);
+
+        var safeName = file.FileName.Contains("/") || file.FileName.Contains("\\")
+            ? $"uploaded_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json"
+            : $"uploaded_{file.FileName}";
+
+        var destPath = Path.Combine(backupDir, safeName);
+
+        using (var stream = new FileStream(destPath, FileMode.Create))
         {
-            var backupDir = backupService.GetBackupDir();
-            Directory.CreateDirectory(backupDir);
-
-            var safeName = file.FileName.Contains("/")  || file.FileName.Contains("\\")
-                ? $"uploaded_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json"
-                : $"uploaded_{file.FileName}";
-
-            var destPath = Path.Combine(backupDir, safeName);
-
-            using (var stream = new FileStream(destPath, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
-
-            return Ok(new { success = true, message = $"Backup uploaded as {safeName}" });
+            file.CopyTo(stream);
         }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+
+        return Ok(new ApiResponse(true, $"Backup uploaded as {safeName}"));
     }
 
     [HttpDelete("DeleteBackup")]
@@ -245,17 +149,10 @@ BackupService backupService) : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            return BadRequest(new { success = false, message = "fileName is required" });
+            return BadRequest(new ApiResponse(false, "fileName is required"));
         }
 
-        try
-        {
-            var (success, message) = backupService.DeleteBackup(fileName);
-            return Ok(new { success, message });
-        }
-        catch (System.Exception ex)
-        {
-            return StatusCode(500, new { success = false, message = ex.Message });
-        }
+        var (success, message) = backupService.DeleteBackup(fileName);
+        return Ok(new ApiResponse(success, message));
     }
 }

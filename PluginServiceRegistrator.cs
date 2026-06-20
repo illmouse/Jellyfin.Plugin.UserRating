@@ -1,3 +1,4 @@
+using Jellyfin.Plugin.UserRatings.Api;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Middleware;
 using Jellyfin.Plugin.UserRatings.ScheduledTasks;
@@ -5,6 +6,7 @@ using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.UserRatings;
@@ -23,5 +25,9 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<RatingsHealthTask>();
         serviceCollection.AddSingleton<RatingsBackupTask>();
         serviceCollection.AddSingleton<IStartupFilter, ScriptInjectionStartupFilter>();
-        }
+        serviceCollection.Configure<MvcOptions>(options =>
+        {
+            options.Filters.Add<GlobalExceptionFilter>();
+        });
+    }
 }
