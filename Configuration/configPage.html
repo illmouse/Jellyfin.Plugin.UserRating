@@ -6,8 +6,17 @@
 </head>
 <body>
     <style>
+        button[is="emby-button"] {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+
         .save-btn {
-            display: inline-block;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             min-width: 200px;
             padding: 0.6em 1.4em;
             background: #2196F3;
@@ -35,21 +44,25 @@
             display: block;
             width: 100%;
             max-width: 420px;
-            padding: 0.4em 0.25em;
+            padding: 0.55em 0.5em;
             font-family: inherit;
             font-size: 110%;
             font-weight: inherit;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 0.15em;
-            color: inherit;
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 0.2em;
+            color: #eee;
             outline: none !important;
             margin: 0;
             margin-bottom: 0 !important;
             -webkit-tap-highlight-color: rgba(0,0,0,0);
+            transition: border-color 0.15s;
         }
         .pluginConfigurationPage input[type="number"] {
             max-width: 150px;
+        }
+        .pluginConfigurationPage input#backupPath {
+            max-width: 600px;
         }
         .pluginConfigurationPage input[type="text"]:focus,
         .pluginConfigurationPage input[type="password"]:focus,
@@ -60,14 +73,15 @@
             display: block;
             width: 100%;
             max-width: 300px;
-            padding: 0.4em 0.25em;
+            padding: 0.55em 0.5em;
             font-family: inherit;
             font-size: 110%;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 0.15em;
-            color: inherit;
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 0.2em;
+            color: #eee;
             outline: none !important;
+            transition: border-color 0.15s;
         }
         .pluginConfigurationPage select:focus {
             border-color: #52B54B;
@@ -259,7 +273,7 @@
                         </div>
 
                         <div style="margin-top: 1em;">
-                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Import Ratings from Plex</button>
+                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Import</button>
                         </div>
 
                         <div id="importProgress" style="display: none; margin-top: 1.5em;">
