@@ -11,6 +11,8 @@ A social rating system for Jellyfin. Rate movies, TV shows, and episodes, then b
 
 ## Screenshots
 
+> Screenshots taken using the [ElegantFin](https://github.com/lscambo13/ElegantFin) theme. On the default Jellyfin theme, UI elements use Jellyfin's native styling.
+
 ### Rating Widget (collapsed)
 <img src="screenshots/rating_collapsed.png" width="800">
 
