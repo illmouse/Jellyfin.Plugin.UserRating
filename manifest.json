@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.4.1",
-        "changelog": " Fixed: Rated items displayed as \"Unrated\" in Watched — Not Yet Rated section. GUID format mismatch between AllRatedItems API and native Jellyfin /Items API caused the client-side filter to miss matches. Now normalizes GUIDs by stripping dashes for consistent comparison. All API responses now explicitly format Guids as naked hex (ToString(\"N\")) to match Jellyfin convention. ",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T15:45:00Z"
+        "checksum": "036553597333a8a71947f57aceec5038",
+        "timestamp": "2026-06-20T13:46:59Z"
       },
       {
         "version": "1.11.4.0",
