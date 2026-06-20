@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.4.1",
+        "changelog": " Fixed: Rated items displayed as \"Unrated\" in Watched — Not Yet Rated section. GUID format mismatch between AllRatedItems API and native Jellyfin /Items API caused the client-side filter to miss matches. Now normalizes GUIDs by stripping dashes for consistent comparison. All API responses now explicitly format Guids as naked hex (ToString(\"N\")) to match Jellyfin convention. ",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T15:45:00Z"
+      },
+      {
         "version": "1.11.4.0",
         "changelog": " ### Fixed  - **Back Button Returns to User Ratings Tab** — When navigating from the User Ratings tab to a details page and pressing back, the browser now returns to the User Ratings tab instead of always landing on Home or Favourites. Uses `history.replaceState` to annotate the current history entry with `userRatingsActive`, so the `hashchange` handler restores the correct tab. Switching to a native tab (Home/Favourites) clears the flag — last-clicked native tab wins on back. No refetch on ",
         "targetAbi": "10.11.0.0",

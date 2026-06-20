@@ -87,7 +87,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     success = true,
                     ratings = ratings.Select(r => new
                     {
-                        userId = r.UserId,
+                        userId = r.UserId.ToString("N"),
                         userName = r.UserName,
                         rating = r.Rating,
                         note = r.Note,
@@ -116,7 +116,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     success = true,
                     ratings = ratings.Select(r => new
                     {
-                        itemId = r.ItemId,
+                        itemId = r.ItemId.ToString("N"),
                         rating = r.Rating,
                         note = r.Note,
                         timestamp = r.Timestamp
@@ -209,9 +209,9 @@ namespace Jellyfin.Plugin.UserRatings.Api
                         {
                             name = libraryItem.Name;
                             type = libraryItem.GetType().Name;
-                            if (libraryItem is Episode ep)
+                            if (libraryItem is Episode ep && ep.Series != null)
                             {
-                                seriesId = ep.Series?.Id.ToString();
+                                seriesId = ep.Series.Id.ToString("N");
                             }
                         }
                     }
@@ -221,7 +221,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
 
                     return new
                     {
-                        itemId = item.ItemId,
+                        itemId = item.ItemId.ToString("N"),
                         averageRating = item.AverageRating,
                         totalRatings = item.TotalRatings,
                         lastRated = item.LastRated,
@@ -275,7 +275,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     {
                         watchedUnrated.Add(new
                         {
-                            itemId = item.Id,
+                            itemId = item.Id.ToString("N"),
                             name = item.Name,
                             type = item.GetType().Name,
                             seriesId = (string?)null
@@ -299,7 +299,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     {
                         watchedUnrated.Add(new
                         {
-                            itemId = item.Id,
+                            itemId = item.Id.ToString("N"),
                             name = item.Name,
                             type = item.GetType().Name,
                             seriesId = (string?)null

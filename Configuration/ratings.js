@@ -1510,8 +1510,10 @@
                     if (!data.Items) return [];
                     let items = data.Items;
                     // Filter out items the user has already rated
-                    const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.toLowerCase()));
-                    items = items.filter(item => !ratedIds.has(item.Id.toLowerCase()));
+                    // Strip dashes for consistent comparison: JF /Items API returns naked hex
+                    // while our AllRatedItems API may use dashed Guid format
+                    const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.replace(/-/g, '').toLowerCase()));
+                    items = items.filter(item => !ratedIds.has(item.Id.replace(/-/g, '').toLowerCase()));
                     return items.slice(0, 24);
                 } catch (e) {
                     console.error('[UserRatings] Error fetching unrated items:', e);
