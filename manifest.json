@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.1.0",
-        "changelog": " ### Fixed  - **Plugin Config Page CSS Not Loading** — Jellyfin's plugin page loader extracts only the `div[data-role=\"page\"]` subtree. Moved `<style>` block inside the page div so CSS is no longer stripped. - **Button Text Alignment** — All `is=\"emby-button\"` elements now center text via `justify-content: center`. - **Input Styling** — Darker background, stronger borders, consistent padding for text/password/number inputs and selects. - **Backup Directory Path Input** — Widened to 600px max-width (was 420px). - **Backup Files Table** — Added borders and row hover effect. - **Upload Button Height** — Matched Test Connection button height.  ### New Features  - **Backup File Management** — Download, restore, delete, and upload backup files from the admin config page.  ### Changed  - **Import Button** — Renamed from \"Import Ratings from Plex\" to \"Import\".  ",
+        "changelog": " Plugin config page CSS delivery fix, backup file management, and UI polish.  ### Fixed  - **Plugin Config Page CSS Not Loading** — Jellyfin's plugin page loader extracts only the `div[data-role=\\\"page\\\"]` subtree via `querySelector`. The `<style>` block was placed outside that div and was silently stripped. Moved `<style>` inside the page div so all custom CSS (inputs, buttons, tables, sections) is now applied. - **Button Text Alignment** — All `is=\\\"emby-button\\\"` elements now center text via ",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.1.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T14:00:00Z"
+        "checksum": "f5056f27c4f934e27eccbdb47eff404a",
+        "timestamp": "2026-06-20T10:50:31Z"
       },
       {
         "version": "1.10.1.0",
