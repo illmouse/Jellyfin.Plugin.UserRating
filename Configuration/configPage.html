@@ -5,6 +5,7 @@
     <title>User Ratings</title>
 </head>
 <body>
+    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button">
     <style>
         button[is="emby-button"] {
             display: inline-flex !important;
@@ -121,6 +122,9 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 0.5em;
+            border: 1px solid var(--defaultBorder, rgba(255,255,255,0.15));
+            border-radius: var(--smallRadius, 4px);
+            overflow: hidden;
         }
         .backup-table th, .backup-table td {
             padding: 0.5em 0.8em;
@@ -131,6 +135,9 @@
         .backup-table th {
             font-weight: 600;
             color: var(--dimTextColor, #aaa);
+        }
+        .backup-table tr:hover {
+            background: rgba(255,255,255,0.03);
         }
         .item-list {
             max-height: 300px;
@@ -150,7 +157,6 @@
             margin-top: 0.5em;
         }
     </style>
-    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button">
         <div data-role="content">
             <div class="content-primary">
                 <form id="UserRatingsConfigForm">
@@ -217,7 +223,7 @@
                             <div class="fieldDescription" style="margin-bottom: 0.5em;">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
                             <div class="upload-area">
                                 <input type="file" id="backupFileInput" accept=".json" style="color: var(--textColor, #fff);" />
-                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small">Upload</button>
+                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Upload</button>
                             </div>
                             <div id="uploadResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px); font-size: 0.9em;"></div>
                         </div>
