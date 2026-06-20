@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.10.1.0
+
+### Fixed
+
+- **Script Injection Log Spam** — Changed middleware script injection log from `Information` to `Debug` level to avoid flooding Jellyfin logs on every page load.
+
+---
+
 ## v1.10.0.1
 
 Middleware-based script injection — works in all Jellyfin deployment modes (root, non-root, Docker).
