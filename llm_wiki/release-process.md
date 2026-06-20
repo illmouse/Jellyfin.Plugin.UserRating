@@ -2,7 +2,7 @@
 
 ## General Rules
 
-- Always pull with rebase (`git pull --rebase`) before starting a release to integrate remote changes
+- Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes. This must be done before EVERY commit, not just at session start — the CI/CD pipeline builds and pushes changes (checksums, version bumps) to the repo between releases, so local state will diverge. Pulling rebase before each commit avoids having to resolve conflicts every time you push a new version
 - Always ask before committing and pushing changes
 - Never overwrite or move existing git tags — always create a new tag. Only force-replace a tag if the user explicitly asks
 - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
@@ -36,7 +36,7 @@ Update the version in both:
 - `Jellyfin.Plugin.UserRatings.csproj` — `AssemblyVersion` and `FileVersion`
 - `manifest.json` — add a new version entry at the top of the `versions` array with:
   - `version`: new version string
-  - `changelog`: brief description (or empty for beta)
+  - `changelog`: **shortened** description — include only the main changes (a few bullet points max). The full changelog goes in `CHANGELOG.md`. The manifest changelog is rendered in Jellyfin's plugin catalog UI where long text renders poorly. Do NOT copy the full CHANGELOG.md entry here.
   - `targetAbi`: same as previous entry
   - `sourceUrl`: update version segment in URL
   - `checksum`: leave empty (will be computed during build)

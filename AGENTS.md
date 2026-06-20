@@ -2,7 +2,7 @@
 
 ## Rules
 
-- Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes
+- Always pull with rebase (`git pull --rebase`) before starting work to integrate remote changes. This must be done before EVERY commit, not just at session start — the CI/CD pipeline builds and pushes changes (checksums, version bumps) to the repo between releases, so local state will diverge. Pulling rebase before each commit avoids having to resolve conflicts every time you push
 
 ## Referenced Instructions
 
