@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.7.0
+
+### Fixed
+
+- **Plex Import: UserName Not Set** — Imported ratings showed "Unknown User" instead of the actual sync user's display name. `PlexImportService` now resolves the username via `IUserManager.GetUserById()` before creating rating entries.
+
+---
+
 ## v1.11.6.0
 
 ### New Features

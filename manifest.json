@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.7.0",
+        "changelog": "Fixed - Plex Import: UserName Not Set — Imported ratings showed Unknown User instead of the actual sync user's display name.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.7.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T18:00:00Z"
+      },
+      {
         "version": "1.11.6.0",
         "changelog": " ### New Features  - **Global Exception Filter** — Unhandled API exceptions now return JSON error responses instead of crashing the server or returning HTML error pages.  ### Changed  - **Modern C# Cleanup** — Converted to file-scoped namespaces, primary constructors, and record types across the codebase. - **Typed Response DTOs** — Replaced anonymous types with typed records for all API responses.  ### Architecture Decisions  | Decision | Rationale | |---|---| | `IAsyncExceptionFilter` in",
         "targetAbi": "10.11.0.0",
