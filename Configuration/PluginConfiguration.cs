@@ -13,6 +13,8 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string PlexImportConflictMode { get; set; } = "skip";
 
+    public string SyncConflictMode { get; set; } = "skip";
+
     public string NewPlexToken { get; set; } = string.Empty;
 
     public bool EnableAutoSync { get; set; }

@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.8.0
+
+### Fixed
+
+- **Plex Import: Conflict Mode Not Passed to API** — One-time import's "On Conflict" dropdown was cosmetic only; the API always used the saved config value (default "skip"). Now the conflict mode is passed as a query parameter, making the one-time import truly ephemeral. Auto-sync has its own persisted `SyncConflictMode` setting with a dedicated dropdown in the config UI.
+
+---
+
 ## v1.11.7.0
 
 ### Fixed

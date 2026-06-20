@@ -55,7 +55,7 @@ public async Task ExecuteAsync(IProgress<double> progress, CancellationToken can
     {
         progress.Report(5);
 
-        var result = await importService.ImportFromPlexAsync(userId, operationId, cancellationToken).ConfigureAwait(false);
+        var result = await importService.ImportFromPlexAsync(userId, operationId, cancellationToken, config.SyncConflictMode).ConfigureAwait(false);
 
         progress.Report(100);
 

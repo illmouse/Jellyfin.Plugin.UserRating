@@ -325,7 +325,17 @@
                             <select id="syncUserId">
                                 <option value="">Loading users...</option>
                             </select>
-                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for. Uses the same conflict mode as one-time import.</div>
+                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for.</div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="syncConflictMode">On Conflict</label>
+                            <select id="syncConflictMode">
+                                <option value="skip">Skip existing ratings</option>
+                                <option value="overwrite">Overwrite existing ratings</option>
+                                <option value="keepHigher">Keep higher rating</option>
+                            </select>
+                            <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
                         </div>
                     </div>
                 </div>
@@ -393,6 +403,7 @@
                     document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
                     document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
                     document.getElementById('syncUserId').value = config.SyncUserId || '';
+                    document.getElementById('syncConflictMode').value = config.SyncConflictMode || 'skip';
                     document.getElementById('enableAutoBackup').checked = config.EnableAutoBackup !== false;
                     document.getElementById('backupIntervalHours').value = config.BackupIntervalHours || 24;
                     document.getElementById('maxBackups').value = config.MaxBackups || 7;
@@ -550,10 +561,10 @@
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     config.RecentlyRatedItemsCount = parseInt(document.getElementById('recentlyRatedCount').value) || 10;
                     config.PlexServerUrl = document.getElementById('plexServerUrl').value.trim();
-                    config.PlexImportConflictMode = document.getElementById('plexConflictMode').value;
                     config.EnableAutoSync = document.getElementById('enableAutoSync').checked;
                     config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value) || 24;
                     config.SyncUserId = document.getElementById('syncUserId').value;
+                    config.SyncConflictMode = document.getElementById('syncConflictMode').value;
                     config.EnableAutoBackup = document.getElementById('enableAutoBackup').checked;
                     config.BackupIntervalHours = parseInt(document.getElementById('backupIntervalHours').value) || 24;
                     config.MaxBackups = parseInt(document.getElementById('maxBackups').value) || 7;
@@ -661,7 +672,7 @@
 
                 document.getElementById('btnImportFromPlex').disabled = true;
 
-                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId)), {
+                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(config.conflictMode)), {
                     method: 'POST',
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {

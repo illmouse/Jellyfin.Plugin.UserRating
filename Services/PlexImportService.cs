@@ -28,12 +28,12 @@ IUserManager userManager)
         return Plugin.Instance?.Configuration ?? new PluginConfiguration();
     }
 
-    public async Task<ImportResult> ImportFromPlexAsync(Guid jellyfinUserId, string operationId, CancellationToken cancellationToken)
+    public async Task<ImportResult> ImportFromPlexAsync(Guid jellyfinUserId, string operationId, CancellationToken cancellationToken, string? conflictMode = null)
     {
         var config = GetConfig();
         var plexUrl = config.PlexServerUrl?.TrimEnd('/') ?? string.Empty;
         var plexToken = config.PlexToken;
-        var conflictMode = config.PlexImportConflictMode ?? "skip";
+        var effectiveConflictMode = conflictMode ?? config.PlexImportConflictMode ?? "skip";
 
         if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
         {
@@ -148,7 +148,7 @@ IUserManager userManager)
                 p.CurrentItem = "Saving ratings...";
             });
 
-            var (imported, skipped, overwritten) = repository.BulkSaveRatings(ratings, conflictMode);
+            var (imported, skipped, overwritten) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
 
             importedCount = imported;
             skippedCount = skipped;
