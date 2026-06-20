@@ -28,9 +28,15 @@ BackupService backupService) : ControllerBase
             report.Healed,
             report.Updated,
             report.Stale,
-            report.RecoverableItems,
-            report.StaleItems,
-            report.HealedItems
+            report.RecoverableItems.Select(r => new RecoverableItemDto(
+                r.OldItemId, r.NewItemId, r.ItemName, r.UserId, r.Rating, r.ProviderIds
+            )).ToList(),
+            report.StaleItems.Select(s => new StaleItemDto(
+                s.ItemId, s.UserId, s.Rating, s.Note, s.ProviderIds, s.Timestamp
+            )).ToList(),
+            report.HealedItems.Select(h => new HealedItemDto(
+                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating
+            )).ToList()
         ));
     }
 
@@ -46,8 +52,12 @@ BackupService backupService) : ControllerBase
             report.Healed,
             report.Updated,
             report.Stale,
-            report.HealedItems,
-            report.StaleItems,
+            report.HealedItems.Select(h => new HealedItemDto(
+                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating
+            )).ToList(),
+            report.StaleItems.Select(s => new StaleItemDto(
+                s.ItemId, s.UserId, s.Rating, s.Note, s.ProviderIds, s.Timestamp
+            )).ToList(),
             $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
         ));
     }
@@ -78,7 +88,10 @@ BackupService backupService) : ControllerBase
     public ActionResult ListBackups()
     {
         var backups = backupService.ListBackups();
-        return Ok(new BackupListResponse(true, backups));
+        return Ok(new BackupListResponse(
+            true,
+            backups.Select(b => new BackupInfoDto(b.FileName, b.FileSize, b.LastModified)).ToList()
+        ));
     }
 
     [HttpPost("RestoreBackup")]
