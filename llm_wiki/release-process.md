@@ -9,6 +9,7 @@
 - In manifest.json, always add new versions as new entries at the top of the versions array — never replace or remove previous stable versions. Only the latest beta entry may be replaced/superseded
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
 - After a stable release is ready: remove transitional/beta tags from the repo (both local and remote) and remove beta entries from manifest.json — keep only stable versions
+- Stable versions use 0 as the fourth octet (e.g., `1.11.0.0`). Beta versions have a non-zero fourth octet (e.g., `1.11.0.7`). When promoting a beta line to stable, remove all beta entries (non-zero fourth octet) from manifest.json and replace them with the single stable entry. Beta git tags should be deleted locally (`git tag -d vX.Y.Z.W`) and remotely (`git push origin --delete vX.Y.Z.W`)
 
 ## 1. Determine bump type
 

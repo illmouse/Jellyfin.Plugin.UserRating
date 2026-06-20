@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.11.1.0
+
+Plugin config page CSS delivery fix, backup file management, and UI polish.
+
+### Fixed
+
+- **Plugin Config Page CSS Not Loading** — Jellyfin's plugin page loader extracts only the `div[data-role="page"]` subtree via `querySelector`. The `<style>` block was placed outside that div and was silently stripped. Moved `<style>` inside the page div so all custom CSS (inputs, buttons, tables, sections) is now applied.
+- **Button Text Alignment** — All `is="emby-button"` elements now center text via `justify-content: center !important` (Heal Database, Save Settings, Import, etc.).
+- **Input Styling** — Darker background (`#1a1a1a`), stronger borders (`rgba(255,255,255,0.2)`), consistent padding for text/password/number inputs and selects.
+- **Backup Directory Path Input** — Widened to 600px max-width (was 420px).
+- **Backup Files Table** — Added borders and row hover effect.
+- **Upload Button Height** — Matched Test Connection button height.
+
+### New Features
+
+- **Backup File Management** — Download, restore, delete, and upload backup files from the admin config page.
+
+### Changed
+
+- **Import Button** — Renamed from "Import Ratings from Plex" to "Import".
+
+---
+
 ## v1.10.1.0
 
 ### Fixed
