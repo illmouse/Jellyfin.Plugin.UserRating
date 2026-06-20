@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.4.4",
-        "changelog": "Fixed: Series lastPlayedDate now uses episode play date (was always null from series-level UserData). Sorting unrated series by Last Watched now works correctly.",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.4/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T18:30:00Z"
+        "checksum": "1c9617eebbc153118a620618404212a2",
+        "timestamp": "2026-06-20T15:26:05Z"
       },
       {
         "version": "1.11.4.3",
