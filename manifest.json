@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.7.0",
-        "changelog": "Fixed - Plex Import: UserName Not Set — Imported ratings showed Unknown User instead of the actual sync user's display name.",
+        "changelog": " ### Fixed  - **Plex Import: UserName Not Set** — Imported ratings showed \\\"Unknown User\\\" instead of the actual sync user's display name. `PlexImportService` now resolves the username via `IUserManager.GetUserById()` before creating rating entries.  ",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.7.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T18:00:00Z"
+        "checksum": "5ef67ee4ee6488b6f4ecada8d3bdadbf",
+        "timestamp": "2026-06-20T18:20:46Z"
       },
       {
         "version": "1.11.6.0",
