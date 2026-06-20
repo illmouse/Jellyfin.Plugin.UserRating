@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.11.6.0
+
+### New Features
+
+- **Global Exception Filter** — Unhandled API exceptions now return JSON error responses instead of crashing the server or returning HTML error pages.
+
+### Changed
+
+- **Modern C# Cleanup** — Converted to file-scoped namespaces, primary constructors, and record types across the codebase.
+- **Typed Response DTOs** — Replaced anonymous types with typed records for all API responses.
+
+### Architecture Decisions
+
+| Decision | Rationale |
+|---|---|
+| `IAsyncExceptionFilter` instead of per-controller try/catch | Single path for all error responses — no duplicated error handling across 3+ controllers |
+| Typed records over anonymous types | Serialization is predictable and testable; anonymous types serialize properties in declaration order with lowercase names (implicit) |
+
+---
+
 ## v1.11.5.0
 
 ### Fixed
