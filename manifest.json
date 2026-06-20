@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.3.0",
-        "changelog": " Fixed Recently Rated and Oldest Rated sort options (were no-ops due to ISO-string timestamp comparison producing NaN). Replaced paired sort options with a single sort-field dropdown plus an ASC/DSC arrow toggle button across all sortable blocks (All Rated Items, Watched Movies, Watched Shows). ",
+        "changelog": " ### Fixed  - **Recently Rated / Oldest Rated Sort Broken** — `lastRatedTimestamp` was stored as an ISO date string from the API, causing `NaN` in the arithmetic sort comparisons — the \\\"Recently Rated\\\" and \\\"Oldest Rated\\\" sort options were silent no-ops. Now converted to epoch milliseconds at mapping time via `new Date(item.lastRated).getTime()`.  ### Changed  - **Sort Direction Toggle** — Replaced paired sort options (e.g. `Rating: High to Low` / `Rating: Low to High`, `Recently Rated` / `",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.3.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T12:30:00Z"
+        "checksum": "1120805d68b5d1e95312d3de8346277c",
+        "timestamp": "2026-06-20T11:43:53Z"
       },
       {
         "version": "1.11.2.0",
