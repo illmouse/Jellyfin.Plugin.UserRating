@@ -19,7 +19,8 @@ IHttpClientFactory httpClientFactory,
 RatingRepository repository,
 ILibraryManager libraryManager,
 ILogger<PlexImportService> logger,
-ProgressTracker progressTracker)
+ProgressTracker progressTracker,
+IUserManager userManager)
 {
 
     private PluginConfiguration GetConfig()
@@ -46,6 +47,7 @@ ProgressTracker progressTracker)
 
         try
         {
+            var userName = userManager.GetUserById(jellyfinUserId)?.Name ?? "Unknown";
             var ratedItems = new List<(PlexVideo plexItem, Guid jellyfinItemId, int convertedRating)>();
             var unmatchedItems = new List<UnmatchedItem>();
             var importedCount = 0;
@@ -132,7 +134,7 @@ ProgressTracker progressTracker)
                 Rating = r.convertedRating,
                 Note = $"Imported from Plex (original: {r.plexItem.UserRating}/10)",
                 Timestamp = DateTime.UtcNow,
-                UserName = null,
+                UserName = userName,
                 ProviderIds = r.plexItem.Guids
                     .Where(g => !string.IsNullOrEmpty(g.JellyfinProviderKey) && !string.IsNullOrEmpty(g.ExternalId))
                     .GroupBy(g => g.JellyfinProviderKey)
