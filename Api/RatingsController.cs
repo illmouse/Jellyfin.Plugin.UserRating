@@ -343,7 +343,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     foreach (var ep in episodes.Items)
                     {
                         if (ep is not Episode episode) continue;
-                        var seriesId = episode.SeriesId ?? Guid.Empty;
+                        var seriesId = episode.SeriesId;
                         if (seriesId == Guid.Empty) continue;
                         if (!seenSeries.Add(seriesId)) continue;
 

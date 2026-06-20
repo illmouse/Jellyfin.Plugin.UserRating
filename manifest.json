@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.4.3",
+        "changelog": "Fixed: Series query in GetUnratedWatchedItems now uses episode-based watched lookup (40s down to <50ms). Sorting by Last Watched date now works correctly.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.3/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-20T18:15:00Z"
+      },
+      {
         "version": "1.11.4.2",
         "changelog": " Fixed: Rating oscillation between duplicate library items with same ProviderIds. RatingResolver.ResolveRating now guards against re-keying when the old ItemId is still a valid library item. Server-side GetUnratedWatchedItems endpoint uses provider-ID-aware HasRating check. JS fetchUnratedType now delegates to server-side endpoint for correct filtering. GetAllRatedItems resolves stale ItemIds by ProviderId lookup. ",
         "targetAbi": "10.11.0.0",
