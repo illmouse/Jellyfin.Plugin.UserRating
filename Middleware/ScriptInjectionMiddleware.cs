@@ -77,7 +77,7 @@ public class ScriptInjectionMiddleware
         context.Response.Headers.Remove("Content-Encoding");
         await originalBodyStream.WriteAsync(modifiedBytes).ConfigureAwait(false);
 
-        _logger.LogInformation("Injected User Ratings script into index.html response");
+        _logger.LogDebug("Injected User Ratings script into index.html response");
     }
 
     private static bool IsIndexHtmlRequest(string path)
