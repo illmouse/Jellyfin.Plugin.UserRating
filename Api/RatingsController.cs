@@ -196,20 +196,65 @@ namespace Jellyfin.Plugin.UserRatings.Api
             {
                 var ratedItems = _repository.GetAllRatedItems();
 
-                var result = ratedItems.Select(item =>
+                var rawRatings = _repository.GetAllRatings();
+                var ratingByItemId = rawRatings.Values
+                    .GroupBy(r => r.ItemId)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+                var seenCanonical = new HashSet<Guid>();
+                var result = new List<object>();
+
+                foreach (var item in ratedItems)
                 {
+                    var effectiveId = item.ItemId;
+
+                    var libItem = _libraryManager.GetItemById(item.ItemId);
+
+                    if (libItem != null)
+                    {
+                        effectiveId = libItem.Id;
+                    }
+                    else if (ratingByItemId.TryGetValue(item.ItemId, out var rating)
+                        && rating.ProviderIds != null && rating.ProviderIds.Count > 0)
+                    {
+                        try
+                        {
+                            var providerQuery = new InternalItemsQuery
+                            {
+                                HasAnyProviderId = rating.ProviderIds
+                                    .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                                    .ToDictionary(kv => kv.Key, kv => kv.Value)
+                            };
+
+                            if (providerQuery.HasAnyProviderId.Count > 0)
+                            {
+                                var resolved = _libraryManager.GetItemList(providerQuery).FirstOrDefault();
+                                if (resolved != null)
+                                {
+                                    effectiveId = resolved.Id;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    if (!seenCanonical.Add(effectiveId))
+                        continue;
+
                     string? name = null;
                     string? type = null;
                     string? seriesId = null;
 
                     try
                     {
-                        var libraryItem = _libraryManager.GetItemById(item.ItemId);
-                        if (libraryItem != null)
+                        var resolvedItem = _libraryManager.GetItemById(effectiveId);
+                        if (resolvedItem != null)
                         {
-                            name = libraryItem.Name;
-                            type = libraryItem.GetType().Name;
-                            if (libraryItem is Episode ep && ep.Series != null)
+                            name = resolvedItem.Name;
+                            type = resolvedItem.GetType().Name;
+                            if (resolvedItem is Episode ep && ep.Series != null)
                             {
                                 seriesId = ep.Series.Id.ToString("N");
                             }
@@ -219,17 +264,17 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     {
                     }
 
-                    return new
+                    result.Add(new
                     {
-                        itemId = item.ItemId.ToString("N"),
+                        itemId = effectiveId.ToString("N"),
                         averageRating = item.AverageRating,
                         totalRatings = item.TotalRatings,
                         lastRated = item.LastRated,
                         name,
                         type,
                         seriesId
-                    };
-                });
+                    });
+                }
 
                 return Ok(new { success = true, items = result });
             }
@@ -241,16 +286,10 @@ namespace Jellyfin.Plugin.UserRatings.Api
 
         [HttpGet("UnratedWatchedItems")]
         [Produces(MediaTypeNames.Application.Json)]
-        public ActionResult GetUnratedWatchedItems([FromQuery] Guid userId)
+        public ActionResult GetUnratedWatchedItems([FromQuery] Guid userId, [FromQuery] string? itemType = null)
         {
             try
             {
-                // Get all items this user has rated
-                var ratedItemIds = _repository.GetRatingsForUser(userId)
-                    .Select(r => r.ItemId)
-                    .ToHashSet();
-
-                // Get all movies and series the user has played/watched
                 var watchedUnrated = new List<object>();
 
                 var user = _userManager.GetUserById(userId);
@@ -259,51 +298,72 @@ namespace Jellyfin.Plugin.UserRatings.Api
                     return NotFound(new { success = false, message = "User not found" });
                 }
 
-                // Query library for Movies
-                var movieQuery = new InternalItemsQuery(user)
-                {
-                    IncludeItemTypes = new[] { BaseItemKind.Movie },
-                    IsPlayed = true,
-                    OrderBy = new[] { (ItemSortBy.SortName, SortOrder.Ascending) },
-                    Limit = 24
-                };
-                var movies = _libraryManager.GetItemsResult(movieQuery);
+                bool includeMovies = itemType == null || itemType == "Movie";
+                bool includeSeries = itemType == null || itemType == "Series";
 
-                foreach (var item in movies.Items)
+                if (includeMovies)
                 {
-                    if (!ratedItemIds.Contains(item.Id))
+                    var movieQuery = new InternalItemsQuery(user)
                     {
-                        watchedUnrated.Add(new
+                        IncludeItemTypes = new[] { BaseItemKind.Movie },
+                        IsPlayed = true,
+                        OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
+                        Limit = 50
+                    };
+                    var movies = _libraryManager.GetItemsResult(movieQuery);
+
+                    foreach (var item in movies.Items)
+                    {
+                        if (!_resolver.HasRating(item.Id, userId))
                         {
-                            itemId = item.Id.ToString("N"),
-                            name = item.Name,
-                            type = item.GetType().Name,
-                            seriesId = (string?)null
-                        });
+                            watchedUnrated.Add(new
+                            {
+                                itemId = item.Id.ToString("N"),
+                                name = item.Name,
+                                type = item.GetType().Name,
+                                seriesId = (string?)null,
+                                lastPlayedDate = item.UserData?.FirstOrDefault()?.LastPlayedDate
+                            });
+                        }
                     }
                 }
 
-                // Query library for Series
-                var seriesQuery = new InternalItemsQuery(user)
+                if (includeSeries)
                 {
-                    IncludeItemTypes = new[] { BaseItemKind.Series },
-                    IsPlayed = true,
-                    OrderBy = new[] { (ItemSortBy.SortName, SortOrder.Ascending) },
-                    Limit = 24
-                };
-                var series = _libraryManager.GetItemsResult(seriesQuery);
-
-                foreach (var item in series.Items)
-                {
-                    if (!ratedItemIds.Contains(item.Id))
+                    var episodeQuery = new InternalItemsQuery(user)
                     {
-                        watchedUnrated.Add(new
+                        IncludeItemTypes = new[] { BaseItemKind.Episode },
+                        IsPlayed = true,
+                        OrderBy = new[] { (ItemSortBy.DatePlayed, SortOrder.Descending) },
+                        Limit = 500
+                    };
+                    var episodes = _libraryManager.GetItemsResult(episodeQuery);
+
+                    var seenSeries = new HashSet<Guid>();
+                    foreach (var ep in episodes.Items)
+                    {
+                        if (ep is not Episode episode) continue;
+                        var seriesId = episode.SeriesId ?? Guid.Empty;
+                        if (seriesId == Guid.Empty) continue;
+                        if (!seenSeries.Add(seriesId)) continue;
+
+                        if (!_resolver.HasRating(seriesId, userId))
                         {
-                            itemId = item.Id.ToString("N"),
-                            name = item.Name,
-                            type = item.GetType().Name,
-                            seriesId = (string?)null
-                        });
+                            var series = _libraryManager.GetItemById(seriesId);
+                            if (series != null)
+                            {
+                                watchedUnrated.Add(new
+                                {
+                                    itemId = series.Id.ToString("N"),
+                                    name = series.Name,
+                                    type = series.GetType().Name,
+                                    seriesId = (string?)null,
+                                    lastPlayedDate = series.UserData?.FirstOrDefault()?.LastPlayedDate
+                                });
+                            }
+                        }
+
+                        if (seenSeries.Count >= 50) break;
                     }
                 }
 

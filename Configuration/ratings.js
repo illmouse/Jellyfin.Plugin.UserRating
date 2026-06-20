@@ -1497,24 +1497,18 @@
                 renderPaginatedSection(allItemsSection, allItems, currentPage, currentSortField, currentSortDir, 'All Rated Items', buildCategoryGrid, currentTypeFilter);
             }
             
-            // Fetch unrated items via Jellyfin's fast /Items API (client-side filtering)
+            // Fetch unrated items via server-side endpoint (provider-ID-aware filtering)
             const userId = ApiClient.getCurrentUserId();
             const accessToken = ApiClient.accessToken();
 
             async function fetchUnratedType(itemType) {
                 try {
-                    const url = ApiClient.getUrl(`/Items?IncludeItemTypes=${itemType}&IsPlayed=true&Recursive=true&UserId=${userId}&Fields=PrimaryImageAspectRatio,UserData&Limit=50&SortBy=DatePlayed&SortOrder=Descending`);
+                    const url = ApiClient.getUrl(`api/UserRatings/UnratedWatchedItems?userId=${userId}&itemType=${itemType}`);
                     const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
                     if (!resp.ok) return [];
                     const data = await resp.json();
-                    if (!data.Items) return [];
-                    let items = data.Items;
-                    // Filter out items the user has already rated
-                    // Strip dashes for consistent comparison: JF /Items API returns naked hex
-                    // while our AllRatedItems API may use dashed Guid format
-                    const ratedIds = new Set(itemsWithDetails.map(i => i.itemId.replace(/-/g, '').toLowerCase()));
-                    items = items.filter(item => !ratedIds.has(item.Id.replace(/-/g, '').toLowerCase()));
-                    return items.slice(0, 24);
+                    if (!data.items) return [];
+                    return data.items.slice(0, 24);
                 } catch (e) {
                     console.error('[UserRatings] Error fetching unrated items:', e);
                     return [];
@@ -1528,12 +1522,12 @@
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
                         const mapped = unratedMoviesList.map((item, idx) => ({
-                            itemId: item.Id,
-                            name: item.Name,
+                            itemId: item.itemId,
+                            name: item.name,
                             type: 'Movie',
                             averageRating: 0,
                             totalRatings: 0,
-                            lastPlayedDate: item.UserData?.LastPlayedDate || null,
+                            lastPlayedDate: item.lastPlayedDate || null,
                             _sortOrder: idx
                         }));
                         sortItems(mapped, 'watched', 'desc');
@@ -1549,12 +1543,12 @@
                 if (unratedSeriesSection) {
                     if (unratedSeriesList.length > 0) {
                         const mapped = unratedSeriesList.map((item, idx) => ({
-                            itemId: item.Id,
-                            name: item.Name,
+                            itemId: item.itemId,
+                            name: item.name,
                             type: 'Series',
                             averageRating: 0,
                             totalRatings: 0,
-                            lastPlayedDate: item.UserData?.LastPlayedDate || null,
+                            lastPlayedDate: item.lastPlayedDate || null,
                             _sortOrder: idx
                         }));
                         sortItems(mapped, 'watched', 'desc');

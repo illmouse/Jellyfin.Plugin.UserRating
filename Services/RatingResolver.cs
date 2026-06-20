@@ -41,18 +41,28 @@ namespace Jellyfin.Plugin.UserRatings.Services
             var found = _repository.FindByProviderIds(userId, item.ProviderIds);
             if (found != null)
             {
-                _logger.LogInformation(
-                    "Healed rating: re-keyed {OldItemId} → {NewItemId} for user {UserId} via provider ID match",
-                    found.ItemId, itemId, userId);
-
-                _repository.RepairRatingKey(found.ItemId, itemId, userId);
-
-                found.ItemId = itemId;
-
-                if (found.ProviderIds == null || found.ProviderIds.Count == 0)
+                var oldItem = _libraryManager.GetItemById(found.ItemId);
+                if (oldItem == null)
                 {
-                    found.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
-                    _repository.SaveRating(found);
+                    _logger.LogInformation(
+                        "Healed rating: re-keyed {OldItemId} → {NewItemId} for user {UserId} via provider ID match",
+                        found.ItemId, itemId, userId);
+
+                    _repository.RepairRatingKey(found.ItemId, itemId, userId);
+
+                    found.ItemId = itemId;
+
+                    if (found.ProviderIds == null || found.ProviderIds.Count == 0)
+                    {
+                        found.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
+                        _repository.SaveRating(found);
+                    }
+                }
+                else
+                {
+                    _logger.LogDebug(
+                        "Skipped rating re-key: both {OldItemId} and {NewItemId} are valid library items",
+                        found.ItemId, itemId);
                 }
 
                 return found;
@@ -104,20 +114,31 @@ namespace Jellyfin.Plugin.UserRatings.Services
 
                 if (match)
                 {
-                    var oldItemId = r.ItemId;
-                    _repository.RepairRatingKey(r.ItemId, itemId, r.UserId);
-                    r.ItemId = itemId;
-
-                    if (r.ProviderIds == null || r.ProviderIds.Count == 0)
+                    var oldItemObj = _libraryManager.GetItemById(r.ItemId);
+                    if (oldItemObj == null)
                     {
-                        r.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
-                    }
+                        var oldItemId = r.ItemId;
+                        _repository.RepairRatingKey(r.ItemId, itemId, r.UserId);
+                        r.ItemId = itemId;
 
-                    _repository.SaveRating(r);
-                    healed.Add(r);
-                    _logger.LogInformation(
-                        "Healed rating for item {OldItemId} → {NewItemId}, user {UserId}",
-                        oldItemId, itemId, r.UserId);
+                        if (r.ProviderIds == null || r.ProviderIds.Count == 0)
+                        {
+                            r.ProviderIds = new Dictionary<string, string>(item.ProviderIds);
+                        }
+
+                        _repository.SaveRating(r);
+                        healed.Add(r);
+                        _logger.LogInformation(
+                            "Healed rating for item {OldItemId} → {NewItemId}, user {UserId}",
+                            oldItemId, itemId, r.UserId);
+                    }
+                    else
+                    {
+                        _logger.LogDebug(
+                            "Skipped rating re-key in ResolveRatingsForItem: both {OldItemId} and {NewItemId} are valid library items",
+                            r.ItemId, itemId);
+                        healed.Add(r);
+                    }
                 }
             }
 
@@ -130,6 +151,18 @@ namespace Jellyfin.Plugin.UserRatings.Services
             return item?.ProviderIds != null && item.ProviderIds.Count > 0
                 ? new Dictionary<string, string>(item.ProviderIds)
                 : null;
+        }
+
+        public bool HasRating(Guid itemId, Guid userId)
+        {
+            if (_repository.GetRating(itemId, userId) != null)
+                return true;
+
+            var item = _libraryManager.GetItemById(itemId);
+            if (item?.ProviderIds == null || item.ProviderIds.Count == 0)
+                return false;
+
+            return _repository.FindByProviderIds(userId, item.ProviderIds) != null;
         }
     }
 }
