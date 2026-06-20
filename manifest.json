@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.0.3",
-        "changelog": "Fix button styling (!important overrides for Jellyfin global CSS), constrain input field widths for better UX",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.0.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T00:00:00Z"
+        "checksum": "a601fe5f77f1f48a593faf15c8021890",
+        "timestamp": "2026-06-20T08:33:56Z"
       },
       {
         "version": "1.11.0.2",
