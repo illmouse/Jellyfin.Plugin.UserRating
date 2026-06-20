@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.2.0
+
+### Fixed
+
+- **Backup Files Table Width** — Changed table from full-width (`width: 100%`) to auto-fit (`width: auto`) so it renders compactly instead of stretching across the entire config page.
+
+---
+
 ## v1.11.1.0
 
 Plugin config page CSS delivery fix, backup file management, and UI polish.
