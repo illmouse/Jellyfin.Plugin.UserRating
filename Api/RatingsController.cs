@@ -358,7 +358,7 @@ namespace Jellyfin.Plugin.UserRatings.Api
                                     name = series.Name,
                                     type = series.GetType().Name,
                                     seriesId = (string?)null,
-                                    lastPlayedDate = series.UserData?.FirstOrDefault()?.LastPlayedDate
+                                    lastPlayedDate = ep.UserData?.FirstOrDefault()?.LastPlayedDate
                                 });
                             }
                         }
