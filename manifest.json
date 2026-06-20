@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.4.3",
-        "changelog": "Fixed: Series query in GetUnratedWatchedItems now uses episode-based watched lookup (40s down to <50ms). Sorting by Last Watched date now works correctly.",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-20T18:15:00Z"
+        "checksum": "bd8c1495e2d2689d33a3852b41e69a5d",
+        "timestamp": "2026-06-20T15:19:21Z"
       },
       {
         "version": "1.11.4.2",
