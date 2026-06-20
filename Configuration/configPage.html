@@ -5,66 +5,92 @@
     <title>User Ratings</title>
     <style>
         .save-btn {
-            display: inline-block !important;
+            display: inline-block;
             min-width: 200px;
-            padding: 0.6em 1.4em !important;
-            background: #2196F3 !important;
-            color: #fff !important;
+            padding: 0.6em 1.4em;
+            background: #2196F3;
+            color: #fff;
             font-size: 0.9375rem;
-            font-weight: 600 !important;
+            font-weight: 600;
             line-height: 1.75;
             letter-spacing: 0.02em;
-            border: none !important;
-            border-radius: 4px !important;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            text-align: center !important;
+            text-align: center;
             text-decoration: none;
-            text-transform: none !important;
             box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
             transition: background 0.2s, filter 0.15s;
         }
-        .save-btn:hover { background: #1976D2 !important; }
+        .save-btn:hover { background: #1976D2; }
         .save-btn:active { transform: scale(0.98); }
         .save-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; }
-        .ur-btn {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: relative;
-            box-sizing: border-box;
-            outline: 0;
-            margin: 0 !important;
-            cursor: pointer;
-            user-select: none;
-            vertical-align: middle !important;
-            text-decoration: none !important;
+
+        /* Custom input/select styling (replaces emby-input/emby-select) */
+        .pluginConfigurationPage input[type="text"],
+        .pluginConfigurationPage input[type="password"],
+        .pluginConfigurationPage input[type="number"] {
+            display: block;
+            width: 100%;
+            max-width: 420px;
+            padding: 0.4em 0.25em;
             font-family: inherit;
-            font-weight: 500 !important;
-            font-size: 0.9375rem;
-            line-height: 1.75;
-            letter-spacing: 0.02857em;
-            text-transform: uppercase !important;
-            min-width: 64px;
-            padding: 6px 16px !important;
-            border-radius: 4px !important;
-            border: none !important;
-            transition: background-color 250ms, box-shadow 250ms, filter 125ms;
-            background: #5a5a5a !important;
-            color: #fff !important;
-            box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+            font-size: 110%;
+            font-weight: inherit;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 0.15em;
+            color: inherit;
+            outline: none !important;
+            margin: 0;
+            margin-bottom: 0 !important;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
-        .ur-btn:hover { filter: brightness(1.2); }
-        .ur-btn:active { filter: brightness(1.2); transform: scale(0.98); }
-        .ur-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; box-shadow: none; filter: none; }
-        .ur-btn-small { font-size: 0.85em; padding: 4px 10px !important; min-width: unset; }
-        .ur-btn-green { background-color: #4CAF50 !important; color: #fff !important; }
-        .ur-btn-green:hover { background-color: #43A047 !important; }
-        .ur-btn-blue { background-color: #2196F3 !important; color: #fff !important; }
-        .ur-btn-blue:hover { background-color: #1976D2 !important; }
-        .ur-btn-warn { background-color: #FF9800 !important; color: #fff !important; }
-        .ur-btn-warn:hover { background-color: #F57C00 !important; }
-        .ur-btn-danger { background-color: #e53935 !important; color: #fff !important; }
-        .ur-btn-danger:hover { background-color: #c62828 !important; }
+        .pluginConfigurationPage input[type="number"] {
+            max-width: 150px;
+        }
+        .pluginConfigurationPage input[type="text"]:focus,
+        .pluginConfigurationPage input[type="password"]:focus,
+        .pluginConfigurationPage input[type="number"]:focus {
+            border-color: #52B54B;
+        }
+        .pluginConfigurationPage select {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            padding: 0.4em 0.25em;
+            font-family: inherit;
+            font-size: 110%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 0.15em;
+            color: inherit;
+            outline: none !important;
+        }
+        .pluginConfigurationPage select:focus {
+            border-color: #52B54B;
+        }
+        .pluginConfigurationPage input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #52B54B;
+            cursor: pointer;
+        }
+        .pluginConfigurationPage .inputContainer {
+            margin-bottom: 1.8em;
+        }
+        .pluginConfigurationPage .inputLabel {
+            display: inline-block;
+            margin-bottom: 0.25em;
+        }
+        .pluginConfigurationPage .fieldDescription {
+            font-weight: 400;
+            padding-left: 0.15em;
+            white-space: normal !important;
+        }
+        .pluginConfigurationPage .fieldDescription + .fieldDescription {
+            margin-top: 0.3em;
+        }
         .section-divider {
             margin-top: 2em;
             padding-top: 2em;
@@ -107,13 +133,10 @@
             gap: 1em;
             margin-top: 0.5em;
         }
-        .inputContainer { max-width: 480px; }
-        .inputContainer-num { max-width: 150px; }
-        .inputContainer-select { max-width: 300px; }
     </style>
 </head>
 <body>
-    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-checkbox,emby-select">
+    <div id="UserRatingsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button">
         <div data-role="content">
             <div class="content-primary">
                 <form id="UserRatingsConfigForm">
@@ -123,9 +146,9 @@
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
 
-                    <div class="inputContainer inputContainer-num">
+                    <div class="inputContainer">
                         <label class="inputLabel" for="recentlyRatedCount">Recently Rated Items Count</label>
-                        <input type="number" id="recentlyRatedCount" is="emby-input" min="5" max="50" step="1" class="emby-input" />
+                        <input type="number" id="recentlyRatedCount" min="5" max="50" step="1" />
                         <div class="fieldDescription">Number of items to display in each "Recently Rated" section (Movies, Shows, Episodes). Default is 10.</div>
                     </div>
                 </form>
@@ -139,32 +162,32 @@
                     <div class="inputContainer">
                         <label class="inputLabel" for="enableAutoBackup">Enable Automatic Backup</label>
                         <div style="display: flex; align-items: center; gap: 0.5em;">
-                            <input type="checkbox" id="enableAutoBackup" is="emby-checkbox" />
+                            <input type="checkbox" id="enableAutoBackup" />
                             <span>Automatically back up ratings on a schedule</span>
                         </div>
                     </div>
 
-                    <div class="inputContainer inputContainer-num">
+                    <div class="inputContainer">
                         <label class="inputLabel" for="backupIntervalHours">Backup Interval (hours)</label>
-                        <input type="number" id="backupIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
+                        <input type="number" id="backupIntervalHours" min="1" max="168" step="1" value="24" />
                         <div class="fieldDescription">How often to create an automatic backup. Default is every 24 hours.</div>
                     </div>
 
-                    <div class="inputContainer inputContainer-num">
+                    <div class="inputContainer">
                         <label class="inputLabel" for="maxBackups">Max Backups to Keep</label>
-                        <input type="number" id="maxBackups" is="emby-input" min="1" max="100" step="1" value="7" class="emby-input" />
+                        <input type="number" id="maxBackups" min="1" max="100" step="1" value="7" />
                         <div class="fieldDescription">Number of backup files to retain. Oldest backups are deleted when this limit is exceeded. Default is 7.</div>
                     </div>
 
                     <div class="inputContainer">
                         <label class="inputLabel" for="backupPath">Backup Directory Path</label>
-                        <input type="text" id="backupPath" is="emby-input" class="emby-input" placeholder="/config/data/data/backups/UserRatings" />
+                        <input type="text" id="backupPath" placeholder="/config/data/data/backups/UserRatings" />
                         <div class="fieldDescription">Directory where backup files are stored. Leave empty to use the default path.</div>
                     </div>
 
                     <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnBackupNow" class="ur-btn" style="min-width: 200px;">
-                            Create Backup Now
+                        <button type="button" id="btnBackupNow" is="emby-button" class="raised" style="min-width: 200px;">
+                            <span>Create Backup Now</span>
                         </button>
                     </div>
                     <div id="backupResult" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
@@ -180,9 +203,7 @@
                             <div class="fieldDescription" style="margin-bottom: 0.5em;">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
                             <div class="upload-area">
                                 <input type="file" id="backupFileInput" accept=".json" style="color: var(--textColor, #fff);" />
-                                <button type="button" id="btnUploadBackup" class="ur-btn ur-btn-small">
-                                    Upload
-                                </button>
+                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small">Upload</button>
                             </div>
                             <div id="uploadResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px); font-size: 0.9em;"></div>
                         </div>
@@ -197,23 +218,19 @@
 
                     <div class="inputContainer">
                         <label class="inputLabel" for="plexServerUrl">Plex Server URL</label>
-                        <input type="text" id="plexServerUrl" is="emby-input" class="emby-input" placeholder="http://192.168.1.100:32400" />
+                        <input type="text" id="plexServerUrl" placeholder="http://192.168.1.100:32400" />
                         <div class="fieldDescription">The URL of your Plex Media Server, including the port (default: 32400).</div>
                     </div>
 
                     <div class="inputContainer">
                         <label class="inputLabel" for="plexToken">Plex Token</label>
-                        <input type="password" id="plexToken" is="emby-input" class="emby-input" placeholder="Enter your Plex token" />
+                        <input type="password" id="plexToken" placeholder="Enter your Plex token" />
                         <div class="fieldDescription">Your Plex authentication token. <a href="https://www.plexopedia.com/plex-media-server/general/plex-token/" target="_blank" style="color: var(--textColor, #fff);">How to find your Plex token</a>. Leave blank to keep the stored token.</div>
                     </div>
 
                     <div style="margin: 0.5em 0;">
-                        <button type="button" id="btnClearPlexToken" class="ur-btn ur-btn-small">
-                            Clear Stored Token
-                        </button>
-                        <button type="button" id="btnTestPlexConnection" class="ur-btn ur-btn-small">
-                            Test Connection
-                        </button>
+                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Clear Stored Token</button>
+                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Test Connection</button>
                     </div>
                     <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
 
@@ -223,17 +240,17 @@
                             Perform a one-time import of ratings from Plex. This is an immediate action, not a saved setting.
                         </div>
 
-                        <div class="inputContainer inputContainer-select">
+                        <div class="inputContainer">
                             <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
-                            <select id="importTargetUser" is="emby-select" class="emby-select">
+                            <select id="importTargetUser">
                                 <option value="">Loading users...</option>
                             </select>
                             <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings. This is a one-time action, not a saved setting.</div>
                         </div>
 
-                        <div class="inputContainer inputContainer-select">
+                        <div class="inputContainer">
                             <label class="inputLabel" for="plexConflictMode">On Conflict</label>
-                            <select id="plexConflictMode" is="emby-select" class="emby-select">
+                            <select id="plexConflictMode">
                                 <option value="skip">Skip existing ratings</option>
                                 <option value="overwrite">Overwrite existing ratings</option>
                                 <option value="keepHigher">Keep higher rating</option>
@@ -242,9 +259,7 @@
                         </div>
 
                         <div style="margin-top: 1em;">
-                            <button type="button" id="btnImportFromPlex" class="ur-btn ur-btn-green" style="min-width: 200px;">
-                                Import Ratings from Plex
-                            </button>
+                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Import Ratings from Plex</button>
                         </div>
 
                         <div id="importProgress" style="display: none; margin-top: 1.5em;">
@@ -274,20 +289,20 @@
                         <div class="inputContainer">
                             <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
-                                <input type="checkbox" id="enableAutoSync" is="emby-checkbox" />
+                                <input type="checkbox" id="enableAutoSync" />
                                 <span>Automatically sync ratings from Plex on a schedule</span>
                             </div>
                         </div>
 
-                        <div class="inputContainer inputContainer-num">
+                        <div class="inputContainer">
                             <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
-                            <input type="number" id="syncIntervalHours" is="emby-input" min="1" max="168" step="1" value="24" class="emby-input" />
+                            <input type="number" id="syncIntervalHours" min="1" max="168" step="1" value="24" />
                             <div class="fieldDescription">How often to sync ratings from Plex. Default is every 24 hours.</div>
                         </div>
 
-                        <div class="inputContainer inputContainer-select">
+                        <div class="inputContainer">
                             <label class="inputLabel" for="syncUserId">Sync As User</label>
-                            <select id="syncUserId" is="emby-select" class="emby-select">
+                            <select id="syncUserId">
                                 <option value="">Loading users...</option>
                             </select>
                             <div class="fieldDescription">The Jellyfin user to sync Plex ratings for. Uses the same conflict mode as one-time import.</div>
@@ -296,9 +311,7 @@
                 </div>
 
                 <div class="section-divider">
-                    <button type="submit" class="save-btn" form="UserRatingsConfigForm">
-                        Save Settings
-                    </button>
+                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm" style="min-width: 200px; background: #2196F3; color: #fff;">Save Settings</button>
                 </div>
 
                 <div class="section-divider">
@@ -307,12 +320,8 @@
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
                     </div>
                     <div style="display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnHealthCheck" class="ur-btn" style="min-width: 200px;">
-                            Check Database Health
-                        </button>
-                        <button type="button" id="btnHealRatings" class="ur-btn ur-btn-green" style="min-width: 200px;">
-                            Heal Database
-                        </button>
+                        <button type="button" id="btnHealthCheck" is="emby-button" class="raised" style="min-width: 200px;">Check Database Health</button>
+                        <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Heal Database</button>
                     </div>
                     <div id="healthResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
                     <div id="recoverableList" style="display: none; margin-top: 1em;">
@@ -338,12 +347,8 @@
                          Permanently delete all user ratings from the database. This action cannot be undone.
                      </div>
                      <div style="display: flex; gap: 1em; flex-wrap: wrap;">
-                         <button id="btnDeleteAllRatings" type="button" class="ur-btn ur-btn-danger">
-                             Delete All Ratings
-                         </button>
-                         <button id="btnClearStale" type="button" class="ur-btn ur-btn-danger">
-                             Clear Stale Ratings
-                         </button>
+                          <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;">Delete All Ratings</button>
+                          <button id="btnClearStale" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;">Clear Stale Ratings</button>
                      </div>
                      <div class="fieldDescription" style="margin-top: 0.5em; color: #ff9800;">
                          Clear Stale: removes ratings that cannot be matched to any library item by any ID. Run "Check Database Health" first to see which ratings are stale.
@@ -442,8 +447,9 @@
                         html += '<td>' + dateStr + '</td>';
                         html += '<td>' + sizeStr + '</td>';
                         html += '<td>';
-                        html += '<button type="button" class="ur-btn ur-btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
-                        html += '<button type="button" class="ur-btn ur-btn-small ur-btn-warn" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #FF9800; color: #fff;" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #e53935; color: #fff;" onclick="deleteBackup(\'' + b.fileName + '\')">Delete</button>';
                         html += '</td>';
                         html += '</tr>';
                     });
@@ -486,6 +492,34 @@
                 }).catch(function (err) {
                     resultDiv.innerHTML = 'Error: ' + err.message;
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                });
+            }
+
+            function deleteBackup(fileName) {
+                if (!confirm('Are you sure you want to permanently delete "' + fileName + '"? This cannot be undone.')) {
+                    return;
+                }
+
+                var resultDiv = document.getElementById('backupResult');
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = 'Deleting backup...';
+                resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
+
+                fetch(ApiClient.getUrl('api/UserRatings/DeleteBackup?fileName=' + encodeURIComponent(fileName)), {
+                    method: 'DELETE',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        resultDiv.innerHTML = result.message;
+                        resultDiv.style.backgroundColor = 'rgba(76,175,80,0.2)';
+                        loadBackupList();
+                    } else {
+                        resultDiv.innerHTML = result.message;
+                        resultDiv.style.backgroundColor = 'rgba(229,57,53,0.2)';
+                    }
+                }).catch(function (err) {
+                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.style.backgroundColor = 'rgba(229,57,53,0.2)';
                 });
             }
 

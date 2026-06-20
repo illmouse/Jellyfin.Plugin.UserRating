@@ -168,6 +168,27 @@ namespace Jellyfin.Plugin.UserRatings.Data
             }
         }
 
+        public (bool success, string message) DeleteBackup(string fileName)
+        {
+            var fullPath = GetBackupFilePath(fileName);
+            if (fullPath == null)
+            {
+                return (false, $"Backup file '{fileName}' not found.");
+            }
+
+            try
+            {
+                File.Delete(fullPath);
+                _logger.LogInformation("Backup file deleted: {FileName}", fileName);
+                return (true, $"Backup '{fileName}' deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete backup {FileName}", fileName);
+                return (false, $"Delete failed: {ex.Message}");
+            }
+        }
+
         private void RotateBackups(string backupDir, int maxBackups)
         {
             try

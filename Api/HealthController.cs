@@ -244,5 +244,25 @@ namespace Jellyfin.Plugin.UserRatings.Api
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpDelete("DeleteBackup")]
+        [Produces(MediaTypeNames.Application.Json)]
+        public ActionResult DeleteBackup([FromQuery] string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { success = false, message = "fileName is required" });
+            }
+
+            try
+            {
+                var (success, message) = _backupService.DeleteBackup(fileName);
+                return Ok(new { success, message });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }
