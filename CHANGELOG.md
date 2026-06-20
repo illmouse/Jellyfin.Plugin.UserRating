@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.11.5.0
+
+### Fixed
+
+- **Series Query Performance** — Changed from `IsPlayed`-on-Series (required scanning all episodes, 40s) to episode-based watched lookup with SeriesId deduplication (<50ms).
+- **Series Sort by Last Watched** — `lastPlayedDate` now uses the episode's actual play date instead of the always-null series-level `UserData.LastPlayedDate`. Sorting unrated series by Last Watched now works correctly.
+- **Rating Oscillation** — `RatingResolver.ResolveRating` now guards against re-keying when the old ItemId is still a valid library item. Prevents ping-pong between duplicate entries with same ProviderIds.
+- **Rated Items Appearing as Unrated** — Server-side `GetUnratedWatchedItems` endpoint uses provider-ID-aware `HasRating` check instead of fragile client-side ID filtering.
+- **GUID Format Mismatch** — All plugin API responses now use `ToString("N")` for ItemIds, matching Jellyfin's native convention.
+
+---
+
 ## v1.11.4.0
 
 ### Fixed
