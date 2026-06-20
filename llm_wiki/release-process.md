@@ -36,7 +36,7 @@ Update the version in both:
 - `Jellyfin.Plugin.UserRatings.csproj` — `AssemblyVersion` and `FileVersion`
 - `manifest.json` — add a new version entry at the top of the `versions` array with:
   - `version`: new version string
-  - `changelog`: **shortened** description — include only the main changes (a few bullet points max). The full changelog goes in `CHANGELOG.md`. The manifest changelog is rendered in Jellyfin's plugin catalog UI where long text renders poorly. Do NOT copy the full CHANGELOG.md entry here.
+  - `changelog`: **shortened** plain-text description — include only the main changes (a few bullet points max). The full changelog goes in `CHANGELOG.md`. The manifest changelog is rendered in Jellyfin's plugin catalog UI where long text renders poorly. Do NOT copy the full CHANGELOG.md entry here. Do NOT use Markdown or any other formatting (no `**bold**`, no `###` headers, no backticks) — Jellyfin renders this as plain text.
   - `targetAbi`: same as previous entry
   - `sourceUrl`: update version segment in URL
   - `checksum`: leave empty (will be computed during build)
