@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.1
+
+### New Features
+
+- **Dashboard Hover-to-Rate (Phase 1)** — Hover over unrated cards on the User Ratings dashboard to reveal a star overlay. Click any star to open a popup modal with note input. The card stays in place with a green pulse animation and shows a compact "★ N/5 ✎" badge after rating. Rated cards show the compact badge top-left; clicking it opens the edit popup. All client-side, no API changes.
+
+---
+
 ## v1.12.2.0
 
 ### New Features

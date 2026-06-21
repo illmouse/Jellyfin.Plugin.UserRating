@@ -353,12 +353,260 @@
                 padding: 0.75em;
             }
         }
+
+        /* ===== HOVER STAR OVERLAY (unrated cards) ===== */
+        .star-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85) 40%);
+            padding: 2em 0.4em 0.5em;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.12em;
+            z-index: 3;
+            pointer-events: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .card-hoverable:hover .star-overlay {
+            display: flex;
+        }
+        .card-hoverable:has(.star-overlay):hover .cardIndicators-bottomright {
+            display: none;
+        }
+        .star-overlay .so-star {
+            font-size: 1.3em;
+            color: rgba(255,255,255,0.2);
+            cursor: pointer;
+            pointer-events: auto;
+            transition: color 0.12s, transform 0.12s;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            line-height: 1;
+            padding: 0 1px;
+        }
+        .star-overlay .so-star.filled {
+            color: #ffd700;
+        }
+        .star-overlay .so-star.hovered {
+            color: #ffed4e;
+            transform: scale(1.25);
+        }
+        .star-overlay .so-label {
+            position: absolute;
+            top: 0.3em;
+            font-size: 0.65em;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            pointer-events: none;
+        }
+
+        /* ===== COMPACT RATING BADGE (rated cards) ===== */
+        .compact-rating {
+            position: absolute;
+            top: 0.4em; left: 0.4em;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25em;
+            background: rgba(0,0,0,0.7);
+            padding: 0.2em 0.5em;
+            border-radius: 3px;
+            font-size: 0.8em;
+            line-height: 1.5;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 0.15s;
+        }
+        .compact-rating:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        .compact-rating .cr-star {
+            color: #ffd700;
+            font-size: 1.1em;
+        }
+        .compact-rating .cr-value {
+            font-weight: 600;
+            color: #fff;
+        }
+        .compact-rating .cr-edit {
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85em;
+            margin-left: 0.15em;
+        }
+        .card-hoverable:hover .compact-rating .cr-edit {
+            opacity: 1;
+        }
+        .compact-rating[data-empty="true"] {
+            display: none;
+        }
+
+        /* ===== RATE SUCCESS ANIMATION ===== */
+        @keyframes rate-success-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,215,0,0.6); }
+            50% { box-shadow: 0 0 0 6px rgba(255,215,0,0.2); }
+            100% { box-shadow: 0 0 0 0 rgba(255,215,0,0); }
+        }
+        .card-rating-success {
+            animation: rate-success-pulse 0.6s ease-out;
+        }
+
+        /* ===== RATE POPUP MODAL ===== */
+        .rate-popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .rate-popup-overlay.open {
+            display: flex;
+        }
+        .rate-popup {
+            background: #1e1e1e;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 1.6em 1.8em 1.4em;
+            width: 380px;
+            max-width: 92vw;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            animation: popup-slide-in 0.2s ease-out;
+        }
+        @keyframes popup-slide-in {
+            from { opacity: 0; transform: scale(0.95) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .rate-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.4em;
+        }
+        .rate-popup-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--textColor, #fff);
+        }
+        .rate-popup-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 1.4em;
+            cursor: pointer;
+            padding: 0 0.2em;
+            line-height: 1;
+        }
+        .rate-popup-close:hover {
+            color: #fff;
+        }
+        .rate-popup-subtitle {
+            font-size: 0.85em;
+            color: var(--dimTextColor, rgba(255,255,255,0.5));
+            margin-bottom: 1em;
+        }
+        .rate-popup-stars {
+            display: flex;
+            gap: 0.3em;
+            font-size: 2em;
+            justify-content: center;
+            margin-bottom: 1em;
+        }
+        .rate-popup-stars .rp-star {
+            color: rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: color 0.12s, transform 0.12s;
+        }
+        .rate-popup-stars .rp-star.filled {
+            color: #ffd700;
+        }
+        .rate-popup-stars .rp-star:hover {
+            color: #ffed4e;
+            transform: scale(1.15);
+        }
+        .rate-popup textarea {
+            width: 100%;
+            padding: 0.6em;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            color: var(--textColor, #ddd);
+            font-size: 0.9em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+            margin-bottom: 1em;
+            line-height: 1.5;
+        }
+        .rate-popup textarea:focus {
+            outline: none;
+            border-color: var(--highlightOutlineColor, #00a4dc);
+        }
+        .rate-popup-actions {
+            display: flex;
+            gap: 0.6em;
+            justify-content: flex-end;
+        }
+        .rate-popup-actions button {
+            padding: 0.5em 1.4em;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: filter 0.15s;
+        }
+        .rate-popup-actions button:hover {
+            filter: brightness(1.15);
+        }
+        .rate-popup-btn-cancel {
+            background: rgba(255,255,255,0.08);
+            color: var(--textColor, #ddd);
+            border: 1px solid rgba(255,255,255,0.15) !important;
+        }
+        .rate-popup-btn-submit {
+            background: var(--btnSubmitColor, #e53935);
+            color: #fff;
+            min-width: 120px;
+        }
+        .rate-popup-btn-submit:disabled {
+            opacity: 0.4;
+            cursor: default;
+            filter: none;
+        }
+        .rate-popup-btn-delete {
+            background: transparent;
+            color: #e53935;
+            border: 1px solid rgba(229,57,53,0.3) !important;
+            margin-right: auto;
+        }
+        .rate-popup-btn-delete:hover {
+            background: rgba(229,57,53,0.1);
+        }
+        @media (max-width: 480px) {
+            .star-overlay .so-star {
+                font-size: 1.1em;
+            }
+            .rate-popup {
+                padding: 1.2em;
+            }
+            .rate-popup-stars {
+                font-size: 1.6em;
+            }
+        }
     `;
     document.head.appendChild(style);
 
     let currentItemId = null;
     let currentRating = 0;
     let isInjecting = false;
+    let userRatingsMap = null;
+    let popupModal = null;
+    let popupActiveItemId = null;
 
 function createStarRating(rating, interactive, onHover, onClick) {
     const container = document.createElement('div');
@@ -488,6 +736,318 @@ function updateStarDisplay(container, rating) {
             console.error('[UserRatings] Error deleting rating:', error);
             return { success: false, message: error.message };
         }
+    }
+
+    // ===== Phase 1: Hover-to-Rate =====
+
+    let _popupCardElement = null;
+
+    async function fetchUserRatings() {
+        try {
+            const userId = ApiClient.getCurrentUserId();
+            const resp = await fetch(ApiClient.getUrl(`api/UserRatings/User/${userId}`), {
+                headers: { 'X-Emby-Token': ApiClient.accessToken() }
+            });
+            if (!resp.ok) { userRatingsMap = {}; return; }
+            const data = await resp.json();
+            userRatingsMap = {};
+            if (data.ratings && data.ratings.length > 0) {
+                data.ratings.forEach(r => {
+                    userRatingsMap[r.itemId] = { rating: r.rating, note: r.note };
+                });
+            }
+        } catch (e) {
+            console.error('[UserRatings] Error fetching user ratings:', e);
+            userRatingsMap = {};
+        }
+    }
+
+    function getUserRating(itemId) {
+        return userRatingsMap && userRatingsMap[itemId] ? userRatingsMap[itemId] : null;
+    }
+
+    function createRatePopupModal() {
+        if (popupModal) return popupModal;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'rate-popup-overlay';
+        overlay.id = 'ratePopupOverlay';
+        overlay.innerHTML = `
+            <div class="rate-popup">
+                <div class="rate-popup-header">
+                    <span class="rate-popup-title" id="rpTitle">Rate</span>
+                    <button class="rate-popup-close" id="rpClose">&#xD7;</button>
+                </div>
+                <div class="rate-popup-subtitle" id="rpSubtitle">Select your rating</div>
+                <div class="rate-popup-stars" id="rpStars">
+                    <span class="rp-star" data-n="1">&#x2605;</span>
+                    <span class="rp-star" data-n="2">&#x2605;</span>
+                    <span class="rp-star" data-n="3">&#x2605;</span>
+                    <span class="rp-star" data-n="4">&#x2605;</span>
+                    <span class="rp-star" data-n="5">&#x2605;</span>
+                </div>
+                <textarea id="rpNote" placeholder="Optional note&#x2026;"></textarea>
+                <div class="rate-popup-actions">
+                    <button class="rate-popup-btn-delete" id="rpDelete" style="display:none;">Delete</button>
+                    <div style="display:flex;gap:0.6em;margin-left:auto;">
+                        <button class="rate-popup-btn-cancel" id="rpCancel">Cancel</button>
+                        <button class="rate-popup-btn-submit" id="rpSubmit">Post Rating</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        popupModal = overlay;
+
+        // Star hover/click in popup
+        const popupStars = overlay.querySelectorAll('.rp-star');
+        popupStars.forEach(star => {
+            star.addEventListener('mouseenter', function() {
+                const n = parseInt(this.dataset.n);
+                popupStars.forEach((s, idx) => {
+                    s.classList.toggle('filled', idx + 1 <= n);
+                });
+            });
+            star.addEventListener('click', function() {
+                const n = parseInt(this.dataset.n);
+                popupStars.forEach((s, idx) => {
+                    s.classList.toggle('filled', idx + 1 <= n);
+                });
+                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + n + '/5';
+            });
+        });
+        overlay.addEventListener('mouseleave', function() {
+            const selected = parseInt(overlay.dataset.selectedRating || '0');
+            popupStars.forEach((s, idx) => {
+                s.classList.toggle('filled', idx + 1 <= selected);
+            });
+        });
+
+        // Close handlers
+        overlay.querySelector('#rpClose').addEventListener('click', closeRatePopup);
+        overlay.querySelector('#rpCancel').addEventListener('click', closeRatePopup);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeRatePopup();
+        });
+
+        // Submit handler
+        overlay.querySelector('#rpSubmit').addEventListener('click', async function() {
+            const itemId = popupActiveItemId;
+            const selected = parseInt(overlay.dataset.selectedRating || '0');
+            if (selected === 0) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Posting\u2026';
+
+            const note = overlay.querySelector('#rpNote').value;
+            const result = await saveRating(itemId, selected * 2, note);
+
+            btn.disabled = false;
+            btn.textContent = 'Post Rating';
+
+            if (result.success) {
+                closeRatePopup();
+                userRatingsMap[itemId] = { rating: selected * 2, note: note };
+                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
+
+                if (_popupCardElement) {
+                    animateRatingSuccess(_popupCardElement, selected);
+                    _popupCardElement = null;
+                }
+            } else {
+                alert('Error saving rating: ' + result.message);
+            }
+        });
+
+        // Delete handler
+        overlay.querySelector('#rpDelete').addEventListener('click', async function() {
+            const itemId = popupActiveItemId;
+            if (!confirm('Delete your rating?')) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Deleting\u2026';
+
+            const result = await deleteRating(itemId);
+
+            btn.disabled = false;
+            btn.textContent = 'Delete';
+
+            if (result.success) {
+                closeRatePopup();
+                if (userRatingsMap) delete userRatingsMap[itemId];
+                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
+                location.reload();
+            } else {
+                alert('Error deleting rating: ' + result.message);
+            }
+        });
+
+        return popupModal;
+    }
+
+    function openRatePopup(itemId, itemName, preselected, existingNote) {
+        if (!popupModal) createRatePopupModal();
+        popupActiveItemId = itemId;
+
+        document.getElementById('rpTitle').textContent = 'Rate "' + (itemName || 'this item') + '"';
+        document.getElementById('rpSubtitle').textContent = preselected > 0 ? 'Your rating: ' + preselected + '/5' : 'Select your rating';
+        document.getElementById('rpNote').value = existingNote || '';
+
+        const popupStars = popupModal.querySelectorAll('.rp-star');
+        popupStars.forEach((s, idx) => {
+            s.classList.toggle('filled', idx + 1 <= preselected);
+        });
+        popupModal.dataset.selectedRating = String(preselected || 0);
+
+        const deleteBtn = popupModal.querySelector('#rpDelete');
+        const submitBtn = popupModal.querySelector('#rpSubmit');
+        const isEditing = preselected > 0;
+        deleteBtn.style.display = isEditing ? 'inline-block' : 'none';
+        submitBtn.textContent = isEditing ? 'Update' : 'Post Rating';
+
+        popupModal.classList.add('open');
+    }
+
+    function closeRatePopup() {
+        if (popupModal) {
+            popupModal.classList.remove('open');
+            popupModal.dataset.selectedRating = '0';
+        }
+        popupActiveItemId = null;
+        _popupCardElement = null;
+    }
+
+    function attachCardHoverListeners(container) {
+        const cards = container.querySelectorAll('.card-hoverable .so-star');
+        cards.forEach(function(star) {
+            const card = star.closest('.card');
+            if (card && card._rateHoverAttached) return;
+
+            const cardEl = star.closest('.card');
+            if (!cardEl) return;
+            cardEl._rateHoverAttached = true;
+
+            const overlay = cardEl.querySelector('.star-overlay');
+            if (!overlay) return;
+
+            const stars = overlay.querySelectorAll('.so-star');
+            const label = overlay.querySelector('.so-label');
+            let selected = 0;
+
+            stars.forEach(function(s) {
+                s.addEventListener('mouseenter', function() {
+                    const n = parseInt(this.dataset.n);
+                    stars.forEach(function(st, idx) {
+                        st.classList.toggle('filled', idx + 1 <= n);
+                        st.classList.toggle('hovered', idx + 1 === n);
+                    });
+                    if (label) label.textContent = n + '/5';
+                });
+                s.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selected = parseInt(this.dataset.n);
+                    _popupCardElement = cardEl;
+                    const itemId = cardEl.getAttribute('data-id');
+                    const nameEl = cardEl.querySelector('.cardText a');
+                    const name = nameEl ? nameEl.textContent.trim() : null;
+                    openRatePopup(itemId, name, selected, null);
+                });
+            });
+            overlay.addEventListener('mouseleave', function() {
+                stars.forEach(function(st, idx) {
+                    st.classList.toggle('filled', idx + 1 <= selected);
+                    st.classList.toggle('hovered', false);
+                });
+                if (label) label.textContent = selected > 0 ? selected + '/5' : 'Rate';
+            });
+        });
+    }
+
+    function attachRatedCardListeners(container) {
+        const badges = container.querySelectorAll('.compact-rating');
+        badges.forEach(function(badge) {
+            if (badge._rateEditAttached) return;
+            badge._rateEditAttached = true;
+
+            badge.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = badge.closest('.card');
+                if (!card) return;
+                const itemId = card.getAttribute('data-id');
+                const nameEl = card.querySelector('.cardText a');
+                const name = nameEl ? nameEl.textContent.trim() : null;
+                const existing = getUserRating(itemId);
+                const rating = existing ? Math.round(existing.rating / 2) : 0;
+                const note = existing ? (existing.note || '') : '';
+                _popupCardElement = card;
+                openRatePopup(itemId, name, rating, note);
+            });
+        });
+    }
+
+    function animateRatingSuccess(card, rating) {
+        const imageContainer = card.querySelector('.cardImageContainer');
+        if (imageContainer) {
+            imageContainer.classList.remove('card-rating-success');
+            void imageContainer.offsetWidth;
+            imageContainer.classList.add('card-rating-success');
+            setTimeout(function() {
+                imageContainer.classList.remove('card-rating-success');
+            }, 700);
+        }
+
+        // Change "Unrated" badge to "★ N/5" on unrated cards (has star-overlay)
+        if (card.querySelector('.star-overlay')) {
+            const unratedBadge = card.querySelector('.cardIndicators-bottomright div[style*="background"]');
+            if (unratedBadge) {
+                unratedBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
+            }
+        }
+
+        // Hide the hover star overlay on unrated cards
+        const overlay = card.querySelector('.star-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+
+        // Show/update the compact rating badge
+        let compactBadge = card.querySelector('.compact-rating');
+        if (compactBadge) {
+            compactBadge.querySelector('.cr-value').textContent = rating + '/5';
+            compactBadge.dataset.empty = 'false';
+            compactBadge.style.display = '';
+        } else {
+            compactBadge = document.createElement('div');
+            compactBadge.className = 'compact-rating';
+            compactBadge.dataset.empty = 'false';
+            compactBadge.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value">' + rating + '/5</span><span class="cr-edit">\u270E</span>';
+            compactBadge._rateEditAttached = false;
+            const imgContainer = card.querySelector('.cardImageContainer');
+            if (imgContainer && imgContainer.parentNode) {
+                imgContainer.parentNode.insertBefore(compactBadge, imgContainer);
+            } else {
+                card.querySelector('.cardScalable').appendChild(compactBadge);
+            }
+            attachRatedCardListeners(card);
+        }
+    }
+
+    function fillCompactBadges() {
+        if (!userRatingsMap) return;
+        document.querySelectorAll('#ratingsTab .compact-rating[data-item-id]').forEach(function(badge) {
+            const itemId = badge.getAttribute('data-item-id');
+            const userRating = getUserRating(itemId);
+            if (userRating) {
+                const display = Math.round(userRating.rating / 2);
+                badge.querySelector('.cr-value').textContent = display + '/5';
+                badge.dataset.empty = 'false';
+                badge.style.display = '';
+            }
+        });
     }
 
     function reInjectUI(itemId) {
@@ -1222,6 +1782,9 @@ function updateSummaryStars(rating) {
         ratingsTabContent.innerHTML = '<div style="padding: 3em 2em; text-align: center; color: rgba(255,255,255,0.6);">Loading ratings...</div>';
 
         try {
+            // Fetch user's ratings for compact badge display
+            await fetchUserRatings();
+
             // Get all rated items
             const ratingsResponse = await fetch(ApiClient.getUrl('api/UserRatings/AllRatedItems'), {
                 headers: {
@@ -1335,6 +1898,11 @@ function updateSummaryStars(rating) {
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
                                 <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
+                                <div class="compact-rating" data-empty="true" data-item-id="${item.itemId}" style="display:none;">
+                                    <span class="cr-star">&#x2605;</span>
+                                    <span class="cr-value"></span>
+                                    <span class="cr-edit">&#x270E;</span>
+                                </div>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div style="background: rgba(0,0,0,0.85); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
                                         <span style="color: #ffd700; font-size: 1.1em;">★</span>
@@ -1365,7 +1933,21 @@ function updateSummaryStars(rating) {
                         <div class="cardBox cardBox-bottompadded">
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
-                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
+                                <div class="compact-rating" data-empty="true" data-item-id="${item.itemId}" style="display:none;">
+                                    <span class="cr-star">&#x2605;</span>
+                                    <span class="cr-value"></span>
+                                    <span class="cr-edit">&#x270E;</span>
+                                </div>
+                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0">
+                                    <div class="star-overlay">
+                                        <span class="so-label">Rate</span>
+                                        <span class="so-star" data-n="1">&#x2605;</span>
+                                        <span class="so-star" data-n="2">&#x2605;</span>
+                                        <span class="so-star" data-n="3">&#x2605;</span>
+                                        <span class="so-star" data-n="4">&#x2605;</span>
+                                        <span class="so-star" data-n="5">&#x2605;</span>
+                                    </div>
+                                </a>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
                                         <span style="font-weight: 600; font-size: 0.9em;">Unrated</span>
@@ -1496,6 +2078,9 @@ function updateSummaryStars(rating) {
                 `;
                 
                 container.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
+                fillCompactBadges();
+                attachCardHoverListeners(container);
+                attachRatedCardListeners(container);
                 
                 const sortSelect = container.querySelector('.sortSelect');
                 if (sortSelect) {
@@ -1594,6 +2179,8 @@ function updateSummaryStars(rating) {
             const allItemsSection = document.querySelector('#allItemsSection');
             if (allItemsSection) {
                 renderPaginatedSection(allItemsSection, allItems, currentPage, currentSortField, currentSortDir, 'All Rated Items', buildCategoryGrid, currentTypeFilter);
+                fillCompactBadges();
+                attachRatedCardListeners(allItemsSection);
             }
             
             // Fetch unrated items via server-side endpoint (provider-ID-aware filtering)
@@ -1614,9 +2201,11 @@ function updateSummaryStars(rating) {
                 }
             }
 
-            // Render each unrated section independently as data arrives
-            // so Movies (~30ms) don't wait for Series (~5s)
-            fetchUnratedType('Movie').then(unratedMoviesList => {
+            // Fetch unrated sections. Movies (~30ms) arrive fast, Series (~5s) is slow.
+            Promise.all([
+                fetchUnratedType('Movie'),
+                fetchUnratedType('Series')
+            ]).then(([unratedMoviesList, unratedSeriesList]) => {
                 const unratedMoviesSection = document.querySelector('#unratedMoviesSection');
                 if (unratedMoviesSection) {
                     if (unratedMoviesList.length > 0) {
@@ -1635,9 +2224,7 @@ function updateSummaryStars(rating) {
                         unratedMoviesSection.innerHTML = '';
                     }
                 }
-            });
 
-            fetchUnratedType('Series').then(unratedSeriesList => {
                 const unratedSeriesSection = document.querySelector('#unratedSeriesSection');
                 if (unratedSeriesSection) {
                     if (unratedSeriesList.length > 0) {
@@ -1656,6 +2243,10 @@ function updateSummaryStars(rating) {
                         unratedSeriesSection.innerHTML = '';
                     }
                 }
+            }).then(() => {
+                fillCompactBadges();
+                attachCardHoverListeners(document.querySelector('#ratingsTab'));
+                attachRatedCardListeners(document.querySelector('#ratingsTab'));
             });
 
         } catch (error) {

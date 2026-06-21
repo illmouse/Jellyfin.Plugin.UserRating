@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.2.1",
+        "changelog": "New: Dashboard hover-to-rate (Phase 1) - star overlay on card hover, popup modal with note, compact rating badge on rated cards",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-21T19:00:00Z"
+      },
+      {
         "version": "1.12.2.0",
         "changelog": "New: Plex watch history sync (optional flag to mark items as played); Consolidated config page (one-time import merged into Scheduled Sync); Progress bar resets to 0% for watch history phase. Also includes 10-star rating scale, DOM state sync, and various UI fixes",
         "targetAbi": "10.11.0.0",
