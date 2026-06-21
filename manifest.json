@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.11.8.1",
-        "changelog": "Fixed Edit button not showing after posting a new rating (needed page refresh).",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.8.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T00:00:00Z"
+        "checksum": "fba69251f3cea0bbde88f7b0c9275a7d",
+        "timestamp": "2026-06-21T09:19:21Z"
       },
       {
         "version": "1.11.8.0",
