@@ -13,8 +13,8 @@
         "changelog": "New: Half-star precision in rating popup - click left/right half of any star to set .5 values; CSS gradient background-clip text fill; All display paths handle float values",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T19:30:00Z"
+        "checksum": "e4e5d0854844b8d2c20affe0ad7baae7",
+        "timestamp": "2026-06-21T17:37:21Z"
       },
       {
         "version": "1.12.2.2",
