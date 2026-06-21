@@ -13,8 +13,8 @@
         "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.0.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T12:20:00Z"
+        "checksum": "bdf953fd252c2cb3e01e1de3e7b52103",
+        "timestamp": "2026-06-21T12:31:29Z"
       },
       {
         "version": "1.12.0.1",
