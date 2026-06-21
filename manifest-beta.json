@@ -13,8 +13,8 @@
         "changelog": "Fixed: Popup stars fixated by hover (mouseleave handler moved to star row); Card not updating after rating (card reference captured before closeRatePopup clears it)",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T19:15:00Z"
+        "checksum": "e56bde8909dc4ddf3f83db9f12cd5f3d",
+        "timestamp": "2026-06-21T17:27:02Z"
       },
       {
         "version": "1.12.2.1",
