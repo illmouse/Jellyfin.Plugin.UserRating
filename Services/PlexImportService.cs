@@ -173,7 +173,7 @@ IUserDataManager userDataManager)
                     p.Status = "watch_history";
                     p.TotalItems = totalWatchedItems;
                     p.ProcessedItems = 0;
-                    p.PercentComplete = 85;
+                    p.PercentComplete = 0;
                 });
 
                 logger.LogInformation("Syncing watch history for {Count} items from Plex", totalWatchedItems);
@@ -200,7 +200,7 @@ IUserDataManager userDataManager)
                     {
                         p.ProcessedItems = i + 1;
                         p.CurrentItem = plexItem.Title;
-                        p.PercentComplete = 88 + (double)(i + 1) / totalWatchedItems * 12;
+                        p.PercentComplete = (double)(i + 1) / totalWatchedItems * 100;
                     });
 
                     var jellyfinItemId = ResolvePlexItemToJellyfin(plexItem);
