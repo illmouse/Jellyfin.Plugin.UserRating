@@ -10,7 +10,7 @@
     "versions": [
       {
         "version": "1.12.2.0",
-        "changelog": " ### New Features  - **Plex Watch History Sync** — Optional feature flag (`EnablePlexWatchHistorySync`) to mark movies and episodes as played in Jellyfin based on Plex view history, alongside the existing rating import. Works for both one-time and scheduled sync. Progress bar resets to 0% for watch history phase.  ### Changed  - **Config Page Consolidation** — Removed the separate \\\"Import Ratings (One-Time)\\\" section. Manual import now uses the same settings as scheduled sync. Section renamed",
+        "changelog": "New: Plex watch history sync (optional flag to mark items as played); Consolidated config page (one-time import merged into Scheduled Sync); Progress bar resets to 0% for watch history phase. Also includes 10-star rating scale, DOM state sync, and various UI fixes",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.0/Jellyfin.Plugin.UserRatings.zip",
         "checksum": "fb0f4146db2ec062ea95463e18757ed1",
