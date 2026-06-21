@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.11.8.1",
+        "changelog": "Fixed Edit button not showing after posting a new rating (needed page refresh).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.8.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-21T00:00:00Z"
+      },
+      {
         "version": "1.11.8.0",
         "changelog": " ### Fixed  - **Plex Import: Conflict Mode Not Passed to API** — One-time import's \\\"On Conflict\\\" dropdown was cosmetic only; the API always used the saved config value (default \\\"skip\\\"). Now the conflict mode is passed as a query parameter, making the one-time import truly ephemeral. Auto-sync has its own persisted `SyncConflictMode` setting with a dedicated dropdown in the config UI.  ",
         "targetAbi": "10.11.0.0",

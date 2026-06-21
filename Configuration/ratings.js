@@ -626,6 +626,7 @@
                 deleteBtn.style.display = 'inline-block';
                 updateSummaryStars(currentRating);
                 collapseMyRating();
+                container.classList.add('has-rating');
                 summaryEl.style.display = '';
             } else {
                 alert('Error saving rating: ' + result.message);
