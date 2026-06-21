@@ -286,22 +286,30 @@
                     <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
 
                     <div class="subsection">
-                        <h4>Import Ratings (One-Time)</h4>
+                        <h4>Scheduled Sync</h4>
                         <div class="fieldDescription" style="margin-bottom: 1em;">
-                            Perform a one-time import of ratings from Plex. This is an immediate action, not a saved setting.
+                            Automatically sync ratings and optionally watch history from Plex on a schedule. These settings are saved and applied periodically.
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="importTargetUser">Import Ratings As User</label>
-                            <select id="importTargetUser">
+                            <label class="inputLabel" for="enablePlexWatchHistorySync">Sync Watch History</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="enablePlexWatchHistorySync" />
+                                <span>Also mark items as played based on Plex watch history (movies and episodes)</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="syncUserId">Sync As User</label>
+                            <select id="syncUserId">
                                 <option value="">Loading users...</option>
                             </select>
-                            <div class="fieldDescription">Select which Jellyfin user will receive the imported ratings. This is a one-time action, not a saved setting.</div>
+                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings and watch history for.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="plexConflictMode">On Conflict</label>
-                            <select id="plexConflictMode">
+                            <label class="inputLabel" for="syncConflictMode">On Conflict</label>
+                            <select id="syncConflictMode">
                                 <option value="skip">Skip existing ratings</option>
                                 <option value="overwrite">Overwrite existing ratings</option>
                                 <option value="keepHigher">Keep higher rating</option>
@@ -309,12 +317,18 @@
                             <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
                         </div>
 
-                        <div style="margin-top: 1em;">
-                            <button type="button" id="btnImportFromPlex" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Import</button>
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
+                            <input type="number" id="syncIntervalHours" min="1" max="168" step="1" value="24" />
+                            <div class="fieldDescription">How often to sync from Plex automatically. Default is every 24 hours.</div>
+                        </div>
+
+                        <div style="margin-top: 1.5em;">
+                            <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
                         </div>
 
                         <div id="importProgress" style="display: none; margin-top: 1.5em;">
-                            <h4>Import Progress</h4>
+                            <h4>Sync Progress</h4>
                             <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
                                 <div id="progressBar" style="height: 100%; background: #4CAF50; width: 0%; transition: width 0.3s ease; border-radius: var(--smallRadius, 4px);"></div>
                             </div>
@@ -326,47 +340,16 @@
 
                         <div id="unmatchedSection" style="display: none; margin-top: 1em;">
                             <h4>Unmatched Items</h4>
-                            <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex ratings could not be matched to Jellyfin items.</div>
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex items could not be matched to Jellyfin items.</div>
                             <div id="unmatchedList" class="item-list"></div>
                         </div>
-                    </div>
 
-                    <div class="subsection">
-                        <h4>Automatic Sync (Scheduled)</h4>
-                        <div class="fieldDescription" style="margin-bottom: 1em;">
-                            Automatically sync ratings from Plex on a schedule. These settings are saved and applied periodically.
-                        </div>
-
-                        <div class="inputContainer">
+                        <div class="inputContainer" style="margin-top: 1.5em;">
                             <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enableAutoSync" />
-                                <span>Automatically sync ratings from Plex on a schedule</span>
+                                <span>Automatically sync from Plex on a schedule</span>
                             </div>
-                        </div>
-
-                        <div class="inputContainer">
-                            <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
-                            <input type="number" id="syncIntervalHours" min="1" max="168" step="1" value="24" />
-                            <div class="fieldDescription">How often to sync ratings from Plex. Default is every 24 hours.</div>
-                        </div>
-
-                        <div class="inputContainer">
-                            <label class="inputLabel" for="syncUserId">Sync As User</label>
-                            <select id="syncUserId">
-                                <option value="">Loading users...</option>
-                            </select>
-                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings for.</div>
-                        </div>
-
-                        <div class="inputContainer">
-                            <label class="inputLabel" for="syncConflictMode">On Conflict</label>
-                            <select id="syncConflictMode">
-                                <option value="skip">Skip existing ratings</option>
-                                <option value="overwrite">Overwrite existing ratings</option>
-                                <option value="keepHigher">Keep higher rating</option>
-                            </select>
-                            <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
                         </div>
                     </div>
                 </div>
@@ -430,7 +413,7 @@
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     document.getElementById('recentlyRatedCount').value = config.RecentlyRatedItemsCount || 10;
                     document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
-                    document.getElementById('plexConflictMode').value = config.PlexImportConflictMode || 'skip';
+                    document.getElementById('enablePlexWatchHistorySync').checked = config.EnablePlexWatchHistorySync || false;
                     document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
                     document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
                     document.getElementById('syncUserId').value = config.SyncUserId || '';
@@ -457,16 +440,9 @@
 
             function loadUsers() {
                 ApiClient.getUsers().then(function (users) {
-                    var select = document.getElementById('importTargetUser');
                     var syncSelect = document.getElementById('syncUserId');
-                    select.innerHTML = '';
                     syncSelect.innerHTML = '';
                     users.forEach(function (user) {
-                        var option = document.createElement('option');
-                        option.value = user.Id;
-                        option.textContent = user.Name;
-                        select.appendChild(option);
-
                         var syncOption = document.createElement('option');
                         syncOption.value = user.Id;
                         syncOption.textContent = user.Name;
@@ -479,9 +455,7 @@
                         }
                     });
                 }).catch(function () {
-                    var select = document.getElementById('importTargetUser');
                     var syncSelect = document.getElementById('syncUserId');
-                    select.innerHTML = '<option value="">Failed to load users</option>';
                     syncSelect.innerHTML = '<option value="">Failed to load users</option>';
                 });
             }
@@ -592,6 +566,7 @@
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     config.RecentlyRatedItemsCount = parseInt(document.getElementById('recentlyRatedCount').value) || 10;
                     config.PlexServerUrl = document.getElementById('plexServerUrl').value.trim();
+                    config.EnablePlexWatchHistorySync = document.getElementById('enablePlexWatchHistorySync').checked;
                     config.EnableAutoSync = document.getElementById('enableAutoSync').checked;
                     config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value) || 24;
                     config.SyncUserId = document.getElementById('syncUserId').value;
@@ -665,27 +640,20 @@
 
             var currentEventSource = null;
 
-            document.getElementById('btnImportFromPlex').addEventListener('click', function () {
-                var userId = document.getElementById('importTargetUser').value;
+            document.getElementById('btnSyncNow').addEventListener('click', function () {
+                var userId = document.getElementById('syncUserId').value;
                 if (!userId) {
-                    alert('Please select a user to import ratings for.');
+                    alert('Please select a user to sync for.');
                     return;
                 }
 
-                var config = {
-                    plexServerUrl: document.getElementById('plexServerUrl').value.trim(),
-                    conflictMode: document.getElementById('plexConflictMode').value
-                };
-
-                if (!config.plexServerUrl) {
+                var plexUrl = document.getElementById('plexServerUrl').value.trim();
+                if (!plexUrl) {
                     alert('Please configure and save the Plex server URL first.');
                     return;
                 }
 
-                var conflictLabels = { skip: 'skip existing', overwrite: 'overwrite existing', keepHigher: 'keep higher rating' };
-                if (!confirm('Import ratings from Plex as ' + document.getElementById('importTargetUser').selectedOptions[0].text + '? Conflicts will be resolved by: ' + conflictLabels[config.conflictMode] + '.')) {
-                    return;
-                }
+                var conflictMode = document.getElementById('syncConflictMode').value;
 
                 var progressDiv = document.getElementById('importProgress');
                 var progressBar = document.getElementById('progressBar');
@@ -698,20 +666,20 @@
                 resultDiv.style.display = 'none';
                 unmatchedSection.style.display = 'none';
                 progressBar.style.width = '0%';
-                progressText.textContent = 'Starting import...';
+                progressText.textContent = 'Starting sync...';
                 progressStats.textContent = '';
 
-                document.getElementById('btnImportFromPlex').disabled = true;
+                document.getElementById('btnSyncNow').disabled = true;
 
-                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(config.conflictMode)), {
+                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(conflictMode)), {
                     method: 'POST',
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (!result.success) {
                         resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = result.message || 'Import failed';
+                        resultDiv.innerHTML = result.message || 'Sync failed';
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
-                        document.getElementById('btnImportFromPlex').disabled = false;
+                        document.getElementById('btnSyncNow').disabled = false;
                         return;
                     }
 
@@ -721,7 +689,7 @@
                     resultDiv.style.display = 'block';
                     resultDiv.innerHTML = 'Error: ' + err.message;
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
-                    document.getElementById('btnImportFromPlex').disabled = false;
+                    document.getElementById('btnSyncNow').disabled = false;
                 });
             });
 
@@ -746,34 +714,37 @@
                     if (data.status === 'fetching') {
                         progressText.textContent = 'Fetching libraries from Plex...';
                     } else if (data.status === 'matching') {
-                        progressText.textContent = 'Matching: ' + (data.currentItem || '...');
+                        progressText.textContent = 'Matching rated items: ' + (data.currentItem || '...');
                         progressStats.textContent = 'Processed ' + data.processedItems + ' of ' + data.totalItems + ' items';
                     } else if (data.status === 'saving') {
                         progressText.textContent = 'Saving ratings...';
+                    } else if (data.status === 'watch_history') {
+                        progressText.textContent = 'Syncing watch history: ' + (data.currentItem || '...');
+                        progressStats.textContent = 'Processed ' + data.processedItems + ' of ' + data.totalItems + ' items';
                     } else if (data.status === 'completed') {
                         progressBar.style.width = '100%';
-                        progressText.textContent = 'Import complete!';
+                        progressText.textContent = 'Sync complete!';
                         progressStats.textContent = '';
                         currentEventSource.close();
                         currentEventSource = null;
-                        document.getElementById('btnImportFromPlex').disabled = false;
+                        document.getElementById('btnSyncNow').disabled = false;
                         showImportResult(data);
                     } else if (data.status === 'failed') {
-                        progressText.textContent = 'Import failed';
+                        progressText.textContent = 'Sync failed';
                         progressStats.textContent = '';
                         currentEventSource.close();
                         currentEventSource = null;
-                        document.getElementById('btnImportFromPlex').disabled = false;
+                        document.getElementById('btnSyncNow').disabled = false;
 
                         var resultDiv = document.getElementById('importResult');
                         resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = data.errorMessage || 'Import failed';
+                        resultDiv.innerHTML = data.errorMessage || 'Sync failed';
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     } else if (data.status === 'cancelled') {
-                        progressText.textContent = 'Import cancelled';
+                        progressText.textContent = 'Sync cancelled';
                         currentEventSource.close();
                         currentEventSource = null;
-                        document.getElementById('btnImportFromPlex').disabled = false;
+                        document.getElementById('btnSyncNow').disabled = false;
                     }
                 };
 
@@ -782,17 +753,20 @@
                         currentEventSource.close();
                         currentEventSource = null;
                     }
-                    document.getElementById('btnImportFromPlex').disabled = false;
+                    document.getElementById('btnSyncNow').disabled = false;
                 };
             }
 
             function showImportResult(data) {
                 var resultDiv = document.getElementById('importResult');
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<strong>Import Complete</strong><br>' +
+                var html = '<strong>Sync Complete</strong><br>' +
                     'Imported: ' + data.importedItems + '<br>' +
                     'Skipped: ' + data.skippedItems + '<br>' +
                     'Unmatched: ' + data.unmatchedItems;
+                if (data.watchedItems > 0) {
+                    html += '<br>Marked as played: ' + data.watchedItems;
+                }
+                resultDiv.innerHTML = html;
                 resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
 
                 if (data.unmatched && data.unmatched.length > 0) {

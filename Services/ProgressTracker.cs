@@ -41,6 +41,7 @@ public class ProgressTracker
             progress.PercentComplete = 100;
             progress.ImportedItems = result.Imported;
             progress.SkippedItems = result.Skipped;
+            progress.WatchedItems = result.Watched;
             progress.UnmatchedItems = result.Unmatched;
             progress.ErrorMessage = result.Message;
             progress.Unmatched = result.UnmatchedItems;

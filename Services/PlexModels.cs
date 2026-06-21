@@ -17,6 +17,8 @@ public record PlexVideo
     public string Type { get; init; } = string.Empty;
     public string Guid { get; init; } = string.Empty;
     public double UserRating { get; init; }
+    public int ViewCount { get; init; }
+    public long? LastViewedAt { get; init; }
     public List<PlexGuid> Guids { get; init; } = new();
 }
 
@@ -46,6 +48,7 @@ public class ImportProgress
     public int ProcessedItems { get; set; }
     public int ImportedItems { get; set; }
     public int SkippedItems { get; set; }
+    public int WatchedItems { get; set; }
     public int UnmatchedItems { get; set; }
     public string CurrentItem { get; set; } = string.Empty;
     public string ErrorMessage { get; set; } = string.Empty;
@@ -58,6 +61,7 @@ public record ImportResult
     public string OperationId { get; init; } = string.Empty;
     public int Imported { get; init; }
     public int Skipped { get; init; }
+    public int Watched { get; init; }
     public int Unmatched { get; init; }
     public string Message { get; init; } = string.Empty;
     public List<UnmatchedItem> UnmatchedItems { get; init; } = new();

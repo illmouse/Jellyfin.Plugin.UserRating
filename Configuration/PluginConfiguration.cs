@@ -15,6 +15,8 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string SyncConflictMode { get; set; } = "skip";
 
+    public bool EnablePlexWatchHistorySync { get; set; }
+
     public string NewPlexToken { get; set; } = string.Empty;
 
     public bool EnableAutoSync { get; set; }

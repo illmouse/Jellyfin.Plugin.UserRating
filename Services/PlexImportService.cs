@@ -9,7 +9,9 @@ using System.Xml.Linq;
 using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Dto;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Services;
@@ -20,7 +22,8 @@ RatingRepository repository,
 ILibraryManager libraryManager,
 ILogger<PlexImportService> logger,
 ProgressTracker progressTracker,
-IUserManager userManager)
+IUserManager userManager,
+IUserDataManager userDataManager)
 {
 
     private PluginConfiguration GetConfig()
@@ -34,6 +37,7 @@ IUserManager userManager)
         var plexUrl = config.PlexServerUrl?.TrimEnd('/') ?? string.Empty;
         var plexToken = config.PlexToken;
         var effectiveConflictMode = conflictMode ?? config.PlexImportConflictMode ?? "skip";
+        var syncWatchHistory = config.EnablePlexWatchHistorySync;
 
         if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
         {
@@ -52,6 +56,7 @@ IUserManager userManager)
             var unmatchedItems = new List<UnmatchedItem>();
             var importedCount = 0;
             var skippedCount = 0;
+            var watchedCount = 0;
 
             progressTracker.UpdateProgress(operationId, p => p.Status = "fetching");
 
@@ -62,30 +67,33 @@ IUserManager userManager)
 
             logger.LogInformation("Found {MovieLibs} movie libraries and {ShowLibs} show libraries in Plex", movieLibraries.Count, showLibraries.Count);
 
-            var allRatedPlexItems = new List<PlexVideo>();
+            var allPlexItems = new List<PlexVideo>();
 
             foreach (var lib in movieLibraries)
             {
                 var items = await GetPlexLibraryItemsAsync(plexUrl, plexToken, lib.Key, cancellationToken).ConfigureAwait(false);
-                allRatedPlexItems.AddRange(items.Where(i => i.UserRating > 0));
+                allPlexItems.AddRange(items);
             }
 
             foreach (var lib in showLibraries)
             {
                 var items = await GetPlexLibraryItemsAsync(plexUrl, plexToken, lib.Key, cancellationToken).ConfigureAwait(false);
-                allRatedPlexItems.AddRange(items.Where(i => i.UserRating > 0 && i.Type != "episode"));
+                allPlexItems.AddRange(items);
             }
 
-            var totalItems = allRatedPlexItems.Count;
+            // === RATINGS PASS ===
+            var ratedPlexItems = allPlexItems.Where(i => i.UserRating > 0 && i.Type != "episode").ToList();
+            var totalRatedItems = ratedPlexItems.Count;
+
             progressTracker.UpdateProgress(operationId, p =>
             {
-                p.TotalItems = totalItems;
+                p.TotalItems = totalRatedItems;
                 p.Status = "matching";
             });
 
-            logger.LogInformation("Found {Count} rated items in Plex to import", totalItems);
+            logger.LogInformation("Found {Count} rated items in Plex to import", totalRatedItems);
 
-            for (var i = 0; i < allRatedPlexItems.Count; i++)
+            for (var i = 0; i < ratedPlexItems.Count; i++)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -97,16 +105,17 @@ IUserManager userManager)
                         Message = "Import was cancelled",
                         Imported = importedCount,
                         Skipped = skippedCount,
+                        Watched = watchedCount,
                         Unmatched = unmatchedItems.Count
                     };
                 }
 
-                var plexItem = allRatedPlexItems[i];
+                var plexItem = ratedPlexItems[i];
                 progressTracker.UpdateProgress(operationId, p =>
                 {
                     p.ProcessedItems = i + 1;
                     p.CurrentItem = plexItem.Title;
-                    p.PercentComplete = (double)(i + 1) / totalItems * 90;
+                    p.PercentComplete = (double)(i + 1) / (totalRatedItems + (syncWatchHistory ? 1 : 0)) * 80;
                 });
 
                 var jellyfinItem = ResolvePlexItemToJellyfin(plexItem);
@@ -148,10 +157,78 @@ IUserManager userManager)
                 p.CurrentItem = "Saving ratings...";
             });
 
-            var (imported, skipped, overwritten) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
+            var (imported, skipped, _) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
 
             importedCount = imported;
             skippedCount = skipped;
+
+            // === WATCH HISTORY PASS ===
+            if (syncWatchHistory)
+            {
+                var watchedPlexItems = allPlexItems.Where(i => i.ViewCount > 0).ToList();
+                var totalWatchedItems = watchedPlexItems.Count;
+
+                progressTracker.UpdateProgress(operationId, p =>
+                {
+                    p.Status = "watch_history";
+                    p.TotalItems = totalWatchedItems;
+                    p.ProcessedItems = 0;
+                    p.PercentComplete = 85;
+                });
+
+                logger.LogInformation("Syncing watch history for {Count} items from Plex", totalWatchedItems);
+
+                for (var i = 0; i < watchedPlexItems.Count; i++)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        progressTracker.UpdateProgress(operationId, p => p.Status = "cancelled");
+                        return new ImportResult
+                        {
+                            Success = false,
+                            OperationId = operationId,
+                            Message = "Import was cancelled",
+                            Imported = importedCount,
+                            Skipped = skippedCount,
+                            Watched = watchedCount,
+                            Unmatched = unmatchedItems.Count
+                        };
+                    }
+
+                    var plexItem = watchedPlexItems[i];
+                    progressTracker.UpdateProgress(operationId, p =>
+                    {
+                        p.ProcessedItems = i + 1;
+                        p.CurrentItem = plexItem.Title;
+                        p.PercentComplete = 88 + (double)(i + 1) / totalWatchedItems * 12;
+                    });
+
+                    var jellyfinItemId = ResolvePlexItemToJellyfin(plexItem);
+                    if (jellyfinItemId == null)
+                    {
+                        if (plexItem.UserRating <= 0)
+                        {
+                            unmatchedItems.Add(new UnmatchedItem
+                            {
+                                Title = plexItem.Title,
+                                PlexRating = 0,
+                                PlexType = plexItem.Type,
+                                Guids = plexItem.Guids.Select(g => g.Id).ToList()
+                            });
+                        }
+                        continue;
+                    }
+
+                    await MarkItemAsPlayedAsync(jellyfinItemId.Value, jellyfinUserId, plexItem, cancellationToken).ConfigureAwait(false);
+                    watchedCount++;
+                }
+            }
+
+            var message = $"Imported {importedCount} ratings, skipped {skippedCount}, could not match {unmatchedItems.Count}";
+            if (syncWatchHistory)
+            {
+                message += $", marked {watchedCount} items as played";
+            }
 
             var result = new ImportResult
             {
@@ -159,8 +236,9 @@ IUserManager userManager)
                 OperationId = operationId,
                 Imported = importedCount,
                 Skipped = skippedCount,
+                Watched = watchedCount,
                 Unmatched = unmatchedItems.Count,
-                Message = $"Imported {importedCount} ratings, skipped {skippedCount}, could not match {unmatchedItems.Count}",
+                Message = message,
                 UnmatchedItems = unmatchedItems
             };
 
@@ -224,13 +302,19 @@ IUserManager userManager)
         foreach (var element in doc.Root?.Elements() ?? Enumerable.Empty<XElement>())
         {
             var type = element.Attribute("type")?.Value ?? string.Empty;
-            if (type != "movie" && type != "show")
+            if (type != "movie" && type != "show" && type != "episode")
             {
                 continue;
             }
 
             var userRatingStr = element.Attribute("userRating")?.Value;
-            if (string.IsNullOrEmpty(userRatingStr) || !double.TryParse(userRatingStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var userRating) || userRating <= 0)
+            double.TryParse(userRatingStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var userRating);
+
+            var viewCountStr = element.Attribute("viewCount")?.Value;
+            var lastViewedAtStr = element.Attribute("lastViewedAt")?.Value;
+
+            int.TryParse(viewCountStr, out var viewCount);
+            if (userRating <= 0 && viewCount <= 0)
             {
                 continue;
             }
@@ -241,7 +325,9 @@ IUserManager userManager)
                 Title = element.Attribute("title")?.Value ?? "Unknown",
                 Type = type,
                 Guid = element.Attribute("guid")?.Value ?? string.Empty,
-                UserRating = userRating
+                UserRating = userRating > 0 ? userRating : 0,
+                ViewCount = viewCount,
+                LastViewedAt = long.TryParse(lastViewedAtStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var lva) ? lva : null
             };
 
             foreach (var guidElement in element.Elements("Guid"))
@@ -374,6 +460,34 @@ IUserManager userManager)
         {
             logger.LogDebug(ex, "Error looking up provider ID {Key}={Value}", providerKey, providerValue);
             return null;
+        }
+    }
+
+    private async Task MarkItemAsPlayedAsync(Guid itemId, Guid userId, PlexVideo plexItem, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var item = libraryManager.GetItemById(itemId);
+            if (item == null)
+            {
+                logger.LogDebug("Item {ItemId} not found in library, skipping watch mark", itemId);
+                return;
+            }
+
+            var userData = userDataManager.GetUserData(userId, item);
+            userData.Played = true;
+            userData.LastPlayedDate = plexItem.LastViewedAt.HasValue
+                ? DateTimeOffset.FromUnixTimeSeconds(plexItem.LastViewedAt.Value).UtcDateTime
+                : DateTime.UtcNow;
+            userData.PlayCount = Math.Max(userData.PlayCount, plexItem.ViewCount);
+
+            await userDataManager.SaveUserData(userId, item, userData, cancellationToken).ConfigureAwait(false);
+
+            logger.LogDebug("Marked '{Title}' ({ItemId}) as played for user {UserId}", plexItem.Title, itemId, userId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to mark item '{Title}' ({ItemId}) as played", plexItem.Title, itemId);
         }
     }
 
