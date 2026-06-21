@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.12.2.2
+
+### Fixed
+
+- **Popup Stars Fixated by Hover** — Star fill in the rating popup only reset when leaving the entire popup overlay. `mouseleave` handler moved from the full-page backdrop to the star row container, so stars now correctly reset when the cursor leaves the star area.
+- **Card Not Updating After Rating** — `_popupCardElement` was nulled by `closeRatePopup()` before `animateRatingSuccess` could read it. Captured to a local variable before closing the popup.
+
+---
+
 ## v1.12.2.1
 
 ### New Features

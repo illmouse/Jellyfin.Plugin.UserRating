@@ -816,7 +816,8 @@ function updateStarDisplay(container, rating) {
                 document.getElementById('rpSubtitle').textContent = 'Your rating: ' + n + '/5';
             });
         });
-        overlay.addEventListener('mouseleave', function() {
+        const popupStarsContainer = overlay.querySelector('#rpStars');
+        popupStarsContainer.addEventListener('mouseleave', function() {
             const selected = parseInt(overlay.dataset.selectedRating || '0');
             popupStars.forEach((s, idx) => {
                 s.classList.toggle('filled', idx + 1 <= selected);
@@ -847,13 +848,13 @@ function updateStarDisplay(container, rating) {
             btn.textContent = 'Post Rating';
 
             if (result.success) {
+                const cardToAnimate = _popupCardElement;
                 closeRatePopup();
                 userRatingsMap[itemId] = { rating: selected * 2, note: note };
                 try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
 
-                if (_popupCardElement) {
-                    animateRatingSuccess(_popupCardElement, selected);
-                    _popupCardElement = null;
+                if (cardToAnimate) {
+                    animateRatingSuccess(cardToAnimate, selected);
                 }
             } else {
                 alert('Error saving rating: ' + result.message);

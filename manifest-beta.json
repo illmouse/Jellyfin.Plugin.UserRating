@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.2.2",
+        "changelog": "Fixed: Popup stars fixated by hover (mouseleave handler moved to star row); Card not updating after rating (card reference captured before closeRatePopup clears it)",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.2/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-21T19:15:00Z"
+      },
+      {
         "version": "1.12.2.1",
         "changelog": "New: Dashboard hover-to-rate (Phase 1) - star overlay on card hover, popup modal with note, compact rating badge on rated cards",
         "targetAbi": "10.11.0.0",
