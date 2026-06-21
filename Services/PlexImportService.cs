@@ -11,7 +11,7 @@ using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Services;
@@ -467,6 +467,13 @@ IUserDataManager userDataManager)
     {
         try
         {
+            var user = userManager.GetUserById(userId);
+            if (user == null)
+            {
+                logger.LogDebug("User {UserId} not found, skipping watch mark", userId);
+                return;
+            }
+
             var item = libraryManager.GetItemById(itemId);
             if (item == null)
             {
@@ -474,14 +481,14 @@ IUserDataManager userDataManager)
                 return;
             }
 
-            var userData = userDataManager.GetUserData(userId, item);
+            var userData = userDataManager.GetUserData(user, item);
             userData.Played = true;
             userData.LastPlayedDate = plexItem.LastViewedAt.HasValue
                 ? DateTimeOffset.FromUnixTimeSeconds(plexItem.LastViewedAt.Value).UtcDateTime
                 : DateTime.UtcNow;
             userData.PlayCount = Math.Max(userData.PlayCount, plexItem.ViewCount);
 
-            await userDataManager.SaveUserData(userId, item, userData, cancellationToken).ConfigureAwait(false);
+            await userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.Import, cancellationToken).ConfigureAwait(false);
 
             logger.LogDebug("Marked '{Title}' ({ItemId}) as played for user {UserId}", plexItem.Title, itemId, userId);
         }
