@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.12.1.0
+
+### BREAKING CHANGES
+
+- **10-Star Rating Scale** — The rating system has been upgraded from 5-star (0–5) to 10-star with half-star precision (0–10). Existing ratings must be migrated via the plugin configuration page. The migration system creates an automatic backup before converting and provides a one-click migration button with version tracking and pre-migration warnings. After migration, the new scale applies everywhere — detail page, User Ratings dashboard, and all API endpoints.
+
+### New Features
+
+- **DOM State Sync on Back-Navigation** — When rating or unrating an item on the detail page and returning to the User Ratings dashboard, the dashboard now re-fetches data and scrolls to the section you were viewing. Items move correctly between "Not Yet Rated" and "Recently Rated" sections without a manual refresh.
+
+### Fixed
+
+- **Edit Button Not Showing After Posting New Rating** — The "Edit" button now appears immediately after posting a rating for the first time.
+- **Missing Rating Display on Detail Pages** — Fixed cases where user ratings did not render on the detail page after the 10-star migration.
+- **Migration Version History Display** — Fixed layout of the plugin version history section on the config page.
+
+---
+
 ## v1.11.8.0
 
 ### Fixed
