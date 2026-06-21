@@ -6,10 +6,23 @@
 - Always ask before committing and pushing changes
 - Never overwrite or move existing git tags — always create a new tag. Only force-replace a tag if the user explicitly asks
 - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
-- In manifest.json, always add new versions as new entries at the top of the versions array — never replace or remove previous stable versions. Only the latest beta entry may be replaced/superseded
+- In manifests, always add new versions as new entries at the top of the `versions` array — never replace or remove previous entries
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
-- After a stable release is ready: remove transitional/beta tags from the repo (both local and remote) and remove beta entries from manifest.json — keep only stable versions
-- Stable versions use 0 as the fourth octet (e.g., `1.11.0.0`). Beta versions have a non-zero fourth octet (e.g., `1.11.0.7`). When promoting a beta line to stable, remove all beta entries (non-zero fourth octet) from manifest.json and replace them with the single stable entry. Beta git tags should be deleted locally (`git tag -d vX.Y.Z.W`) and remotely (`git push origin --delete vX.Y.Z.W`)
+- Stable versions use 0 as the fourth octet (e.g., `1.11.0.0`). Beta versions have a non-zero fourth octet (e.g., `1.11.0.7`).
+- GitHub Releases for beta versions must be marked as **Pre-release** (checkbox in the UI / `--prerelease` flag in `gh release create`)
+
+## Manifest Strategy
+
+Two manifest files are maintained:
+
+| Manifest | Contains | Updated on |
+|---|---|---|
+| `manifest.json` | Stable versions only (4th octet = 0) | Stable releases only |
+| `manifest-beta.json` | ALL versions (stable + beta) | Both stable and beta releases |
+
+- Users who want only stable releases add `manifest.json` as their repo URL
+- Users who want to test betas add `manifest-beta.json` instead (or in addition)
+- The CI pipeline automatically updates the correct manifest(s) based on version
 
 ## 1. Determine bump type
 
@@ -25,22 +38,25 @@ Read the current version from `Jellyfin.Plugin.UserRatings.csproj` (AssemblyVers
 - fix: increment third octet, reset fourth to 0
 - beta: increment fourth octet
 
-## 3. Update changelog (feature and fix only)
+## 3. Update changelog
 
-- For **beta**: skip changelog updates
-- For **feature** or **fix**: add a new section at the top of `CHANGELOG.md` with the version heading and describe the changes made since the last release
+Add a new section at the top of `CHANGELOG.md` with the version heading and describe the changes made since the last release. This applies to **both beta and stable** releases.
 
 ## 4. Update version strings
 
 Update the version in both:
 - `Jellyfin.Plugin.UserRatings.csproj` — `AssemblyVersion` and `FileVersion`
-- `manifest.json` — add a new version entry at the top of the `versions` array with:
-  - `version`: new version string
-  - `changelog`: **shortened** plain-text description — include only the main changes (a few bullet points max). The full changelog goes in `CHANGELOG.md`. The manifest changelog is rendered in Jellyfin's plugin catalog UI where long text renders poorly. Do NOT copy the full CHANGELOG.md entry here. Do NOT use Markdown or any other formatting (no `**bold**`, no `###` headers, no backticks) — Jellyfin renders this as plain text.
-  - `targetAbi`: same as previous entry
-  - `sourceUrl`: update version segment in URL
-  - `checksum`: leave empty (will be computed during build)
-  - `timestamp`: current date in ISO format
+- The appropriate manifest file:
+  - **Beta**: add entry to `manifest-beta.json` only
+  - **Stable**: add entry to **both** `manifest.json` and `manifest-beta.json`
+
+For the manifest entry:
+- `version`: new version string
+- `changelog`: **shortened** plain-text description — include only the main changes (a few bullet points max). The full changelog goes in `CHANGELOG.md`. The manifest changelog is rendered in Jellyfin's plugin catalog UI where long text renders poorly. Do NOT copy the full CHANGELOG.md entry here. Do NOT use Markdown or any other formatting (no `**bold**`, no `###` headers, no backticks) — Jellyfin renders this as plain text.
+- `targetAbi`: same as previous entry
+- `sourceUrl`: update version segment in URL
+- `checksum`: leave empty (will be computed during build)
+- `timestamp`: current date in ISO format
 
 ## 5. Confirm plan with user
 
@@ -49,9 +65,10 @@ Before executing any git operations, present the plan:
 Release plan:
   Version:     vX.Y.Z.W
   Bump type:   fix/feature/beta
-  Changelog:   (yes/no — summary of changes)
-  Files:       (list of modified files)
+  Changelog:   yes — <summary>
+  Manifests:   manifest.json / manifest-beta.json / both
   Tag:         vX.Y.Z.W
+  GitHub:      Release / Pre-release
   Push to:     origin/main
 ```
 Wait for explicit user confirmation before proceeding.

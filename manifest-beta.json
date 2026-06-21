@@ -1,0 +1,125 @@
+[
+  {
+    "guid": "b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e",
+    "name": "User Ratings",
+    "description": "Allow users to rate and review movies, TV shows, and music. See what other users on your server think!",
+    "overview": "Social rating system for Jellyfin - rate content and see ratings from other users on your server",
+    "owner": "davidhenry",
+    "category": "General",
+    "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
+    "versions": [
+      {
+        "version": "1.12.2.0",
+        "changelog": "New: Plex watch history sync (optional flag to mark items as played); Consolidated config page (one-time import merged into Scheduled Sync); Progress bar resets to 0% for watch history phase. Also includes 10-star rating scale, DOM state sync, and various UI fixes",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "fb0f4146db2ec062ea95463e18757ed1",
+        "timestamp": "2026-06-21T15:02:15Z"
+      },
+      {
+        "version": "1.12.1.0",
+        "changelog": "10-star rating scale with half-star precision; DOM state sync on back-navigation; Various UI fixes",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.1.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "4b83a44b0c72beec8ebe1ccdfab6ebe4",
+        "timestamp": "2026-06-21T14:05:23Z"
+      },
+      {
+        "version": "1.11.8.0",
+        "changelog": "Fixed: Plex Import conflict mode not passed to API. One-time import's On Conflict dropdown was cosmetic only; the API used the saved config value. Now the conflict mode is passed as a query parameter. Auto-sync has its own persisted SyncConflictMode setting.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.8.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "0da93dffeeac9b98f74dcf2f7bb832bb",
+        "timestamp": "2026-06-20T18:53:50Z"
+      },
+      {
+        "version": "1.11.7.0",
+        "changelog": "Fixed: Plex Import UserName not set. Imported ratings showed Unknown User. PlexImportService now resolves username via IUserManager.GetUserById().",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.7.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "5ef67ee4ee6488b6f4ecada8d3bdadbf",
+        "timestamp": "2026-06-20T18:20:46Z"
+      },
+      {
+        "version": "1.11.6.0",
+        "changelog": "New: Global Exception Filter - unhandled API exceptions return JSON. Changed: Modern C# cleanup - file-scoped namespaces, primary constructors, record types. Typed Response DTOs - typed records for all API responses.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.6.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "7b5c0f5e60870aecd03ca3f23611fbed",
+        "timestamp": "2026-06-20T17:33:43Z"
+      },
+      {
+        "version": "1.11.5.0",
+        "changelog": "Fixed: Series Query Performance - from IsPlayed on Series (40s) to episode-based watched lookup (<50ms). Series Sort by Last Watched - uses episode's play date. Rating Oscillation - guards against re-keying. Rated Items Appearing as Unrated - server-side check. GUID Format Mismatch - all IDs use ToString(N).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.5.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "02d71af95039a592f32083741716b869",
+        "timestamp": "2026-06-20T15:38:07Z"
+      },
+      {
+        "version": "1.11.4.0",
+        "changelog": "Fixed: Back Button Returns to User Ratings Tab - uses history.replaceState to annotate entry. Switching to native tab clears the flag. No refetch on re-activation.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.4.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "9353c2da80711a9220266bf4af82a542",
+        "timestamp": "2026-06-20T13:13:54Z"
+      },
+      {
+        "version": "1.11.3.0",
+        "changelog": "Fixed: Recently Rated / Oldest Rated Sort Broken - lastRatedTimestamp converted to epoch milliseconds. Changed: Sort Direction Toggle - replaced paired sort options with dropdown and direction button.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.3.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "1120805d68b5d1e95312d3de8346277c",
+        "timestamp": "2026-06-20T11:43:53Z"
+      },
+      {
+        "version": "1.11.2.0",
+        "changelog": "Fixed: Backup Files Table Width - changed from full-width to auto-fit.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.2.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "a5af35ea68a817aac6d5a3dbba4f19b3",
+        "timestamp": "2026-06-20T11:04:41Z"
+      },
+      {
+        "version": "1.11.1.0",
+        "changelog": "Fixed: Plugin config page CSS not loading. Button text alignment, input styling, backup path width, table borders. New: Backup file management (download, restore, delete, upload).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.11.1.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "f5056f27c4f934e27eccbdb47eff404a",
+        "timestamp": "2026-06-20T10:50:31Z"
+      },
+      {
+        "version": "1.10.1.0",
+        "changelog": "Fixed: Script injection log spam - changed from Information to Debug level.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.1.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "f43fa7282c0146be8b27d39e214ad9f9",
+        "timestamp": "2026-06-20T07:11:33Z"
+      },
+      {
+        "version": "1.10.0.0",
+        "changelog": "Provider ID resolution, self-healing ratings, database health checks, and automatic backups. Ratings matched by ItemId then provider IDs (IMDB, TMDB, TVDB). Fail-safe per-entry loading.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.10.0.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "daddfa766f0f01b79e706025b7e28328",
+        "timestamp": "2026-06-19T15:00:36Z"
+      },
+      {
+        "version": "1.9.0.0",
+        "changelog": "Unrated watched items browser, smart image fallbacks, type filters, independent section loading, and CI improvements.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.9.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "673fa1dfc660222ae465a7cd89dec0a7",
+        "timestamp": "2026-06-19T10:30:48Z"
+      },
+      {
+        "version": "1.8.4.0",
+        "changelog": "Stable release",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.8.4/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "2b3982e0000000000000000000000000",
+        "timestamp": "2025-01-01T00:00:00Z"
+      }
+    ]
+  }
+]
