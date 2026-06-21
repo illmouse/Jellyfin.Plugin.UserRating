@@ -78,7 +78,7 @@ public record MigrationRecordDto(
     int resultSkipped
 );
 
-public record RatingAbove5Dto(string itemId, string userId, int rating);
+public record RatingAbove5Dto(string itemId, string userId, int rating, string? itemName);
 
 public record MigrationStatusResponse(
     bool success,

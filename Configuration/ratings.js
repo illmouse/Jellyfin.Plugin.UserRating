@@ -775,7 +775,7 @@ function updateSummaryStars(rating) {
         
         // Update average display
         if (totalRatings > 0) {
-            avgDisplay.textContent = `★ ${averageRating.toFixed(1)} (${totalRatings} ${totalRatings === 1 ? 'rating' : 'ratings'})`;
+            avgDisplay.textContent = `★ ${(averageRating / 2).toFixed(1)} (${totalRatings} ${totalRatings === 1 ? 'rating' : 'ratings'})`;
         } else {
             avgDisplay.textContent = 'No ratings yet';
         }
@@ -1261,7 +1261,7 @@ function updateSummaryStars(rating) {
                 const details = item.details;
                 const urls = getItemCardImage(item.itemId, details.SeriesId, details.Type);
                 const title = details.Name || 'Unknown';
-                const rating = item.averageRating.toFixed(1);
+                const rating = (item.averageRating / 2).toFixed(1);
                 const count = item.totalRatings;
                 const serverId = ApiClient.serverId();
 

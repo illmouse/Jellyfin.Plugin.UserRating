@@ -1107,12 +1107,16 @@
             });
 
             // Migration section
+            var migrationData = null;
+            var proceedAnywayBtn = null;
+
             function loadMigrationStatus() {
                 var section = document.getElementById('migrationSection');
                 fetch(ApiClient.getUrl('api/UserRatings/MigrationStatus'), {
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (data) {
                     if (!data.success) return;
+                    migrationData = data;
                     section.style.display = 'block';
 
                     var historyStr = data.currentVersion;
@@ -1122,29 +1126,9 @@
                     document.getElementById('migrationVersionHistory').textContent = historyStr;
 
                     document.getElementById('migrationCountDisplay').textContent =
-                        'Database: ' + data.ratingCount + ' ratings total';
-
-                    var warningsDiv = document.getElementById('migrationWarnings');
-                    var above5List = document.getElementById('migrationAbove5List');
-                    if (data.ratingsAbove5Count > 0) {
-                        warningsDiv.style.display = 'block';
-                        document.getElementById('migrationWarningText').textContent =
-                            data.ratingsAbove5Count + ' rating(s) already exceed the old 5-star limit. ' +
-                            'This could mean the database was previously migrated. ' +
-                            'Ratings above 5 will NOT be modified. Only ratings ≤ 5 will be doubled.';
-
-                        if (data.ratingsAbove5 && data.ratingsAbove5.length > 0) {
-                            above5List.style.display = 'block';
-                            above5List.innerHTML = data.ratingsAbove5.map(function (r) {
-                                return '<div class="item-entry"><code>' + r.itemId.substring(0, 8) + '...</code> ' +
-                                    'User: <code>' + r.userId.substring(0, 8) + '...</code> ' +
-                                    'Rating: <strong>' + r.rating + '/10</strong></div>';
-                            }).join('');
-                        }
-                    } else {
-                        warningsDiv.style.display = 'none';
-                        above5List.style.display = 'none';
-                    }
+                        'Database: ' + data.ratingCount + ' ratings total (' +
+                        data.ratingsAbove5Count + ' already >5, ' +
+                        (data.ratingCount - data.ratingsAbove5Count) + ' ≤5).';
 
                     var historyDiv = document.getElementById('migrationHistory');
                     var historyList = document.getElementById('migrationHistoryList');
@@ -1165,18 +1149,27 @@
                 });
             }
 
-            document.getElementById('btnMigrateTo10Star').addEventListener('click', function () {
-                var btn = this;
+            function doMigrate() {
+                var btn = document.getElementById('btnMigrateTo10Star');
                 var statusEl = document.getElementById('migrationStatus');
                 var resultEl = document.getElementById('migrationResult');
+                var warningsDiv = document.getElementById('migrationWarnings');
                 btn.disabled = true;
                 statusEl.textContent = 'Migrating...';
                 resultEl.style.display = 'none';
+                warningsDiv.style.display = 'none';
+
+                function restoreButtons() {
+                    btn.disabled = false;
+                    btn.style.display = '';
+                    if (proceedAnywayBtn) { proceedAnywayBtn.style.display = 'none'; }
+                }
 
                 fetch(ApiClient.getUrl('api/UserRatings/MigrateTo10Star'), {
                     method: 'POST',
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
+                    restoreButtons();
                     if (result.success) {
                         statusEl.innerHTML = '&#10003; Done';
                         resultEl.style.display = 'block';
@@ -1187,7 +1180,6 @@
                         resultEl.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
                         resultEl.style.borderRadius = '4px';
                         resultEl.style.padding = '0.8em';
-                        btn.disabled = false;
                         loadMigrationStatus();
                     } else {
                         statusEl.textContent = 'Failed';
@@ -1197,21 +1189,60 @@
                         resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                         resultEl.style.borderRadius = '4px';
                         resultEl.style.padding = '0.8em';
-                        btn.disabled = false;
                     }
                 }).catch(function (err) {
+                    restoreButtons();
                     statusEl.textContent = 'Error';
                     resultEl.style.display = 'block';
                     resultEl.innerHTML = '<strong style="color: #f44336;">Error:</strong> ' + err.message;
                     resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     resultEl.style.borderRadius = '4px';
                     resultEl.style.padding = '0.8em';
-                    btn.disabled = false;
                 });
+            }
+
+            document.getElementById('btnMigrateTo10Star').addEventListener('click', function () {
+                var btn = this;
+                var warningsDiv = document.getElementById('migrationWarnings');
+                var above5List = document.getElementById('migrationAbove5List');
+                var actionsDiv = document.getElementById('migrationActions');
+
+                if (!migrationData || migrationData.ratingsAbove5Count === 0) {
+                    doMigrate();
+                    return;
+                }
+
+                warningsDiv.style.display = 'block';
+                document.getElementById('migrationWarningText').innerHTML =
+                    migrationData.ratingsAbove5Count + ' rating(s) already exceed the old 5-star limit. ' +
+                    'This could mean the database was previously migrated. ' +
+                    'Ratings above 5 will NOT be modified. Only ratings \u2264 5 will be doubled.';
+
+                if (migrationData.ratingsAbove5 && migrationData.ratingsAbove5.length > 0) {
+                    above5List.style.display = 'block';
+                    above5List.innerHTML = migrationData.ratingsAbove5.map(function (r) {
+                        var name = r.itemName || '(unknown item)';
+                        return '<div class="item-entry"><strong>' + name + '</strong> &mdash; ' + r.rating + '/10</div>';
+                    }).join('');
+                }
+
+                btn.style.display = 'none';
+
+                if (!proceedAnywayBtn) {
+                    proceedAnywayBtn = document.createElement('button');
+                    proceedAnywayBtn.type = 'button';
+                    proceedAnywayBtn.className = 'btn btn-primary';
+                    proceedAnywayBtn.style.cssText = 'background: #e53935; color: #fff; margin-top: 0.5em;';
+                    proceedAnywayBtn.textContent = 'Proceed Anyway';
+                    proceedAnywayBtn.addEventListener('click', function () {
+                        proceedAnywayBtn.style.display = 'none';
+                        doMigrate();
+                    });
+                    actionsDiv.appendChild(proceedAnywayBtn);
+                }
+                proceedAnywayBtn.style.display = '';
             });
 
-            // Load migration status on page show
-            var origPageShow = document.getElementById('UserRatingsConfigPage').addEventListener;
             loadMigrationStatus();
         </script>
     </div>

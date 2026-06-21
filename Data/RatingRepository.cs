@@ -243,20 +243,10 @@ public class RatingRepository
         }
     }
 
-    public (int migrated, int skipped, string backupPath) MigrateTo10StarScale()
+    public (int migrated, int skipped) MigrateTo10StarScale()
     {
         lock (_lock)
         {
-            var backupDir = Path.Combine(
-                Path.GetDirectoryName(_dataPath)!,
-                "migration_backups");
-            Directory.CreateDirectory(backupDir);
-
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-            var backupPath = Path.Combine(backupDir, $"ratings_pre_migration_{timestamp}.json");
-            File.Copy(_dataPath, backupPath);
-            _logger.LogInformation("Pre-migration backup created at {Path}", backupPath);
-
             var migrated = 0;
             var skipped = 0;
             var updated = new Dictionary<string, UserRating>(_ratings.Count);
@@ -292,7 +282,7 @@ public class RatingRepository
                 "Migration complete: {Migrated} ratings converted (×2), {Skipped} ratings >5 preserved",
                 migrated, skipped);
 
-            return (migrated, skipped, backupPath);
+            return (migrated, skipped);
         }
     }
 

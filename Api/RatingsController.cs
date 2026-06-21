@@ -21,7 +21,8 @@ public class RatingsController(
 RatingRepository repository,
 ILibraryManager libraryManager,
 IUserManager userManager,
-RatingResolver resolver) : ControllerBase
+RatingResolver resolver,
+BackupService backupService) : ControllerBase
 {
 
     [HttpPost("Rate")]
@@ -308,11 +309,15 @@ RatingResolver resolver) : ControllerBase
             )).ToList(),
             repository.RatingCount,
             ratingsAbove5.Count,
-            ratingsAbove5.Select(r => new RatingAbove5Dto(
-                r.ItemId.ToString("N"),
-                r.UserId.ToString("N"),
-                r.Rating
-            )).ToList()
+            ratingsAbove5.Select(r => {
+                var item = libraryManager.GetItemById(r.ItemId);
+                return new RatingAbove5Dto(
+                    r.ItemId.ToString("N"),
+                    r.UserId.ToString("N"),
+                    r.Rating,
+                    item?.Name ?? null
+                );
+            }).ToList()
         ));
     }
 
@@ -320,7 +325,13 @@ RatingResolver resolver) : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult MigrateTo10Star()
     {
-        var (migrated, skipped, backupPath) = repository.MigrateTo10StarScale();
+        var (backupSuccess, backupPath, _) = backupService.CreateBackup();
+        if (!backupSuccess)
+        {
+            return Ok(new MigrateResponse(false, 0, 0, string.Empty));
+        }
+
+        var (migrated, skipped) = repository.MigrateTo10StarScale();
         return Ok(new MigrateResponse(true, migrated, skipped, backupPath));
     }
 }
