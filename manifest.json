@@ -10,11 +10,11 @@
     "versions": [
       {
         "version": "1.12.1.2",
-        "changelog": "New: Plex watch history sync — optional feature flag to mark items as played based on Plex watch history (movies and episodes). Uses same user/conflict settings as scheduled sync. Consolidated config page: removed separate one-time import section, merged into Scheduled Sync with Sync Now button.",
+        "changelog": "",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.1.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T00:00:00Z"
+        "checksum": "bf4a87078b4445684a456ddd0c35e7e3",
+        "timestamp": "2026-06-21T14:57:13Z"
       },
       {
         "version": "1.12.1.1",
