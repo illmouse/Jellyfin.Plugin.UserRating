@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.12.2.0
+
+### New Features
+
+- **Plex Watch History Sync** — Optional feature flag (`EnablePlexWatchHistorySync`) to mark movies and episodes as played in Jellyfin based on Plex view history, alongside the existing rating import. Works for both one-time and scheduled sync. Progress bar resets to 0% for watch history phase.
+
+### Changed
+
+- **Config Page Consolidation** — Removed the separate "Import Ratings (One-Time)" section. Manual import now uses the same settings as scheduled sync. Section renamed from "Automatic Sync (Scheduled)" to "Scheduled Sync" with a "Sync Now" button.
+
+---
+
 ## v1.12.1.0
 
 ### BREAKING CHANGES
