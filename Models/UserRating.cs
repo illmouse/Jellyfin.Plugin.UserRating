@@ -7,7 +7,7 @@ public record UserRating
 {
     public Guid ItemId { get; init; }
     public Guid UserId { get; init; }
-    public int Rating { get; init; } // 1-5
+    public int Rating { get; init; } // 1-10 (half-star scale)
     public string? Note { get; init; }
     public DateTime Timestamp { get; init; }
     public string? UserName { get; init; } // Cached for display

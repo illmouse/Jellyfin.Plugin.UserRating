@@ -69,3 +69,30 @@ public record BackupListResponse(bool success, IReadOnlyList<BackupInfoDto> back
 public record StartImportResponse(bool success, string operationId);
 
 public record CheckPlexStatusResponse(bool success, string? message, int libraryCount);
+
+public record MigrationRecordDto(
+    string name,
+    DateTime date,
+    string pluginVersion,
+    int resultMigrated,
+    int resultSkipped
+);
+
+public record RatingAbove5Dto(string itemId, string userId, int rating);
+
+public record MigrationStatusResponse(
+    bool success,
+    string currentVersion,
+    IReadOnlyList<string> versionHistory,
+    IReadOnlyList<MigrationRecordDto> migrations,
+    int ratingCount,
+    int ratingsAbove5Count,
+    IReadOnlyList<RatingAbove5Dto> ratingsAbove5
+);
+
+public record MigrateResponse(
+    bool success,
+    int migratedCount,
+    int skippedCount,
+    string backupPath
+);

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Common.Configuration;
 using Microsoft.Extensions.Logging;
@@ -16,6 +18,18 @@ public class RatingRepository
     private readonly object _lock = new object();
     private readonly ILogger<RatingRepository> _logger;
     private bool _loadFailed;
+    private PluginMetadata _metadata = new();
+    private bool _metadataWasMissing;
+
+    private static readonly JsonSerializerOptions MetadataJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    private static readonly JsonSerializerOptions IndentedJsonOptions = new()
+    {
+        WriteIndented = true
+    };
 
     public RatingRepository(IApplicationPaths appPaths, ILogger<RatingRepository> logger)
     {
@@ -23,6 +37,26 @@ public class RatingRepository
         _logger = logger;
         Directory.CreateDirectory(Path.GetDirectoryName(_dataPath)!);
         LoadRatings();
+    }
+
+    public PluginMetadata Metadata => _metadata;
+    public bool MetadataWasMissing => _metadataWasMissing;
+    public int RatingCount
+    {
+        get { lock (_lock) { return _ratings.Count; } }
+    }
+
+    public int RatingsAbove5Count
+    {
+        get { lock (_lock) { return _ratings.Values.Count(r => r.Rating > 5); } }
+    }
+
+    public List<UserRating> GetRatingsAbove5()
+    {
+        lock (_lock)
+        {
+            return _ratings.Values.Where(r => r.Rating > 5).ToList();
+        }
     }
 
     public void Reload()
@@ -49,8 +83,29 @@ public class RatingRepository
                 if (raw == null)
                 {
                     _ratings = new Dictionary<string, UserRating>();
+                    _metadata = new PluginMetadata();
                     _loadFailed = false;
                     return;
+                }
+
+                _metadataWasMissing = !raw.ContainsKey("_metadata");
+
+                if (!_metadataWasMissing)
+                {
+                    try
+                    {
+                        _metadata = raw["_metadata"].Deserialize<PluginMetadata>() ?? new PluginMetadata();
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize _metadata, starting fresh");
+                        _metadata = new PluginMetadata();
+                        _metadataWasMissing = true;
+                    }
+                }
+                else
+                {
+                    _metadata = new PluginMetadata();
                 }
 
                 var loaded = new Dictionary<string, UserRating>();
@@ -58,6 +113,11 @@ public class RatingRepository
 
                 foreach (var kvp in raw)
                 {
+                    if (kvp.Key == "_metadata")
+                    {
+                        continue;
+                    }
+
                     try
                     {
                         var rating = kvp.Value.Deserialize<UserRating>();
@@ -94,6 +154,8 @@ public class RatingRepository
                 }
 
                 _logger.LogInformation("Loaded {Count} ratings from {Path}", _ratings.Count, _dataPath);
+
+                UpdatePluginVersion();
             }
             catch (Exception ex)
             {
@@ -131,13 +193,106 @@ public class RatingRepository
         {
             try
             {
-                var json = JsonSerializer.Serialize(_ratings, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_dataPath, json);
+                using var ms = new MemoryStream();
+                using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true });
+
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("_metadata");
+                JsonSerializer.Serialize(writer, _metadata, MetadataJsonOptions);
+
+                foreach (var (key, rating) in _ratings)
+                {
+                    writer.WritePropertyName(key);
+                    JsonSerializer.Serialize(writer, rating, IndentedJsonOptions);
+                }
+
+                writer.WriteEndObject();
+                writer.Flush();
+
+                File.WriteAllBytes(_dataPath, ms.ToArray());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save ratings to {Path}", _dataPath);
             }
+        }
+    }
+
+    private static string GetCurrentPluginVersion()
+    {
+        return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+    }
+
+    private void UpdatePluginVersion()
+    {
+        var runningVersion = GetCurrentPluginVersion();
+
+        if (string.IsNullOrEmpty(_metadata.CurrentVersion))
+        {
+            _metadata.CurrentVersion = runningVersion;
+            SaveRatings();
+            return;
+        }
+
+        if (_metadata.CurrentVersion != runningVersion)
+        {
+            _metadata.VersionHistory.Add(_metadata.CurrentVersion);
+            _metadata.CurrentVersion = runningVersion;
+            SaveRatings();
+        }
+    }
+
+    public (int migrated, int skipped, string backupPath) MigrateTo10StarScale()
+    {
+        lock (_lock)
+        {
+            var backupDir = Path.Combine(
+                Path.GetDirectoryName(_dataPath)!,
+                "migration_backups");
+            Directory.CreateDirectory(backupDir);
+
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var backupPath = Path.Combine(backupDir, $"ratings_pre_migration_{timestamp}.json");
+            File.Copy(_dataPath, backupPath);
+            _logger.LogInformation("Pre-migration backup created at {Path}", backupPath);
+
+            var migrated = 0;
+            var skipped = 0;
+            var updated = new Dictionary<string, UserRating>(_ratings.Count);
+
+            foreach (var (key, rating) in _ratings)
+            {
+                if (rating.Rating <= 5)
+                {
+                    updated[key] = rating with { Rating = rating.Rating * 2 };
+                    migrated++;
+                }
+                else
+                {
+                    updated[key] = rating;
+                    skipped++;
+                }
+            }
+
+            _ratings = updated;
+
+            _metadata.Migrations.Add(new MigrationRecord
+            {
+                Name = "To10StarScale",
+                Date = DateTime.UtcNow,
+                PluginVersion = GetCurrentPluginVersion(),
+                ResultMigrated = migrated,
+                ResultSkipped = skipped
+            });
+
+            SaveRatings();
+
+            _logger.LogInformation(
+                "Migration complete: {Migrated} ratings converted (×2), {Skipped} ratings >5 preserved",
+                migrated, skipped);
+
+            return (migrated, skipped, backupPath);
         }
     }
 

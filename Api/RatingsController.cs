@@ -28,9 +28,9 @@ RatingResolver resolver) : ControllerBase
     [Produces(MediaTypeNames.Application.Json)]
     public ActionResult RateItem([FromQuery] Guid itemId, [FromQuery] Guid userId, [FromQuery] int rating, [FromQuery] string? note, [FromQuery] string? userName)
     {
-        if (rating < 1 || rating > 5)
+        if (rating < 1 || rating > 10)
         {
-            return BadRequest(new ApiResponse(false, "Rating must be between 1 and 5"));
+            return BadRequest(new ApiResponse(false, "Rating must be between 1 and 10"));
         }
 
         var providerIds = resolver.GetProviderIdsForItem(itemId);
@@ -286,5 +286,41 @@ RatingResolver resolver) : ControllerBase
         }
 
         return Ok(new UnratedWatchedItemsResponse(true, watchedUnrated));
+    }
+
+    [HttpGet("MigrationStatus")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult GetMigrationStatus()
+    {
+        var metadata = repository.Metadata;
+        var ratingsAbove5 = repository.GetRatingsAbove5();
+
+        return Ok(new MigrationStatusResponse(
+            true,
+            metadata.CurrentVersion,
+            metadata.VersionHistory.ToList(),
+            metadata.Migrations.Select(m => new MigrationRecordDto(
+                m.Name,
+                m.Date,
+                m.PluginVersion,
+                m.ResultMigrated,
+                m.ResultSkipped
+            )).ToList(),
+            repository.RatingCount,
+            ratingsAbove5.Count,
+            ratingsAbove5.Select(r => new RatingAbove5Dto(
+                r.ItemId.ToString("N"),
+                r.UserId.ToString("N"),
+                r.Rating
+            )).ToList()
+        ));
+    }
+
+    [HttpPost("MigrateTo10Star")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult MigrateTo10Star()
+    {
+        var (migrated, skipped, backupPath) = repository.MigrateTo10StarScale();
+        return Ok(new MigrateResponse(true, migrated, skipped, backupPath));
     }
 }

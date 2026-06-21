@@ -166,6 +166,36 @@
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
 
+                    <!-- Rating System Migration -->
+                    <div id="migrationSection" class="section-divider" style="display:none;">
+                        <h3 style="color: #FFC107;">&#9888; Rating System Migration</h3>
+                        <div class="fieldDescription" style="margin-bottom: 1em;">
+                            Starting with version 1.12.0, User Ratings uses a <strong>10-star rating scale with half-star precision</strong> (previously 5-star). If you have existing ratings, you can convert them to the new scale below.
+                        </div>
+                        <div id="migrationInfo" style="margin-bottom: 1em;">
+                            <div class="fieldDescription"><strong>Plugin version history:</strong> <span id="migrationVersionHistory"></span></div>
+                            <div class="fieldDescription" id="migrationCountDisplay"></div>
+                        </div>
+                        <div id="migrationWarnings" style="display:none; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 4px; padding: 0.8em; margin-bottom: 1em;">
+                            <div class="fieldDescription" style="color: #FFC107;">
+                                &#9888; <span id="migrationWarningText"></span>
+                            </div>
+                            <div id="migrationAbove5List" style="margin-top: 0.5em; max-height: 200px; overflow-y: auto; display:none;"></div>
+                        </div>
+                        <div id="migrationHistory" style="display:none; margin-bottom: 1em;">
+                            <div class="fieldDescription"><strong>Migration history:</strong></div>
+                            <div id="migrationHistoryList"></div>
+                        </div>
+                        <div id="migrationActions">
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;">
+                                A backup of <code>ratings.json</code> will be created automatically before migration.
+                            </div>
+                            <button id="btnMigrateTo10Star" type="button" class="btn btn-primary" onclick="return false;">Migrate Ratings to 10-Star Scale</button>
+                            <span id="migrationStatus" style="display:inline-block; margin-left: 1em;"></span>
+                        </div>
+                        <div id="migrationResult" style="display:none; margin-top: 0.5em;"></div>
+                    </div>
+
                     <div class="inputContainer">
                         <label class="inputLabel" for="recentlyRatedCount">Recently Rated Items Count</label>
                         <input type="number" id="recentlyRatedCount" min="5" max="50" step="1" />
@@ -774,7 +804,7 @@
                         var div = document.createElement('div');
                         div.className = 'item-entry';
                         div.innerHTML = '<strong>' + item.plexType + '</strong>: ' + item.title +
-                            ' <span style="color: var(--dimTextColor, #aaa);">(Plex rating: ' + item.plexRating + '/10 → ' + Math.round(item.plexRating / 2) + '/5)</span>' +
+                            ' <span style="color: var(--dimTextColor, #aaa);">(Plex rating: ' + item.plexRating + '/10)</span>' +
                             '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + item.guids.join(', ') + '</span>';
                         unmatchedList.appendChild(div);
                     });
@@ -869,7 +899,7 @@
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
                                 div.innerHTML = '<strong style="color: #FFC107;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/5)</span>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10)</span>' +
                                     '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Can be re-linked to: ' + item.newItemId.substring(0, 8) + '...' +
                                     ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
                                 recDiv.appendChild(div);
@@ -888,7 +918,7 @@
                                     providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
                                         Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
                                 }
-                                div.innerHTML = '<strong>Rating: ' + item.rating + '/5</strong> ' +
+                                div.innerHTML = '<strong>Rating: ' + item.rating + '/10</strong> ' +
                                     '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
                                     (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
                                     providerInfo;
@@ -938,7 +968,7 @@
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
                                 div.innerHTML = '<strong style="color: #4CAF50;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/5)</span>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10)</span>' +
                                     '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Re-linked: ' + item.oldItemId.substring(0, 8) + '... → ' + item.newItemId.substring(0, 8) + '...</span>';
                                 healedDiv.appendChild(div);
                             });
@@ -956,7 +986,7 @@
                                     providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
                                         Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
                                 }
-                                div.innerHTML = '<strong>Rating: ' + item.rating + '/5</strong> ' +
+                                div.innerHTML = '<strong>Rating: ' + item.rating + '/10</strong> ' +
                                     '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
                                     (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
                                     providerInfo;
@@ -1075,6 +1105,114 @@
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
+
+            // Migration section
+            function loadMigrationStatus() {
+                var section = document.getElementById('migrationSection');
+                fetch(ApiClient.getUrl('api/UserRatings/MigrationStatus'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    if (!data.success) return;
+                    section.style.display = 'block';
+
+                    var historyStr = data.currentVersion;
+                    if (data.versionHistory && data.versionHistory.length > 0) {
+                        historyStr = data.versionHistory.join(' → ') + ' → ' + data.currentVersion;
+                    }
+                    document.getElementById('migrationVersionHistory').textContent = historyStr;
+
+                    document.getElementById('migrationCountDisplay').textContent =
+                        'Database: ' + data.ratingCount + ' ratings total';
+
+                    var warningsDiv = document.getElementById('migrationWarnings');
+                    var above5List = document.getElementById('migrationAbove5List');
+                    if (data.ratingsAbove5Count > 0) {
+                        warningsDiv.style.display = 'block';
+                        document.getElementById('migrationWarningText').textContent =
+                            data.ratingsAbove5Count + ' rating(s) already exceed the old 5-star limit. ' +
+                            'This could mean the database was previously migrated. ' +
+                            'Ratings above 5 will NOT be modified. Only ratings ≤ 5 will be doubled.';
+
+                        if (data.ratingsAbove5 && data.ratingsAbove5.length > 0) {
+                            above5List.style.display = 'block';
+                            above5List.innerHTML = data.ratingsAbove5.map(function (r) {
+                                return '<div class="item-entry"><code>' + r.itemId.substring(0, 8) + '...</code> ' +
+                                    'User: <code>' + r.userId.substring(0, 8) + '...</code> ' +
+                                    'Rating: <strong>' + r.rating + '/10</strong></div>';
+                            }).join('');
+                        }
+                    } else {
+                        warningsDiv.style.display = 'none';
+                        above5List.style.display = 'none';
+                    }
+
+                    var historyDiv = document.getElementById('migrationHistory');
+                    var historyList = document.getElementById('migrationHistoryList');
+                    if (data.migrations && data.migrations.length > 0) {
+                        historyDiv.style.display = 'block';
+                        historyList.innerHTML = data.migrations.map(function (m) {
+                            var date = new Date(m.date);
+                            return '<div class="fieldDescription" style="margin-left: 1em;">' +
+                                '&#8226; ' + m.name + ' &middot; ' + date.toLocaleDateString() +
+                                ' &middot; v' + m.pluginVersion +
+                                ' &mdash; ' + m.resultMigrated + ' migrated, ' + m.resultSkipped + ' skipped</div>';
+                        }).join('');
+                    } else {
+                        historyDiv.style.display = 'none';
+                    }
+                }).catch(function (err) {
+                    console.error('[UserRatings] Failed to load migration status:', err);
+                });
+            }
+
+            document.getElementById('btnMigrateTo10Star').addEventListener('click', function () {
+                var btn = this;
+                var statusEl = document.getElementById('migrationStatus');
+                var resultEl = document.getElementById('migrationResult');
+                btn.disabled = true;
+                statusEl.textContent = 'Migrating...';
+                resultEl.style.display = 'none';
+
+                fetch(ApiClient.getUrl('api/UserRatings/MigrateTo10Star'), {
+                    method: 'POST',
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) {
+                        statusEl.innerHTML = '&#10003; Done';
+                        resultEl.style.display = 'block';
+                        resultEl.innerHTML = '<strong style="color: #4CAF50;">Migration complete</strong><br>' +
+                            result.migratedCount + ' ratings converted, ' +
+                            result.skippedCount + ' ratings preserved (already >5).<br>' +
+                            'Backup: <code>' + result.backupPath + '</code>';
+                        resultEl.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                        resultEl.style.borderRadius = '4px';
+                        resultEl.style.padding = '0.8em';
+                        btn.disabled = false;
+                        loadMigrationStatus();
+                    } else {
+                        statusEl.textContent = 'Failed';
+                        resultEl.style.display = 'block';
+                        resultEl.innerHTML = '<strong style="color: #f44336;">Migration failed</strong><br>' +
+                            (result.message || 'Unknown error');
+                        resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                        resultEl.style.borderRadius = '4px';
+                        resultEl.style.padding = '0.8em';
+                        btn.disabled = false;
+                    }
+                }).catch(function (err) {
+                    statusEl.textContent = 'Error';
+                    resultEl.style.display = 'block';
+                    resultEl.innerHTML = '<strong style="color: #f44336;">Error:</strong> ' + err.message;
+                    resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
+                    resultEl.style.borderRadius = '4px';
+                    resultEl.style.padding = '0.8em';
+                    btn.disabled = false;
+                });
+            });
+
+            // Load migration status on page show
+            var origPageShow = document.getElementById('UserRatingsConfigPage').addEventListener;
+            loadMigrationStatus();
         </script>
     </div>
 </body>

@@ -379,8 +379,8 @@ IUserManager userManager)
 
     private static int ConvertRating(double plexRating)
     {
-        var rating = Math.Round(plexRating / 2, MidpointRounding.AwayFromZero);
-        return Math.Max(1, Math.Min(5, (int)rating));
+        var rating = Math.Round(plexRating, MidpointRounding.AwayFromZero);
+        return Math.Max(1, Math.Min(10, (int)rating));
     }
 
     public async Task<(bool success, string message, int libraryCount)> ValidatePlexConnectionAsync(string plexUrl, string plexToken, CancellationToken cancellationToken)

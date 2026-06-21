@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.0.1",
+        "changelog": "BREAKING: 5-star to 10-star (half-star) rating system. Existing 5-star ratings must be manually migrated via Plugin Settings > Rating System Migration. Plex sync maps directly (no rating conversion). Database now tracks plugin version history. New API endpoints: MigrationStatus and MigrateTo10Star.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.0.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-21T12:00:00Z"
+      },
+      {
         "version": "1.11.8.1",
         "changelog": "",
         "targetAbi": "10.11.0.0",
