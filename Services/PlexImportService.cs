@@ -219,7 +219,7 @@ IUserDataManager userDataManager)
                         continue;
                     }
 
-                    await MarkItemAsPlayedAsync(jellyfinItemId.Value, jellyfinUserId, plexItem, cancellationToken).ConfigureAwait(false);
+                    MarkItemAsPlayed(jellyfinItemId.Value, jellyfinUserId, plexItem);
                     watchedCount++;
                 }
             }
@@ -463,7 +463,7 @@ IUserDataManager userDataManager)
         }
     }
 
-    private async Task MarkItemAsPlayedAsync(Guid itemId, Guid userId, PlexVideo plexItem, CancellationToken cancellationToken)
+    private void MarkItemAsPlayed(Guid itemId, Guid userId, PlexVideo plexItem)
     {
         try
         {
@@ -482,13 +482,19 @@ IUserDataManager userDataManager)
             }
 
             var userData = userDataManager.GetUserData(user, item);
+            if (userData == null)
+            {
+                logger.LogDebug("UserData not found for item {ItemId}, skipping watch mark", itemId);
+                return;
+            }
+
             userData.Played = true;
             userData.LastPlayedDate = plexItem.LastViewedAt.HasValue
                 ? DateTimeOffset.FromUnixTimeSeconds(plexItem.LastViewedAt.Value).UtcDateTime
                 : DateTime.UtcNow;
             userData.PlayCount = Math.Max(userData.PlayCount, plexItem.ViewCount);
 
-            await userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.Import, cancellationToken).ConfigureAwait(false);
+            userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.Import, CancellationToken.None);
 
             logger.LogDebug("Marked '{Title}' ({ItemId}) as played for user {UserId}", plexItem.Title, itemId, userId);
         }
