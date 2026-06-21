@@ -13,8 +13,8 @@
         "changelog": "New: Dashboard hover-to-rate (Phase 1) - star overlay on card hover, popup modal with note, compact rating badge on rated cards",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-21T19:00:00Z"
+        "checksum": "2587b45775c65d994a4d00fc55a540a0",
+        "timestamp": "2026-06-21T17:18:16Z"
       },
       {
         "version": "1.12.2.0",
