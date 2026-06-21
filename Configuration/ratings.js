@@ -1023,7 +1023,7 @@ function updateSummaryStars(rating) {
                 }
             }
         }
-    }).observe(document.body, { subtree: true, childList: true });
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
 
     // Initial injection - start with multiple attempts at different intervals
     setTimeout(injectRatingsUI, 100);
@@ -1098,6 +1098,21 @@ function updateSummaryStars(rating) {
         currentItemId = null;
         
         // Try injection with multiple attempts
+        setTimeout(injectRatingsUI, 100);
+        setTimeout(injectRatingsUI, 300);
+    });
+
+    // Also check on popstate (browser back/forward, pushState navigation)
+    window.addEventListener('popstate', () => {
+        const oldUI = document.getElementById('user-ratings-ui');
+        if (oldUI) {
+            oldUI.remove();
+        }
+
+        isInjecting = false;
+        injectionAttempts = 0;
+        currentItemId = null;
+
         setTimeout(injectRatingsUI, 100);
         setTimeout(injectRatingsUI, 300);
     });

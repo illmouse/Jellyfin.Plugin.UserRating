@@ -190,7 +190,7 @@
                             <div class="fieldDescription" style="margin-bottom: 0.5em;">
                                 A backup of <code>ratings.json</code> will be created automatically before migration.
                             </div>
-                            <button id="btnMigrateTo10Star" type="button" class="btn btn-primary" style="background: #e53935; color: #fff;" onclick="return false;">Migrate Ratings to 10-Star Scale</button>
+                            <button id="btnMigrateTo10Star" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;" onclick="return false;">Migrate Ratings to 10-Star Scale</button>
                             <span id="migrationStatus" style="display:inline-block; margin-left: 1em;"></span>
                         </div>
                         <div id="migrationResult" style="display:none; margin-top: 0.5em;"></div>
@@ -1231,7 +1231,8 @@
                 if (!proceedAnywayBtn) {
                     proceedAnywayBtn = document.createElement('button');
                     proceedAnywayBtn.type = 'button';
-                    proceedAnywayBtn.className = 'btn btn-primary';
+                    proceedAnywayBtn.setAttribute('is', 'emby-button');
+                    proceedAnywayBtn.className = 'raised';
                     proceedAnywayBtn.style.cssText = 'background: #e53935; color: #fff; margin-top: 0.5em;';
                     proceedAnywayBtn.textContent = 'Proceed Anyway';
                     proceedAnywayBtn.addEventListener('click', function () {
