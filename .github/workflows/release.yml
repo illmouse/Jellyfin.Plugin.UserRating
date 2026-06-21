@@ -71,36 +71,25 @@ jobs:
         # Install jq for JSON manipulation
         sudo apt-get install -y jq
 
-        # Extract changelog for this version
-        # Strip trailing .0 (fourth octet) so v1.10.0.0 matches ## v1.10.0 in CHANGELOG
-        CHANGELOG_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
-        if [ -f CHANGELOG.md ]; then
-          CHANGELOG_TEXT=$(awk "/^## v${CHANGELOG_VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md | sed 's/### //g; s/## //g; s/\*\*//g; s/`//g' | head -c 500 | tr '\n' ' ' | sed 's/"/\\"/g')
-        else
-          CHANGELOG_TEXT="Release $VERSION"
-        fi
-
-        # Build new version entry
+        # Build new version entry (changelog preserved from existing entry if present)
         NEW_ENTRY=$(jq -n \
           --arg ver "$VERSION" \
-          --arg changelog "$CHANGELOG_TEXT" \
           --arg targetAbi "10.11.0.0" \
           --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip" \
           --arg checksum "$CHECKSUM" \
           --arg timestamp "$TIMESTAMP" \
           '{
             version: $ver,
-            changelog: $changelog,
             targetAbi: $targetAbi,
             sourceUrl: $sourceUrl,
             checksum: $checksum,
             timestamp: $timestamp
           }')
 
-        # Prepend new version entry to existing manifest (deduplicate)
+        # Prepend new version entry to existing manifest (deduplicate, preserve existing changelog)
         jq --argjson new "$NEW_ENTRY" --arg ver "$VERSION" '
           if .[0].versions | any(.version == $ver) then
-            .[0].versions = (.[0].versions | map(if .version == $ver then $new else . end))
+            .[0].versions = (.[0].versions | map(if .version == $ver then . * $new else . end))
           else
             .[0].versions = [$new] + .[0].versions
           end
