@@ -650,6 +650,8 @@ function updateStarDisplay(container, rating) {
                 saveBtn.textContent = 'Posted!';
                 saveBtn.disabled = false;
                 
+                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
+                
                 await displayAllRatings(itemId, container);
                 deleteBtn.style.display = 'inline-block';
                 updateSummaryStars(currentRating);
@@ -683,6 +685,8 @@ function updateStarDisplay(container, rating) {
                 noteInput.value = '';
                 updateStarDisplay(starContainer, 0);
                 deleteBtn.style.display = 'none';
+                
+                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
                 
                 await displayAllRatings(itemId, container);
                 expandMyRating();
@@ -1053,7 +1057,7 @@ function updateSummaryStars(rating) {
                 const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
 
                 if (wasUserRatings) {
-                    // Back from details -> restore User Ratings tab (existing DOM, no refetch)
+                    // Back from details -> restore User Ratings tab
                     console.log('[UserRatings] Restoring User Ratings tab (history.state.userRatingsActive)');
                     const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
                     if (homePage) homePage.classList.add('hide');
@@ -1065,6 +1069,14 @@ function updateSummaryStars(rating) {
                     if (tabBtn) {
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
                         tabBtn.classList.add('emby-tab-button-active');
+                    }
+
+                    // Re-fetch if there were rating changes since last visit
+                    const hasChanges = sessionStorage.getItem('userRatingsDirty') === 'true';
+                    if (hasChanges) {
+                        sessionStorage.removeItem('userRatingsDirty');
+                        console.log('[UserRatings] Pending rating changes detected, re-fetching data');
+                        displayRatingsList().then(() => restoreLastSection());
                     }
                 } else {
                     // Native home navigation - hide ratings, show home
@@ -1116,6 +1128,43 @@ function updateSummaryStars(rating) {
         setTimeout(injectRatingsUI, 100);
         setTimeout(injectRatingsUI, 300);
     });
+
+    // Anchor-scroll to the section the user was last viewing (if section still exists)
+    function restoreLastSection() {
+        const title = window.history.state && window.history.state.lastVisibleSection;
+        if (!title) return;
+
+        const start = Date.now();
+        const poll = () => {
+            const h2 = Array.from(document.querySelectorAll('#ratingsTab h2.sectionTitle'))
+                .find(h => h.textContent.trim() === title);
+            if (h2) {
+                h2.scrollIntoView({ block: 'start', behavior: 'instant' });
+            } else if (Date.now() - start < 8000) {
+                requestAnimationFrame(poll);
+            }
+        };
+        poll();
+    }
+
+    // Track which section the user clicks a card in, so we can return there on back-navigation
+    (function initSectionTracker() {
+        document.addEventListener('click', function urClickTracker(e) {
+            const link = e.target.closest('a[href*="details"]');
+            if (!link) return;
+            const ratingsTab = document.getElementById('ratingsTab');
+            if (!ratingsTab || !ratingsTab.contains(link)) return;
+            const section = link.closest('.verticalSection');
+            if (!section) return;
+            const titleEl = section.querySelector('h2.sectionTitle');
+            if (!titleEl) return;
+            try {
+                const state = window.history.state || {};
+                state.lastVisibleSection = titleEl.textContent.trim();
+                window.history.replaceState(state, '', window.location.href);
+            } catch (err) {}
+        }, true);
+    })();
 
     // Function to display ratings list in the home page content area
     async function displayRatingsList() {
