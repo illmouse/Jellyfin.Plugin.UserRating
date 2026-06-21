@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.3
+
+### New Features
+
+- **Half-Star Popup Rating** — The rating popup now supports half-star precision. Click the left or right half of any star to set a `.5` value (e.g., 3.5/5). Uses CSS gradient `background-clip: text` for smooth fill rendering. `openRatePopup` preselection, `fillCompactBadges` display, and edit flow all handle float values correctly.
+
+---
+
 ## v1.12.2.2
 
 ### Fixed

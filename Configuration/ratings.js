@@ -516,15 +516,17 @@
             margin-bottom: 1em;
         }
         .rate-popup-stars .rp-star {
-            color: rgba(255,255,255,0.15);
+            background: linear-gradient(90deg, #ffd700 var(--star-fill, 0%), rgba(255,255,255,0.15) var(--star-fill, 0%));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             cursor: pointer;
-            transition: color 0.12s, transform 0.12s;
+            transition: transform 0.12s;
         }
-        .rate-popup-stars .rp-star.filled {
-            color: #ffd700;
+        .rate-popup-stars .rp-star.hover-highlight {
+            filter: brightness(1.25);
         }
         .rate-popup-stars .rp-star:hover {
-            color: #ffed4e;
             transform: scale(1.15);
         }
         .rate-popup textarea {
@@ -766,6 +768,23 @@ function updateStarDisplay(container, rating) {
         return userRatingsMap && userRatingsMap[itemId] ? userRatingsMap[itemId] : null;
     }
 
+    function formatStarRating(val) {
+        return val === Math.floor(val) ? val + '/5' : val.toFixed(1) + '/5';
+    }
+
+    function setPopupStarFill(stars, value) {
+        stars.forEach(function(s, idx) {
+            var starNum = idx + 1;
+            var fillPct = 0;
+            if (value >= starNum) {
+                fillPct = 100;
+            } else if (starNum - value === 0.5) {
+                fillPct = 50;
+            }
+            s.style.setProperty('--star-fill', fillPct + '%');
+        });
+    }
+
     function createRatePopupModal() {
         if (popupModal) return popupModal;
 
@@ -801,27 +820,34 @@ function updateStarDisplay(container, rating) {
 
         // Star hover/click in popup
         const popupStars = overlay.querySelectorAll('.rp-star');
-        popupStars.forEach(star => {
-            star.addEventListener('mouseenter', function() {
-                const n = parseInt(this.dataset.n);
-                popupStars.forEach((s, idx) => {
-                    s.classList.toggle('filled', idx + 1 <= n);
-                });
+        popupStars.forEach(function(star) {
+            star.addEventListener('mouseenter', function(e) {
+                var n = parseFloat(this.dataset.n);
+                var rect = this.getBoundingClientRect();
+                var isLeft = e.clientX < rect.left + rect.width / 2;
+                var val = isLeft ? n - 0.5 : n;
+                setPopupStarFill(popupStars, val);
+                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
+                // Highlight hovered star
+                popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
+                this.classList.add('hover-highlight');
             });
-            star.addEventListener('click', function() {
-                const n = parseInt(this.dataset.n);
-                popupStars.forEach((s, idx) => {
-                    s.classList.toggle('filled', idx + 1 <= n);
-                });
-                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + n + '/5';
+            star.addEventListener('click', function(e) {
+                var n = parseFloat(this.dataset.n);
+                var rect = this.getBoundingClientRect();
+                var isLeft = e.clientX < rect.left + rect.width / 2;
+                var val = isLeft ? n - 0.5 : n;
+                setPopupStarFill(popupStars, val);
+                overlay.dataset.selectedRating = String(val);
+                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
+                popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
             });
         });
         const popupStarsContainer = overlay.querySelector('#rpStars');
         popupStarsContainer.addEventListener('mouseleave', function() {
-            const selected = parseInt(overlay.dataset.selectedRating || '0');
-            popupStars.forEach((s, idx) => {
-                s.classList.toggle('filled', idx + 1 <= selected);
-            });
+            var selected = parseFloat(overlay.dataset.selectedRating || '0');
+            setPopupStarFill(popupStars, selected);
+            popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
         });
 
         // Close handlers
@@ -834,7 +860,7 @@ function updateStarDisplay(container, rating) {
         // Submit handler
         overlay.querySelector('#rpSubmit').addEventListener('click', async function() {
             const itemId = popupActiveItemId;
-            const selected = parseInt(overlay.dataset.selectedRating || '0');
+            const selected = parseFloat(overlay.dataset.selectedRating || '0');
             if (selected === 0) return;
 
             const btn = this;
@@ -893,13 +919,12 @@ function updateStarDisplay(container, rating) {
         popupActiveItemId = itemId;
 
         document.getElementById('rpTitle').textContent = 'Rate "' + (itemName || 'this item') + '"';
-        document.getElementById('rpSubtitle').textContent = preselected > 0 ? 'Your rating: ' + preselected + '/5' : 'Select your rating';
+        document.getElementById('rpSubtitle').textContent = preselected > 0 ? 'Your rating: ' + formatStarRating(preselected) : 'Select your rating';
         document.getElementById('rpNote').value = existingNote || '';
 
         const popupStars = popupModal.querySelectorAll('.rp-star');
-        popupStars.forEach((s, idx) => {
-            s.classList.toggle('filled', idx + 1 <= preselected);
-        });
+        setPopupStarFill(popupStars, preselected || 0);
+        popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
         popupModal.dataset.selectedRating = String(preselected || 0);
 
         const deleteBtn = popupModal.querySelector('#rpDelete');
@@ -982,7 +1007,7 @@ function updateStarDisplay(container, rating) {
                 const nameEl = card.querySelector('.cardText a');
                 const name = nameEl ? nameEl.textContent.trim() : null;
                 const existing = getUserRating(itemId);
-                const rating = existing ? Math.round(existing.rating / 2) : 0;
+                const rating = existing ? existing.rating / 2 : 0;
                 const note = existing ? (existing.note || '') : '';
                 _popupCardElement = card;
                 openRatePopup(itemId, name, rating, note);
@@ -1043,8 +1068,7 @@ function updateStarDisplay(container, rating) {
             const itemId = badge.getAttribute('data-item-id');
             const userRating = getUserRating(itemId);
             if (userRating) {
-                const display = Math.round(userRating.rating / 2);
-                badge.querySelector('.cr-value').textContent = display + '/5';
+                badge.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
                 badge.dataset.empty = 'false';
                 badge.style.display = '';
             }
