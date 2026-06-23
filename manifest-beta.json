@@ -13,8 +13,8 @@
         "changelog": "Configurable page size: RecentlyRatedItemsCount setting now controls items per page across all dashboard sections (was hardcoded 24). Unrated cards: removed separate RATE overlay gradient; existing Unrated badge is now a clickable Rate badge with star icon that opens rating popup. Cleaner UI, no duplicate overlay.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.7/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T11:00:00Z"
+        "checksum": "4381dc6ed472b1d0a75e4f04713759ae",
+        "timestamp": "2026-06-23T07:47:16Z"
       },
       {
         "version": "1.12.2.6",
