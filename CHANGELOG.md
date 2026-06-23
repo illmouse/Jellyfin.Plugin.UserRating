@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.12.2.13
+
+### Added
+
+- **Version History table** — Plugin settings now show a scrollable version history table with install dates. Each version installed on the server is recorded with a timestamp. Newest version appears at the top; the current version is highlighted in green with a "(current)" badge. Old versions from before this update show "Unknown" in the date column (the data model previously only stored version strings without timestamps). The table lives in its own section above the Rating System Migration section.
+
+### Changed
+
+- **PluginMetadata data model** — `VersionHistory` changed from `List<string>` to `List<VersionEntry>` (version + optional install date). A custom `JsonConverter` reads both the legacy string-array format and the new object format transparently, so existing `ratings.json` files upgrade automatically on first load. Added `CurrentVersionInstalledAt` field to track when the currently running version was installed.
+- **Migration section** — The cramped version-history text blob inside the Rating System Migration section was replaced with a concise "Previous versions" line; the full version history now lives in its own dedicated section.
+
+---
+
 ## v1.12.2.12
 
 ### Changed

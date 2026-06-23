@@ -304,7 +304,8 @@ BackupService backupService) : ControllerBase
         return Ok(new MigrationStatusResponse(
             true,
             metadata.CurrentVersion,
-            metadata.VersionHistory.ToList(),
+            metadata.CurrentVersionInstalledAt,
+            metadata.VersionHistory.Select(v => new VersionEntryDto(v.Version, v.InstalledAt)).ToList(),
             metadata.Migrations.Select(m => new MigrationRecordDto(
                 m.Name,
                 m.Date,

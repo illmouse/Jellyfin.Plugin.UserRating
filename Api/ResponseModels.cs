@@ -82,10 +82,13 @@ public record MigrationRecordDto(
 
 public record RatingAbove5Dto(string itemId, string userId, int rating, string? itemName);
 
+public record VersionEntryDto(string version, DateTime? installedAt);
+
 public record MigrationStatusResponse(
     bool success,
     string currentVersion,
-    IReadOnlyList<string> versionHistory,
+    DateTime? currentVersionInstalledAt,
+    IReadOnlyList<VersionEntryDto> versionHistory,
     IReadOnlyList<MigrationRecordDto> migrations,
     int ratingCount,
     int ratingsAbove5Count,

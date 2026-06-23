@@ -266,18 +266,25 @@ public class RatingRepository
     private void UpdatePluginVersion()
     {
         var runningVersion = GetCurrentPluginVersion();
+        var now = DateTime.UtcNow;
 
         if (string.IsNullOrEmpty(_metadata.CurrentVersion))
         {
             _metadata.CurrentVersion = runningVersion;
+            _metadata.CurrentVersionInstalledAt = now;
             SaveRatings();
             return;
         }
 
         if (_metadata.CurrentVersion != runningVersion)
         {
-            _metadata.VersionHistory.Add(_metadata.CurrentVersion);
+            _metadata.VersionHistory.Add(new VersionEntry
+            {
+                Version = _metadata.CurrentVersion,
+                InstalledAt = _metadata.CurrentVersionInstalledAt
+            });
             _metadata.CurrentVersion = runningVersion;
+            _metadata.CurrentVersionInstalledAt = now;
             SaveRatings();
         }
     }

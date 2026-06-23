@@ -166,6 +166,26 @@
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
 
+                    <!-- Version History -->
+                    <div id="versionHistorySection" class="section-divider" style="display:none;">
+                        <h3>Version History</h3>
+                        <div class="fieldDescription" style="margin-bottom: 0.8em;">
+                            Plugin versions installed on this server, newest first.
+                        </div>
+                        <div id="versionHistoryTableContainer" style="max-height: 320px; overflow-y: auto; border: 1px solid rgba(128,128,128,0.2); border-radius: 4px;">
+                            <table id="versionHistoryTable" style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                <thead style="position: sticky; top: 0; background: var(--theme-accent-bg, rgba(0,0,0,0.2)); z-index: 1;">
+                                    <tr>
+                                        <th style="text-align: left; padding: 0.4em 0.6em; width: 2.5em;">#</th>
+                                        <th style="text-align: left; padding: 0.4em 0.6em;">Version</th>
+                                        <th style="text-align: left; padding: 0.4em 0.6em;">Installed</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="versionHistoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Rating System Migration -->
                     <div id="migrationSection" class="section-divider" style="display:none;">
                         <h3 style="color: #FFC107;">&#9888; Rating System Migration</h3>
@@ -173,8 +193,7 @@
                             Starting with version 1.12.0, User Ratings uses a <strong>10-star rating scale with half-star precision</strong> (previously 5-star). If you have existing ratings, you can convert them to the new scale below.
                         </div>
                         <div id="migrationInfo" style="margin-bottom: 1em;">
-                            <div class="fieldDescription"><strong>Plugin version history:</strong></div>
-                            <div id="migrationVersionHistory" style="max-height: 4.5em; overflow-y: auto; font-size: 0.9em; line-height: 1.5; padding: 0.3em 0.5em; background: rgba(0,0,0,0.08); border-radius: 3px;"></div>
+                            <div class="fieldDescription"><strong>Previous versions:</strong> <span id="migrationVersionHistory" style="font-size: 0.9em;"></span></div>
                             <div class="fieldDescription" id="migrationCountDisplay"></div>
                         </div>
                         <div id="migrationWarnings" style="display:none; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 4px; padding: 0.8em; margin-bottom: 1em;">
@@ -1085,6 +1104,46 @@
             var migrationData = null;
             var proceedAnywayBtn = null;
 
+            function fmtDate(d) {
+                if (!d) return 'Unknown';
+                var dt = new Date(d);
+                if (isNaN(dt.getTime())) return 'Unknown';
+                return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function renderVersionHistoryTable(data) {
+                var vhSection = document.getElementById('versionHistorySection');
+                var tbody = document.getElementById('versionHistoryTableBody');
+                if (!tbody) return;
+
+                var rows = [];
+                if (data.versionHistory && data.versionHistory.length > 0) {
+                    data.versionHistory.forEach(function (entry) {
+                        rows.push({ version: entry.version, installedAt: entry.installedAt, current: false });
+                    });
+                }
+                rows.push({ version: data.currentVersion, installedAt: data.currentVersionInstalledAt, current: true });
+                rows.reverse();
+
+                var html = '';
+                rows.forEach(function (row, idx) {
+                    var num = rows.length - idx;
+                    var style = '';
+                    var badge = '';
+                    if (row.current) {
+                        style = ' style="background: rgba(76, 175, 80, 0.18); font-weight: 600;"';
+                        badge = ' <span style="color: #4CAF50; font-size: 0.8em;">(current)</span>';
+                    }
+                    html += '<tr' + style + '>' +
+                        '<td style="padding: 0.35em 0.6em; color: rgba(128,128,128,0.7);">' + num + '</td>' +
+                        '<td style="padding: 0.35em 0.6em;">' + (row.version || '—') + badge + '</td>' +
+                        '<td style="padding: 0.35em 0.6em; color: rgba(160,160,160,0.9);">' + fmtDate(row.installedAt) + '</td>' +
+                        '</tr>';
+                });
+                tbody.innerHTML = html;
+                vhSection.style.display = 'block';
+            }
+
             function loadMigrationStatus() {
                 var section = document.getElementById('migrationSection');
                 fetch(ApiClient.getUrl('api/UserRatings/MigrationStatus'), {
@@ -1094,11 +1153,13 @@
                     migrationData = data;
                     section.style.display = 'block';
 
-                    var historyStr = data.currentVersion;
+                    renderVersionHistoryTable(data);
+
+                    var prevStr = '(none)';
                     if (data.versionHistory && data.versionHistory.length > 0) {
-                        historyStr = data.versionHistory.join(' → ') + ' → ' + data.currentVersion;
+                        prevStr = data.versionHistory.map(function (v) { return v.version; }).join(' → ');
                     }
-                    document.getElementById('migrationVersionHistory').textContent = historyStr;
+                    document.getElementById('migrationVersionHistory').textContent = prevStr;
 
                     document.getElementById('migrationCountDisplay').textContent =
                         'Database: ' + data.ratingCount + ' ratings total (' +

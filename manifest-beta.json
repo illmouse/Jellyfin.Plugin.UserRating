@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.2.13",
+        "changelog": "New: Version History table in plugin settings — scrollable, newest-first, with install dates. Current version highlighted in green. Old entries show Unknown date (legacy data had no timestamps). Data model upgraded transparently.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.13/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-23T10:00:00Z"
+      },
+      {
         "version": "1.12.2.12",
         "changelog": "Restyled star icon on User Ratings tab: removed inline styles, added CSS rule for proper icon sizing (1.25em) and alignment. Star now renders like other Jellyfin Material Icons.",
         "targetAbi": "10.11.0.0",
