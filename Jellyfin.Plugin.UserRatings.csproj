@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-   <AssemblyVersion>1.12.2.17</AssemblyVersion>
-   <FileVersion>1.12.2.17</FileVersion>
+   <AssemblyVersion>1.12.2.18</AssemblyVersion>
+   <FileVersion>1.12.2.18</FileVersion>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

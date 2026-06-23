@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.18
+
+### Changed
+
+- **Removed star icon from User Ratings tab** — The `star_border` Material Icon on the tab button was not native to Jellyfin's theme; built-in tabs (Home, Favourites) don't use icons. Removed the icon span and its dedicated CSS rule (`.emby-tab-button .material-icons`) to match the native tab styling.
+
+---
+
 ## v1.12.2.17
 
 ### Changed

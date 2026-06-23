@@ -354,13 +354,6 @@
             }
         }
 
-        /* ===== TAB BUTTON ICON ===== */
-        .emby-tab-button .material-icons {
-            font-size: 1.25em;
-            vertical-align: middle;
-            margin-right: 0.3em;
-        }
-
         /* ===== RATE BADGE (unrated cards) ===== */
         .rate-badge {
             background: linear-gradient(135deg, #43a047, #2e7d32);
@@ -2373,7 +2366,7 @@ function updateSummaryStars(rating) {
         ratingsTab.className = 'emby-tab-button emby-button';
         ratingsTab.setAttribute('data-index', nextIndex);
         ratingsTab.setAttribute('data-ratings-tab', 'true');
-        ratingsTab.innerHTML = '<div class="emby-button-foreground"><span class="material-icons" aria-hidden="true">star_border</span>User Ratings</div>';
+        ratingsTab.innerHTML = '<div class="emby-button-foreground">User Ratings</div>';
 
         // Add click handler
         ratingsTab.addEventListener('click', async function(e) {
