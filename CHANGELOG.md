@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.17
+
+### Changed
+
+- **Sync Watch History description clarified** — The previous annotation ("Also mark items as played based on Plex watch history") was misleading — it implied only rated items would be synced. Updated to: "Sync all watch history from Plex and mark items as played in Jellyfin. This includes all movies and episodes you've watched on Plex, not just rated items."
+
+---
+
 ## v1.12.2.16
 
 ### Changed
