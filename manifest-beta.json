@@ -13,8 +13,8 @@
         "changelog": "Restyled star icon on User Ratings tab: removed inline styles, added CSS rule for proper icon sizing (1.25em) and alignment. Star now renders like other Jellyfin Material Icons.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.12/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T16:00:00Z"
+        "checksum": "6b13255117d5a8fd137e9f24cd655ab8",
+        "timestamp": "2026-06-23T09:36:44Z"
       },
       {
         "version": "1.12.2.11",
