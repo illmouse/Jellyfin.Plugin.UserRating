@@ -193,7 +193,6 @@
                             Starting with version 1.12.0, User Ratings uses a <strong>10-star rating scale with half-star precision</strong> (previously 5-star). If you have existing ratings, you can convert them to the new scale below.
                         </div>
                         <div id="migrationInfo" style="margin-bottom: 1em;">
-                            <div class="fieldDescription"><strong>Previous versions:</strong> <span id="migrationVersionHistory" style="font-size: 0.9em;"></span></div>
                             <div class="fieldDescription" id="migrationCountDisplay"></div>
                         </div>
                         <div id="migrationWarnings" style="display:none; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 4px; padding: 0.8em; margin-bottom: 1em;">
@@ -1154,12 +1153,6 @@
                     section.style.display = 'block';
 
                     renderVersionHistoryTable(data);
-
-                    var prevStr = '(none)';
-                    if (data.versionHistory && data.versionHistory.length > 0) {
-                        prevStr = data.versionHistory.map(function (v) { return v.version; }).join(' → ');
-                    }
-                    document.getElementById('migrationVersionHistory').textContent = prevStr;
 
                     document.getElementById('migrationCountDisplay').textContent =
                         'Database: ' + data.ratingCount + ' ratings total (' +

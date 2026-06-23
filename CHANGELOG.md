@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.14
+
+### Changed
+
+- **Removed redundant version history from Migration section** — The "Previous versions" line inside the Rating System Migration section duplicated the new Version History table. Removed the line and its JS population code; the dedicated Version History table above remains the single source.
+
+---
+
 ## v1.12.2.13
 
 ### Added
