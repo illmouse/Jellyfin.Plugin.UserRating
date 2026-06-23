@@ -13,8 +13,8 @@
         "changelog": "Fixed: Sort direction toggle in unrated sections was broken (arrow never flipped, direction only changed one way). Fixed: Scroll shift after filter/sort changes pushed controls off-screen; now scrolls to section top with block:start.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.9/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T13:00:00Z"
+        "checksum": "c2601901b8708d4b746d6793938efbf5",
+        "timestamp": "2026-06-23T08:14:24Z"
       },
       {
         "version": "1.12.2.8",
