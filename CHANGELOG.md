@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.10
+
+### Fixed
+
+- **Persistent scroll shift after filter/sort changes** — v1.12.2.9 attempted to fix the scroll shift by adding `block: 'start'` to `scrollIntoView` calls, but this made the problem worse: forcing the section top to the viewport top caused a visible downward shift on every sort/filter/page interaction. Root cause: the section containers are fixed DOM elements — only their `innerHTML` changes on re-render, so the sort/filter controls stay in place naturally without any scrolling. Removed all 13 `scrollIntoView` calls from Movies/Shows/Unrated event handlers. The only remaining `scrollIntoView` is in `restoreLastSection` (navigating back to a previously-viewed section).
+
+---
+
 ## v1.12.2.9
 
 ### Fixed

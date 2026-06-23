@@ -1986,7 +1986,6 @@ function updateSummaryStars(rating) {
                         movies_sortField = e.target.value;
                         movies_currentPage = 1;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -1996,7 +1995,6 @@ function updateSummaryStars(rating) {
                         movies_sortDir = movies_sortDir === 'desc' ? 'asc' : 'desc';
                         movies_currentPage = 1;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2005,7 +2003,6 @@ function updateSummaryStars(rating) {
                     prevBtn.addEventListener('click', () => {
                         movies_currentPage--;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2014,7 +2011,6 @@ function updateSummaryStars(rating) {
                     nextBtn.addEventListener('click', () => {
                         movies_currentPage++;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
             }
@@ -2093,7 +2089,6 @@ function updateSummaryStars(rating) {
                         shows_sortField = e.target.value;
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2103,7 +2098,6 @@ function updateSummaryStars(rating) {
                         shows_sortDir = shows_sortDir === 'desc' ? 'asc' : 'desc';
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2117,7 +2111,6 @@ function updateSummaryStars(rating) {
                         else if (t === 'Episode') shows_typeFilter = 'Episode';
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 });
 
@@ -2126,7 +2119,6 @@ function updateSummaryStars(rating) {
                     prevBtn.addEventListener('click', () => {
                         shows_currentPage--;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2135,7 +2127,6 @@ function updateSummaryStars(rating) {
                     nextBtn.addEventListener('click', () => {
                         shows_currentPage++;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
             }
@@ -2289,7 +2280,6 @@ function updateSummaryStars(rating) {
                             sortUnrated(items, unratedSortField, unratedSortDir);
                             unratedPage = 1;
                             renderPage(1);
-                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
@@ -2300,7 +2290,6 @@ function updateSummaryStars(rating) {
                             sortUnrated(items, unratedSortField, unratedSortDir);
                             unratedPage = 1;
                             renderPage(1);
-                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
@@ -2309,7 +2298,6 @@ function updateSummaryStars(rating) {
                         pb.addEventListener('click', () => {
                             unratedPage--;
                             renderPage(unratedPage);
-                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
@@ -2318,7 +2306,6 @@ function updateSummaryStars(rating) {
                         nb.addEventListener('click', () => {
                             unratedPage++;
                             renderPage(unratedPage);
-                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
                 }
