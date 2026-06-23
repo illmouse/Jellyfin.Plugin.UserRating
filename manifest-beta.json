@@ -13,8 +13,8 @@
         "changelog": "New: Version History table in plugin settings — scrollable, newest-first, with install dates. Current version highlighted in green. Old entries show Unknown date (legacy data had no timestamps). Data model upgraded transparently.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.13/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T10:00:00Z"
+        "checksum": "6d59dd6be73361a699da980766d8b7d4",
+        "timestamp": "2026-06-23T10:41:09Z"
       },
       {
         "version": "1.12.2.12",
