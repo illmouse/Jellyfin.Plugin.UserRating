@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.2.4",
+        "changelog": "Performance: Server-side pagination for All Rated Items (fetches 24 per page, not all at once); Batch library lookup replaces 386+ individual GetItemById calls; Removed provider-ID fallback from request path (stale items healed by scheduled task); Provider-ID index for O(1) FindByProviderIds; Health check interval 24h to 30min",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.4/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-23T09:30:00Z"
+      },
+      {
         "version": "1.12.2.3",
         "changelog": "New: Half-star precision in rating popup - click left/right half of any star to set .5 values; CSS gradient background-clip text fill; All display paths handle float values",
         "targetAbi": "10.11.0.0",

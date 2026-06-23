@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.12.2.4
+
+### Performance
+
+- **Server-side pagination for All Rated Items** — The dashboard now fetches only 24 items per page from the server instead of loading all rated items at once. Page navigation, sort, and type filter changes trigger targeted API calls. Eliminates the 17-second load time on large libraries.
+- **Batch library lookup** — Replaced 386+ individual `GetItemById` calls with a single batch `GetItemList(ItemIds=[...])` query. Library metadata resolution is now one indexed query regardless of rating count.
+- **Removed provider-ID fallback from request path** — Broken items (deleted from library) no longer trigger expensive per-item provider-ID resolution lookups during page load. Stale items are skipped and healed by the scheduled health check task instead.
+- **Simplified RatingResolver** — `ResolveRating`, `ResolveRatingsForItem`, and `HasRating` now do direct dictionary lookups only (O(1)). All self-healing logic moved to the scheduled health check task.
+- **Provider-ID index** — Added an in-memory `Dictionary<(provider, id, userId), key>` to `RatingRepository`, rebuilt on load and maintained on mutations. `FindByProviderIds` is now O(1) instead of O(N) full scan.
+- **Health check batch resolution** — `HealthCheckService.RunHealthCheck` now uses a single batch `GetItemList` call instead of per-item `GetItemById`.
+- **Health check interval 24h → 30min** — Broken items from library updates are healed within 30 minutes instead of up to 24 hours. Users can adjust the interval via Jellyfin Dashboard > Scheduled Tasks.
+
+---
+
 ## v1.12.2.3
 
 ### New Features

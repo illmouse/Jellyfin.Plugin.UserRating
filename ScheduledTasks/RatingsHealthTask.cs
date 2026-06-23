@@ -52,7 +52,7 @@ public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
         new TaskTriggerInfo
         {
             Type = TaskTriggerInfoType.IntervalTrigger,
-            IntervalTicks = TimeSpan.FromHours(24).Ticks
+            IntervalTicks = TimeSpan.FromMinutes(30).Ticks
         }
     };
 }

@@ -121,90 +121,93 @@ BackupService backupService) : ControllerBase
 
     [HttpGet("AllRatedItems")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult GetAllRatedItems()
+    public ActionResult GetAllRatedItems(
+        [FromQuery] int offset = 0,
+        [FromQuery] int limit = 24,
+        [FromQuery] string? sortBy = "recent",
+        [FromQuery] string? sortDir = "desc",
+        [FromQuery] string? typeFilter = "all")
     {
         var ratedItems = repository.GetAllRatedItems();
 
-        var rawRatings = repository.GetAllRatings();
-        var ratingByItemId = rawRatings.Values
-            .GroupBy(r => r.ItemId)
+        if (ratedItems.Count == 0)
+        {
+            return Ok(new RatedItemsPaginatedResponse(true, Array.Empty<RatedItemInfo>(), 0));
+        }
+
+        // Batch-resolve all rated item IDs in one library query
+        var allItemIds = ratedItems.Select(r => r.ItemId).Distinct().ToArray();
+        var query = new InternalItemsQuery
+        {
+            ItemIds = allItemIds
+        };
+        var libItems = libraryManager.GetItemList(query);
+        var libItemMap = libItems
+            .Where(i => i != null)
+            .GroupBy(i => i.Id)
             .ToDictionary(g => g.Key, g => g.First());
 
+        // Build result list — skip items not found in library (stale, will be healed by scheduled task)
+        var resolved = new List<RatedItemInfo>();
         var seenCanonical = new HashSet<Guid>();
-        var result = new List<RatedItemInfo>();
 
         foreach (var item in ratedItems)
         {
-            var effectiveId = item.ItemId;
-
-            var libItem = libraryManager.GetItemById(item.ItemId);
-
-            if (libItem != null)
-            {
-                effectiveId = libItem.Id;
-            }
-            else if (ratingByItemId.TryGetValue(item.ItemId, out var rating)
-                && rating.ProviderIds != null && rating.ProviderIds.Count > 0)
-            {
-                try
-                {
-                    var providerQuery = new InternalItemsQuery
-                    {
-                        HasAnyProviderId = rating.ProviderIds
-                            .Where(kv => !string.IsNullOrEmpty(kv.Value))
-                            .ToDictionary(kv => kv.Key, kv => kv.Value)
-                    };
-
-                    if (providerQuery.HasAnyProviderId.Count > 0)
-                    {
-                        var resolved = libraryManager.GetItemList(providerQuery).FirstOrDefault();
-                        if (resolved != null)
-                        {
-                            effectiveId = resolved.Id;
-                        }
-                    }
-                }
-                catch
-                {
-                }
-            }
-
-            if (!seenCanonical.Add(effectiveId))
+            if (!libItemMap.TryGetValue(item.ItemId, out var libItem) || libItem == null)
                 continue;
 
-            string? name = null;
-            string? type = null;
+            if (!seenCanonical.Add(libItem.Id))
+                continue;
+
             string? seriesId = null;
-
-            try
+            if (libItem is Episode ep && ep.Series != null)
             {
-                var resolvedItem = libraryManager.GetItemById(effectiveId);
-                if (resolvedItem != null)
-                {
-                    name = resolvedItem.Name;
-                    type = resolvedItem.GetType().Name;
-                    if (resolvedItem is Episode ep && ep.Series != null)
-                    {
-                        seriesId = ep.Series.Id.ToString("N");
-                    }
-                }
-            }
-            catch
-            {
+                seriesId = ep.Series.Id.ToString("N");
             }
 
-            result.Add(new RatedItemInfo(
-                effectiveId.ToString("N"),
+            resolved.Add(new RatedItemInfo(
+                libItem.Id.ToString("N"),
                 item.AverageRating,
                 item.TotalRatings,
                 item.LastRated,
-                name,
-                type,
+                libItem.Name,
+                libItem.GetType().Name,
                 seriesId
             ));
         }
 
-        return Ok(new RatedItemsResponse(true, result));
+        // Apply type filter
+        if (!string.IsNullOrEmpty(typeFilter) && typeFilter != "all")
+        {
+            resolved = resolved.Where(r => string.Equals(r.type, typeFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        // Sort
+        var dir = sortDir == "asc" ? 1 : -1;
+        switch (sortBy)
+        {
+            case "rating":
+                resolved.Sort((a, b) => (a.averageRating - b.averageRating > 0 ? 1 : a.averageRating == b.averageRating ? 0 : -1) * dir);
+                break;
+            case "title":
+                resolved.Sort((a, b) => string.Compare(a.name ?? "", b.name ?? "", StringComparison.OrdinalIgnoreCase) * dir);
+                break;
+            case "recent":
+                resolved.Sort((a, b) => a.lastRated.CompareTo(b.lastRated) * dir);
+                break;
+            case "count":
+                resolved.Sort((a, b) => (a.totalRatings - b.totalRatings) * dir);
+                break;
+        }
+
+        var total = resolved.Count;
+
+        // Paginate
+        offset = Math.Max(0, offset);
+        limit = limit > 0 ? Math.Min(limit, 200) : 24;
+        var page = resolved.Skip(offset).Take(limit).ToList();
+
+        return Ok(new RatedItemsPaginatedResponse(true, page, total));
     }
 
     [HttpGet("UnratedWatchedItems")]
@@ -235,7 +238,7 @@ BackupService backupService) : ControllerBase
 
             foreach (var item in movies.Items)
             {
-                if (!resolver.HasRating(item.Id, userId))
+                if (repository.GetRating(item.Id, userId) == null)
                 {
                     watchedUnrated.Add(new WatchedItemInfo(
                         item.Id.ToString("N"),
@@ -267,7 +270,7 @@ BackupService backupService) : ControllerBase
                 if (seriesId == Guid.Empty) continue;
                 if (!seenSeries.Add(seriesId)) continue;
 
-                if (!resolver.HasRating(seriesId, userId))
+                if (repository.GetRating(seriesId, userId) == null)
                 {
                     var series = libraryManager.GetItemById(seriesId);
                     if (series != null)

@@ -21,12 +21,23 @@ ILogger<HealthCheckService> logger)
         var report = new HealthReport();
         var allRatings = repository.GetAllRatings();
 
+        // Batch-resolve all rated item IDs in one library query
+        var allItemIds = allRatings.Values.Select(r => r.ItemId).Distinct().ToArray();
+        var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
+        {
+            ItemIds = allItemIds
+        };
+        var libItems = libraryManager.GetItemList(query);
+        var libItemMap = libItems
+            .Where(i => i != null)
+            .GroupBy(i => i.Id)
+            .ToDictionary(g => g.Key, g => g.First());
+
         foreach (var kvp in allRatings)
         {
             var rating = kvp.Value;
 
-            var item = libraryManager.GetItemById(rating.ItemId);
-            if (item != null)
+            if (libItemMap.TryGetValue(rating.ItemId, out var item) && item != null)
             {
                 if (item.ProviderIds != null && item.ProviderIds.Count > 0)
                 {

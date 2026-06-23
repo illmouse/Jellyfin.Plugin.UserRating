@@ -24,6 +24,8 @@ public record RatedItemInfo(string itemId, double averageRating, int totalRating
 
 public record RatedItemsResponse(bool success, IReadOnlyList<RatedItemInfo> items);
 
+public record RatedItemsPaginatedResponse(bool success, IReadOnlyList<RatedItemInfo> items, int total);
+
 public record WatchedItemInfo(string itemId, string? name, string? type, string? seriesId, DateTime? lastPlayedDate);
 
 public record UnratedWatchedItemsResponse(bool success, IReadOnlyList<WatchedItemInfo> items);

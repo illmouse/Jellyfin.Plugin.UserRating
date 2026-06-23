@@ -15,6 +15,7 @@ public class RatingRepository
 {
     private readonly string _dataPath;
     private Dictionary<string, UserRating> _ratings = new();
+    private Dictionary<(string provider, string id, Guid userId), string> _providerIndex = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
     private readonly ILogger<RatingRepository> _logger;
     private bool _loadFailed;
@@ -155,6 +156,8 @@ public class RatingRepository
 
                 _logger.LogInformation("Loaded {Count} ratings from {Path}", _ratings.Count, _dataPath);
 
+                RebuildProviderIndex();
+
                 UpdatePluginVersion();
             }
             catch (Exception ex)
@@ -177,6 +180,39 @@ public class RatingRepository
 
                 _ratings = new Dictionary<string, UserRating>();
                 _loadFailed = true;
+            }
+        }
+    }
+
+    private void RebuildProviderIndex()
+    {
+        _providerIndex = new Dictionary<(string, string, Guid), string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in _ratings)
+        {
+            IndexProviderIds(kvp.Key, kvp.Value);
+        }
+    }
+
+    private void IndexProviderIds(string key, UserRating rating)
+    {
+        if (rating.ProviderIds == null) return;
+        foreach (var pkv in rating.ProviderIds)
+        {
+            if (!string.IsNullOrEmpty(pkv.Value))
+            {
+                _providerIndex[(pkv.Key, pkv.Value, rating.UserId)] = key;
+            }
+        }
+    }
+
+    private void UnindexProviderIds(UserRating rating)
+    {
+        if (rating.ProviderIds == null) return;
+        foreach (var pkv in rating.ProviderIds)
+        {
+            if (!string.IsNullOrEmpty(pkv.Value))
+            {
+                _providerIndex.Remove((pkv.Key, pkv.Value, rating.UserId));
             }
         }
     }
@@ -295,7 +331,12 @@ public class RatingRepository
         lock (_lock)
         {
             var key = GetKey(rating.ItemId, rating.UserId);
+            if (_ratings.TryGetValue(key, out var existing))
+            {
+                UnindexProviderIds(existing);
+            }
             _ratings[key] = rating;
+            IndexProviderIds(key, rating);
             SaveRatings();
         }
     }
@@ -336,6 +377,10 @@ public class RatingRepository
         lock (_lock)
         {
             var key = GetKey(itemId, userId);
+            if (_ratings.TryGetValue(key, out var existing))
+            {
+                UnindexProviderIds(existing);
+            }
             _ratings.Remove(key);
             SaveRatings();
         }
@@ -361,6 +406,7 @@ public class RatingRepository
         lock (_lock)
         {
             _ratings.Clear();
+            _providerIndex.Clear();
             _loadFailed = false;
             SaveRatings();
         }
@@ -405,15 +451,18 @@ public class RatingRepository
                             continue;
                         }
                         _ratings[key] = rating;
+                        IndexProviderIds(key, rating);
                         imported++;
                         break;
 
                     case "overwrite":
-                        if (_ratings.ContainsKey(key))
+                        if (_ratings.TryGetValue(key, out var existingOv))
                         {
+                            UnindexProviderIds(existingOv);
                             overwritten++;
                         }
                         _ratings[key] = rating;
+                        IndexProviderIds(key, rating);
                         imported++;
                         break;
 
@@ -422,7 +471,9 @@ public class RatingRepository
                         {
                             if (rating.Rating > existing.Rating)
                             {
+                                UnindexProviderIds(existing);
                                 _ratings[key] = rating;
+                                IndexProviderIds(key, rating);
                                 overwritten++;
                                 imported++;
                             }
@@ -434,6 +485,7 @@ public class RatingRepository
                         else
                         {
                             _ratings[key] = rating;
+                            IndexProviderIds(key, rating);
                             imported++;
                         }
                         break;
@@ -445,6 +497,7 @@ public class RatingRepository
                             continue;
                         }
                         _ratings[key] = rating;
+                        IndexProviderIds(key, rating);
                         imported++;
                         break;
                 }
@@ -460,17 +513,14 @@ public class RatingRepository
     {
         lock (_lock)
         {
-            foreach (var rating in _ratings.Values)
-            {
-                if (rating.UserId != userId) continue;
-                if (rating.ProviderIds == null || rating.ProviderIds.Count == 0) continue;
+            if (providerIds == null || providerIds.Count == 0) return null;
 
-                foreach (var kvp in providerIds)
+            foreach (var kvp in providerIds)
+            {
+                if (string.IsNullOrEmpty(kvp.Value)) continue;
+                if (_providerIndex.TryGetValue((kvp.Key, kvp.Value, userId), out var key))
                 {
-                    if (rating.ProviderIds.TryGetValue(kvp.Key, out var value)
-                        && !string.IsNullOrEmpty(value)
-                        && !string.IsNullOrEmpty(kvp.Value)
-                        && string.Equals(value, kvp.Value, StringComparison.OrdinalIgnoreCase))
+                    if (_ratings.TryGetValue(key, out var rating))
                     {
                         return rating;
                     }
@@ -490,8 +540,10 @@ public class RatingRepository
             {
                 var updated = rating with { ItemId = newItemId };
                 var newKey = GetKey(newItemId, userId);
+                UnindexProviderIds(rating);
                 _ratings.Remove(oldKey);
                 _ratings[newKey] = updated;
+                IndexProviderIds(newKey, updated);
                 SaveRatings();
             }
         }
