@@ -15,7 +15,7 @@ public class RatingRepository
 {
     private readonly string _dataPath;
     private Dictionary<string, UserRating> _ratings = new();
-    private Dictionary<(string provider, string id, Guid userId), string> _providerIndex = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<(string provider, string id, Guid userId), string> _providerIndex = new();
     private readonly object _lock = new object();
     private readonly ILogger<RatingRepository> _logger;
     private bool _loadFailed;
@@ -186,12 +186,15 @@ public class RatingRepository
 
     private void RebuildProviderIndex()
     {
-        _providerIndex = new Dictionary<(string, string, Guid), string>(StringComparer.OrdinalIgnoreCase);
+        _providerIndex = new Dictionary<(string, string, Guid), string>();
         foreach (var kvp in _ratings)
         {
             IndexProviderIds(kvp.Key, kvp.Value);
         }
     }
+
+    private static (string, string, Guid) NormalizeProviderKey(string provider, string id, Guid userId)
+        => (provider.ToLowerInvariant(), id.ToLowerInvariant(), userId);
 
     private void IndexProviderIds(string key, UserRating rating)
     {
@@ -200,7 +203,7 @@ public class RatingRepository
         {
             if (!string.IsNullOrEmpty(pkv.Value))
             {
-                _providerIndex[(pkv.Key, pkv.Value, rating.UserId)] = key;
+                _providerIndex[NormalizeProviderKey(pkv.Key, pkv.Value, rating.UserId)] = key;
             }
         }
     }
@@ -212,7 +215,7 @@ public class RatingRepository
         {
             if (!string.IsNullOrEmpty(pkv.Value))
             {
-                _providerIndex.Remove((pkv.Key, pkv.Value, rating.UserId));
+                _providerIndex.Remove(NormalizeProviderKey(pkv.Key, pkv.Value, rating.UserId));
             }
         }
     }
@@ -518,7 +521,7 @@ public class RatingRepository
             foreach (var kvp in providerIds)
             {
                 if (string.IsNullOrEmpty(kvp.Value)) continue;
-                if (_providerIndex.TryGetValue((kvp.Key, kvp.Value, userId), out var key))
+                if (_providerIndex.TryGetValue(NormalizeProviderKey(kvp.Key, kvp.Value, userId), out var key))
                 {
                     if (_ratings.TryGetValue(key, out var rating))
                     {
