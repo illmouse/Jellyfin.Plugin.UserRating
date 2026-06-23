@@ -354,32 +354,6 @@
             }
         }
 
-        /* ===== RATE BUTTON OVERLAY (unrated cards) ===== */
-        .rate-btn-overlay {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.85) 40%);
-            padding: 1.2em 0.4em 0.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3em;
-            z-index: 3;
-            pointer-events: auto;
-            border-radius: 0 0 4px 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(255,215,0,0.9);
-            transition: background 0.15s, color 0.15s;
-        }
-        .rate-btn-overlay:hover {
-            background: linear-gradient(transparent, rgba(0,0,0,0.95) 50%);
-            color: #ffd700;
-        }
-
         /* ===== COMPACT RATING BADGE (rated cards) ===== */
         .compact-rating {
             position: absolute;
@@ -922,7 +896,7 @@ function updateStarDisplay(container, rating) {
     }
 
     function attachRateButtonListeners(container) {
-        const buttons = container.querySelectorAll('.rate-btn-overlay');
+        const buttons = container.querySelectorAll('.rate-badge');
         buttons.forEach(function(btn) {
             if (btn._rateBtnAttached) return;
             btn._rateBtnAttached = true;
@@ -975,18 +949,15 @@ function updateStarDisplay(container, rating) {
             }, 700);
         }
 
-        // Change "Unrated" badge to "★ N/5" on unrated cards (has rate-btn-overlay)
-        if (card.querySelector('.rate-btn-overlay')) {
+        // Change "Rate" badge to "★ N/5" on unrated cards (has rate-badge)
+        if (card.querySelector('.rate-badge')) {
             const unratedBadge = card.querySelector('.cardIndicators-bottomright div[style*="background"]');
             if (unratedBadge) {
                 unratedBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
+                unratedBadge.style.cursor = 'default';
+                unratedBadge.classList.remove('rate-badge');
+                unratedBadge.removeAttribute('data-item-id');
             }
-        }
-
-        // Hide the RATE button overlay on unrated cards
-        const rateBtn = card.querySelector('.rate-btn-overlay');
-        if (rateBtn) {
-            rateBtn.style.display = 'none';
         }
 
         // Show/update the compact rating badge
@@ -1759,6 +1730,13 @@ function updateSummaryStars(rating) {
             // Fetch user's ratings for compact badge display
             await fetchUserRatings();
 
+            // Get config for page size (items per page in Rated Movies/Shows + Watched sections)
+            let perPage = 24;
+            try {
+                const pluginConfig = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
+                perPage = pluginConfig.RecentlyRatedItemsCount || 10;
+            } catch (error) {}
+
             function getItemCardImage(itemId, seriesId, itemType) {
                 const imageId = itemType === 'Episode' && seriesId ? seriesId : itemId;
                 return {
@@ -1847,15 +1825,11 @@ function updateSummaryStars(rating) {
                                     <span class="cr-value"></span>
                                     <span class="cr-edit">&#x270E;</span>
                                 </div>
-                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0">
-                                    <div class="rate-btn-overlay" data-item-id="${item.itemId}">
-                                        <span class="material-icons" style="font-size:1em;">star_border</span>
-                                        <span>Rate</span>
-                                    </div>
-                                </a>
+                                <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
-                                    <div style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
-                                        <span style="font-weight: 600; font-size: 0.9em;">Unrated</span>
+                                    <div class="rate-badge" data-item-id="${item.itemId}" style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em; cursor: pointer;">
+                                        <span class="material-icons" style="font-size: 0.9em;">star_border</span>
+                                        <span style="font-weight: 600; font-size: 0.9em;">Rate</span>
                                     </div>
                                 </div>
                             </div>
@@ -1896,8 +1870,6 @@ function updateSummaryStars(rating) {
                     }
                 };
             }
-
-            const perPage = 24;
 
             // ===== Movies section state =====
             let movies_currentPage = 1;
@@ -2218,7 +2190,6 @@ function updateSummaryStars(rating) {
             // Helper: render an unrated section with client-side pagination (small fixed set, no server call)
             function renderUnratedSection(container, items, title) {
                 let unratedPage = 1;
-                const perPage = 24;
 
                 const sortUnrated = (arr, field, dir) => {
                     const d = dir === 'asc' ? 1 : -1;

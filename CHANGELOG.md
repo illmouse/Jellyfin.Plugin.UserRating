@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.12.2.7
+
+### Changed
+
+- **Configurable page size** — The "Recently Rated Items Count" setting now controls how many items are displayed per page across all dashboard sections (Rated Movies, Rated Shows, Watched Movies, Watched Shows). Previously hardcoded to 24. Updated the config page description to reflect the new behavior.
+- **Clickable Rate badge on unrated cards** — Removed the separate "RATE" overlay gradient at the bottom of unrated cards. The existing red "Unrated" badge in the corner is now a clickable "Rate" badge (with star icon) that opens the rating popup directly. After rating, the badge transitions to "★ N/5" as before. Cleaner UI with no duplicate overlay.
+
+---
+
 ## v1.12.2.6
 
 ### New Features
