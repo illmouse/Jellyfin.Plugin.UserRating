@@ -310,6 +310,14 @@
                         </div>
 
                         <div class="inputContainer">
+                            <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="enableAutoSync" />
+                                <span>Automatically sync from Plex on a schedule</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
                             <label class="inputLabel" for="enablePlexWatchHistorySync">Sync Watch History</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enablePlexWatchHistorySync" />
@@ -356,14 +364,6 @@
                             <h4>Unmatched Items</h4>
                             <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex items could not be matched to Jellyfin items.</div>
                             <div id="unmatchedList" class="item-list"></div>
-                        </div>
-
-                        <div class="inputContainer" style="margin-top: 1.5em;">
-                            <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
-                            <div style="display: flex; align-items: center; gap: 0.5em;">
-                                <input type="checkbox" id="enableAutoSync" />
-                                <span>Automatically sync from Plex on a schedule</span>
-                            </div>
                         </div>
 
                         <div style="margin-top: 1.5em;">

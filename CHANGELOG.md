@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.16
+
+### Changed
+
+- **Enable Automatic Sync moved to top of Scheduled Sync** — The feature toggle now appears first in the section, followed by the detailed sync options. Enabling a feature naturally precedes configuring its details.
+
+---
+
 ## v1.12.2.15
 
 ### Changed
