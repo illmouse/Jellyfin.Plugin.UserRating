@@ -13,8 +13,8 @@
         "changelog": "Fixed: Build warning from unused logger parameter in RatingResolver (leftover from v1.12.2.4 simplification)",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.5/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T10:15:00Z"
+        "checksum": "0ccf184e6afd34d901fb36933f408541",
+        "timestamp": "2026-06-23T06:56:08Z"
       },
       {
         "version": "1.12.2.4",
