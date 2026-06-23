@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.12.2.6
+
+### New Features
+
+- **Dashboard Simplification** — Removed duplicate "Recently Rated Movies/Shows/Episodes" and "All Rated Items" sections. Replaced with two full-featured sections: **Rated Movies** (paginated, sortable by Rating/Title/Recently Rated/Most Ratings, direction toggle, default Recently Rated) and **Rated Shows** (same controls plus tab sub-filter for All/Shows/Episodes). Both sections support server-side pagination to browse all rated items.
+- **RATE Button on Unrated Cards** — Replaced the hover-to-rate star overlay on unrated dashboard cards with an always-visible "RATE" clickable button. Clicking opens the rating popup directly (no preselection). Improves mobile usability where hover was not discoverable.
+
+### Changed
+
+- **AllRatedItems API** — `typeFilter` parameter now accepts comma-separated values (e.g., `Series,Episode`) to support the Shows section's "All" tab combining shows and episodes.
+
+---
+
 ## v1.12.2.5
 
 ### Fixed

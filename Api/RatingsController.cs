@@ -176,10 +176,12 @@ BackupService backupService) : ControllerBase
             ));
         }
 
-        // Apply type filter
+        // Apply type filter (supports comma-separated values, e.g. "Series,Episode")
         if (!string.IsNullOrEmpty(typeFilter) && typeFilter != "all")
         {
-            resolved = resolved.Where(r => string.Equals(r.type, typeFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+            var types = typeFilter.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var typeSet = new HashSet<string>(types, StringComparer.OrdinalIgnoreCase);
+            resolved = resolved.Where(r => typeSet.Contains(r.type)).ToList();
         }
 
         // Sort

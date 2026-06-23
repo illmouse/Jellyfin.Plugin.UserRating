@@ -354,51 +354,30 @@
             }
         }
 
-        /* ===== HOVER STAR OVERLAY (unrated cards) ===== */
-        .star-overlay {
+        /* ===== RATE BUTTON OVERLAY (unrated cards) ===== */
+        .rate-btn-overlay {
             position: absolute;
             bottom: 0; left: 0; right: 0;
             background: linear-gradient(transparent, rgba(0,0,0,0.85) 40%);
-            padding: 2em 0.4em 0.5em;
-            display: none;
+            padding: 1.2em 0.4em 0.5em;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.12em;
+            gap: 0.3em;
             z-index: 3;
-            pointer-events: none;
-            border-radius: 0 0 4px 4px;
-        }
-        .card-hoverable:hover .star-overlay {
-            display: flex;
-        }
-        .card-hoverable:has(.star-overlay):hover .cardIndicators-bottomright {
-            display: none;
-        }
-        .star-overlay .so-star {
-            font-size: 1.3em;
-            color: rgba(255,255,255,0.2);
-            cursor: pointer;
             pointer-events: auto;
-            transition: color 0.12s, transform 0.12s;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-            line-height: 1;
-            padding: 0 1px;
-        }
-        .star-overlay .so-star.filled {
-            color: #ffd700;
-        }
-        .star-overlay .so-star.hovered {
-            color: #ffed4e;
-            transform: scale(1.25);
-        }
-        .star-overlay .so-label {
-            position: absolute;
-            top: 0.3em;
-            font-size: 0.65em;
-            color: rgba(255,255,255,0.45);
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            pointer-events: none;
+            color: rgba(255,215,0,0.9);
+            transition: background 0.15s, color 0.15s;
+        }
+        .rate-btn-overlay:hover {
+            background: linear-gradient(transparent, rgba(0,0,0,0.95) 50%);
+            color: #ffd700;
         }
 
         /* ===== COMPACT RATING BADGE (rated cards) ===== */
@@ -590,9 +569,6 @@
             background: rgba(229,57,53,0.1);
         }
         @media (max-width: 480px) {
-            .star-overlay .so-star {
-                font-size: 1.1em;
-            }
             .rate-popup {
                 padding: 1.2em;
             }
@@ -945,49 +921,22 @@ function updateStarDisplay(container, rating) {
         _popupCardElement = null;
     }
 
-    function attachCardHoverListeners(container) {
-        const cards = container.querySelectorAll('.card-hoverable .so-star');
-        cards.forEach(function(star) {
-            const card = star.closest('.card');
-            if (card && card._rateHoverAttached) return;
+    function attachRateButtonListeners(container) {
+        const buttons = container.querySelectorAll('.rate-btn-overlay');
+        buttons.forEach(function(btn) {
+            if (btn._rateBtnAttached) return;
+            btn._rateBtnAttached = true;
 
-            const cardEl = star.closest('.card');
-            if (!cardEl) return;
-            cardEl._rateHoverAttached = true;
-
-            const overlay = cardEl.querySelector('.star-overlay');
-            if (!overlay) return;
-
-            const stars = overlay.querySelectorAll('.so-star');
-            const label = overlay.querySelector('.so-label');
-            let selected = 0;
-
-            stars.forEach(function(s) {
-                s.addEventListener('mouseenter', function() {
-                    const n = parseInt(this.dataset.n);
-                    stars.forEach(function(st, idx) {
-                        st.classList.toggle('filled', idx + 1 <= n);
-                        st.classList.toggle('hovered', idx + 1 === n);
-                    });
-                    if (label) label.textContent = n + '/5';
-                });
-                s.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    selected = parseInt(this.dataset.n);
-                    _popupCardElement = cardEl;
-                    const itemId = cardEl.getAttribute('data-id');
-                    const nameEl = cardEl.querySelector('.cardText a');
-                    const name = nameEl ? nameEl.textContent.trim() : null;
-                    openRatePopup(itemId, name, selected, null);
-                });
-            });
-            overlay.addEventListener('mouseleave', function() {
-                stars.forEach(function(st, idx) {
-                    st.classList.toggle('filled', idx + 1 <= selected);
-                    st.classList.toggle('hovered', false);
-                });
-                if (label) label.textContent = selected > 0 ? selected + '/5' : 'Rate';
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const cardEl = btn.closest('.card');
+                if (!cardEl) return;
+                const itemId = cardEl.getAttribute('data-id');
+                const nameEl = cardEl.querySelector('.cardText a');
+                const name = nameEl ? nameEl.textContent.trim() : null;
+                _popupCardElement = cardEl;
+                openRatePopup(itemId, name, 0, null);
             });
         });
     }
@@ -1026,18 +975,18 @@ function updateStarDisplay(container, rating) {
             }, 700);
         }
 
-        // Change "Unrated" badge to "★ N/5" on unrated cards (has star-overlay)
-        if (card.querySelector('.star-overlay')) {
+        // Change "Unrated" badge to "★ N/5" on unrated cards (has rate-btn-overlay)
+        if (card.querySelector('.rate-btn-overlay')) {
             const unratedBadge = card.querySelector('.cardIndicators-bottomright div[style*="background"]');
             if (unratedBadge) {
                 unratedBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
             }
         }
 
-        // Hide the hover star overlay on unrated cards
-        const overlay = card.querySelector('.star-overlay');
-        if (overlay) {
-            overlay.style.display = 'none';
+        // Hide the RATE button overlay on unrated cards
+        const rateBtn = card.querySelector('.rate-btn-overlay');
+        if (rateBtn) {
+            rateBtn.style.display = 'none';
         }
 
         // Show/update the compact rating badge
@@ -1810,13 +1759,6 @@ function updateSummaryStars(rating) {
             // Fetch user's ratings for compact badge display
             await fetchUserRatings();
 
-            // Get config only (fast)
-            let recentItemsLimit = 10;
-            try {
-                const pluginConfig = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
-                recentItemsLimit = pluginConfig.RecentlyRatedItemsCount || 10;
-            } catch (error) {}
-
             function getItemCardImage(itemId, seriesId, itemType) {
                 const imageId = itemType === 'Episode' && seriesId ? seriesId : itemId;
                 return {
@@ -1906,13 +1848,9 @@ function updateSummaryStars(rating) {
                                     <span class="cr-edit">&#x270E;</span>
                                 </div>
                                 <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0">
-                                    <div class="star-overlay">
-                                        <span class="so-label">Rate</span>
-                                        <span class="so-star" data-n="1">&#x2605;</span>
-                                        <span class="so-star" data-n="2">&#x2605;</span>
-                                        <span class="so-star" data-n="3">&#x2605;</span>
-                                        <span class="so-star" data-n="4">&#x2605;</span>
-                                        <span class="so-star" data-n="5">&#x2605;</span>
+                                    <div class="rate-btn-overlay" data-item-id="${item.itemId}">
+                                        <span class="material-icons" style="font-size:1em;">star_border</span>
+                                        <span>Rate</span>
                                     </div>
                                 </a>
                                 <div class="cardIndicators cardIndicators-bottomright">
@@ -1959,73 +1897,26 @@ function updateSummaryStars(rating) {
                 };
             }
 
-            // State for "All Rated Items" pagination
-            let allItems_currentPage = 1;
-            const allItems_perPage = 24;
-            let allItems_sortField = 'rating';
-            let allItems_sortDir = 'desc';
-            let allItems_typeFilter = 'all';
-            let allItems_total = 0;
+            const perPage = 24;
 
-            // Fetch the 3 "Recently Rated" sections in parallel (small, fast queries)
-            const recentParams = `&limit=${recentItemsLimit}&sortBy=recent&sortDir=desc`;
-            const [recentMoviesResp, recentSeriesResp, recentEpisodesResp] = await Promise.all([
-                fetchRatedItemsPage(0, recentItemsLimit, 'recent', 'desc', 'Movie'),
-                fetchRatedItemsPage(0, recentItemsLimit, 'recent', 'desc', 'Series'),
-                fetchRatedItemsPage(0, recentItemsLimit, 'recent', 'desc', 'Episode')
-            ]);
+            // ===== Movies section state =====
+            let movies_currentPage = 1;
+            let movies_sortField = 'recent';
+            let movies_sortDir = 'desc';
+            let movies_total = 0;
 
-            const recentMovies = recentMoviesResp.items.map(normalizeRatedItem);
-            const recentSeries = recentSeriesResp.items.map(normalizeRatedItem);
-            const recentEpisodes = recentEpisodesResp.items.map(normalizeRatedItem);
+            // ===== Shows section state =====
+            let shows_currentPage = 1;
+            let shows_sortField = 'recent';
+            let shows_sortDir = 'desc';
+            let shows_typeFilter = 'Series,Episode';
+            let shows_total = 0;
 
-            // Build sections HTML matching native Jellyfin structure
+            // Build sections HTML — Movies + Shows placeholders, then unrated placeholders
             let sectionsHTML = '<div style="padding-top: 4em;">';
-
-            if (recentMovies.length > 0) {
-                sectionsHTML += `
-                    <div class="verticalSection">
-                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Recently Rated Movies</h2>
-                        </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${buildCategoryGrid(recentMovies)}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (recentSeries.length > 0) {
-                sectionsHTML += `
-                    <div class="verticalSection">
-                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Recently Rated Shows</h2>
-                        </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${buildCategoryGrid(recentSeries)}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (recentEpisodes.length > 0) {
-                sectionsHTML += `
-                    <div class="verticalSection">
-                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Recently Rated Episodes</h2>
-                        </div>
-                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${buildCategoryGrid(recentEpisodes)}
-                        </div>
-                    </div>
-                `;
-            }
-
+            sectionsHTML += '<div id="moviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated movies...</div></div>';
+            sectionsHTML += '<div id="showsSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated shows...</div></div>';
             sectionsHTML += '</div>';
-
-            // Add placeholder for "All Rated Items" section (server-side paginated)
-            sectionsHTML += '<div id="allItemsSection"></div>';
-            // Add placeholders for unrated sections
             sectionsHTML += '<div id="unratedMoviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched movies...</div></div>';
             sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading watched shows...<br><span style="font-size: 0.85em; opacity: 0.7;">This may take a few seconds</span></div></div>';
 
@@ -2036,34 +1927,26 @@ function updateSummaryStars(rating) {
             // Initialize image fallbacks for all cards
             ratingsTabContent.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
 
-            // Render "All Rated Items" section with server-side pagination
-            const allItemsSection = document.querySelector('#allItemsSection');
+            // ===== Render Movies section (server-side paginated, sort + direction) =====
+            const moviesSection = document.querySelector('#moviesSection');
 
-            async function renderAllItemsSection(page) {
-                const offset = (page - 1) * allItems_perPage;
+            async function renderMoviesSection(page) {
+                const offset = (page - 1) * perPage;
                 const { items, total } = await fetchRatedItemsPage(
-                    offset, allItems_perPage, allItems_sortField, allItems_sortDir, allItems_typeFilter
+                    offset, perPage, movies_sortField, movies_sortDir, 'Movie'
                 );
-                allItems_total = total;
+                movies_total = total;
                 const pageItems = items.map(normalizeRatedItem);
 
-                const totalPages = Math.max(1, Math.ceil(total / allItems_perPage));
+                const totalPages = Math.max(1, Math.ceil(total / perPage));
                 const startIndex = offset + 1;
-                const endIndex = Math.min(offset + allItems_perPage, total);
-                const dirArrow = allItems_sortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
+                const endIndex = Math.min(offset + perPage, total);
+                const dirArrow = movies_sortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
 
-                const typeFilterHtml = `
-                    <select is="emby-select" class="typeFilterSelect emby-select-withcolor emby-select" style="width: auto;">
-                        <option value="all" ${allItems_typeFilter === 'all' ? 'selected' : ''}>All</option>
-                        <option value="Movie" ${allItems_typeFilter === 'Movie' ? 'selected' : ''}>Movies</option>
-                        <option value="Series" ${allItems_typeFilter === 'Series' ? 'selected' : ''}>Shows</option>
-                        <option value="Episode" ${allItems_typeFilter === 'Episode' ? 'selected' : ''}>Episodes</option>
-                    </select>`;
-
-                allItemsSection.innerHTML = `
+                moviesSection.innerHTML = `
                     <div class="verticalSection">
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">All Rated Items</h2>
+                            <h2 class="sectionTitle sectionTitle-cards">Rated Movies</h2>
                         </div>
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
@@ -2079,80 +1962,194 @@ function updateSummaryStars(rating) {
                                     </div>
                                 </div>
                             </div>
-                            ${typeFilterHtml}
                             <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                <option value="rating" ${allItems_sortField === 'rating' ? 'selected' : ''}>Rating</option>
-                                <option value="title" ${allItems_sortField === 'title' ? 'selected' : ''}>Title</option>
-                                <option value="recent" ${allItems_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                <option value="count" ${allItems_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                                <option value="rating" ${movies_sortField === 'rating' ? 'selected' : ''}>Rating</option>
+                                <option value="title" ${movies_sortField === 'title' ? 'selected' : ''}>Title</option>
+                                <option value="recent" ${movies_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
+                                <option value="count" ${movies_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
                             </select>
                             <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
                                 <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
                             </button>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated items found.</div>'}
+                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated movies found.</div>'}
                         </div>
                     </div>
                 `;
 
-                allItemsSection.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
+                moviesSection.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
                 fillCompactBadges();
-                attachRatedCardListeners(allItemsSection);
+                attachRatedCardListeners(moviesSection);
 
-                const sortSelect = allItemsSection.querySelector('.sortSelect');
+                const sortSelect = moviesSection.querySelector('.sortSelect');
                 if (sortSelect) {
                     sortSelect.addEventListener('change', (e) => {
-                        allItems_sortField = e.target.value;
-                        allItems_currentPage = 1;
-                        renderAllItemsSection(allItems_currentPage);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        movies_sortField = e.target.value;
+                        movies_currentPage = 1;
+                        renderMoviesSection(movies_currentPage);
+                        moviesSection.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
 
-                const sortDirBtn = allItemsSection.querySelector('.sortDirBtn');
+                const sortDirBtn = moviesSection.querySelector('.sortDirBtn');
                 if (sortDirBtn) {
                     sortDirBtn.addEventListener('click', () => {
-                        allItems_sortDir = allItems_sortDir === 'desc' ? 'asc' : 'desc';
-                        allItems_currentPage = 1;
-                        renderAllItemsSection(allItems_currentPage);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        movies_sortDir = movies_sortDir === 'desc' ? 'asc' : 'desc';
+                        movies_currentPage = 1;
+                        renderMoviesSection(movies_currentPage);
+                        moviesSection.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
 
-                const typeFilterSelect = allItemsSection.querySelector('.typeFilterSelect');
-                if (typeFilterSelect) {
-                    typeFilterSelect.addEventListener('change', (e) => {
-                        allItems_typeFilter = e.target.value;
-                        allItems_currentPage = 1;
-                        renderAllItemsSection(allItems_currentPage);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
-                    });
-                }
-
-                const prevBtn = allItemsSection.querySelector('.prevPageBtn');
+                const prevBtn = moviesSection.querySelector('.prevPageBtn');
                 if (prevBtn && !prevBtn.disabled) {
                     prevBtn.addEventListener('click', () => {
-                        allItems_currentPage--;
-                        renderAllItemsSection(allItems_currentPage);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        movies_currentPage--;
+                        renderMoviesSection(movies_currentPage);
+                        moviesSection.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
 
-                const nextBtn = allItemsSection.querySelector('.nextPageBtn');
+                const nextBtn = moviesSection.querySelector('.nextPageBtn');
                 if (nextBtn && !nextBtn.disabled) {
                     nextBtn.addEventListener('click', () => {
-                        allItems_currentPage++;
-                        renderAllItemsSection(allItems_currentPage);
-                        allItemsSection.scrollIntoView({ behavior: 'smooth' });
+                        movies_currentPage++;
+                        renderMoviesSection(movies_currentPage);
+                        moviesSection.scrollIntoView({ behavior: 'smooth' });
                     });
                 }
             }
 
-            // Render "All Rated Items" section (async, non-blocking)
-            renderAllItemsSection(allItems_currentPage).catch(e => {
-                console.error('[UserRatings] Error loading all items:', e);
-                if (allItemsSection) allItemsSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Error loading rated items.</div>';
+            // ===== Render Shows section (server-side paginated, sort + direction + tab sub-filter) =====
+            const showsSection = document.querySelector('#showsSection');
+
+            async function renderShowsSection(page) {
+                const offset = (page - 1) * perPage;
+                const { items, total } = await fetchRatedItemsPage(
+                    offset, perPage, shows_sortField, shows_sortDir, shows_typeFilter
+                );
+                shows_total = total;
+                const pageItems = items.map(normalizeRatedItem);
+
+                const totalPages = Math.max(1, Math.ceil(total / perPage));
+                const startIndex = offset + 1;
+                const endIndex = Math.min(offset + perPage, total);
+                const dirArrow = shows_sortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
+
+                // Tab sub-filter: All (Series+Episode) / Shows (Series) / Episodes (Episode)
+                const tabAll = shows_typeFilter === 'Series,Episode';
+                const tabShows = shows_typeFilter === 'Series';
+                const tabEpisodes = shows_typeFilter === 'Episode';
+
+                const typeTabsHtml = `
+                    <div class="showsTypeTabs" style="display:inline-flex;gap:0;">
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabAll ? 'typeTabActive' : ''}" data-type="all" style="padding:0.5em 1em;font-size:0.85em;border-radius:4px 0 0 4px;background:${tabAll ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabAll ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;cursor:pointer;">All</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabShows ? 'typeTabActive' : ''}" data-type="Series" style="padding:0.5em 1em;font-size:0.85em;border-radius:0;background:${tabShows ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabShows ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">Shows</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabEpisodes ? 'typeTabActive' : ''}" data-type="Episode" style="padding:0.5em 1em;font-size:0.85em;border-radius:0 4px 4px 0;background:${tabEpisodes ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabEpisodes ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">Episodes</button>
+                    </div>`;
+
+                showsSection.innerHTML = `
+                    <div class="verticalSection">
+                        <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
+                            <h2 class="sectionTitle sectionTitle-cards">Rated Shows</h2>
+                        </div>
+                        <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
+                            <div class="paging">
+                                <div class="listPaging">
+                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0} of ${total}</span>
+                                    <div style="display:inline-block;">
+                                        <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
+                                            <span class="material-icons arrow_back" aria-hidden="true"></span>
+                                        </button>
+                                        <button is="paper-icon-button-light" class="nextPageBtn autoSize paper-icon-button-light" ${page >= totalPages ? 'disabled' : ''}>
+                                            <span class="material-icons arrow_forward" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            ${typeTabsHtml}
+                            <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
+                                <option value="rating" ${shows_sortField === 'rating' ? 'selected' : ''}>Rating</option>
+                                <option value="title" ${shows_sortField === 'title' ? 'selected' : ''}>Title</option>
+                                <option value="recent" ${shows_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
+                                <option value="count" ${shows_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                            </select>
+                            <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
+                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated shows found.</div>'}
+                        </div>
+                    </div>
+                `;
+
+                showsSection.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
+                fillCompactBadges();
+                attachRatedCardListeners(showsSection);
+
+                const sortSelect = showsSection.querySelector('.sortSelect');
+                if (sortSelect) {
+                    sortSelect.addEventListener('change', (e) => {
+                        shows_sortField = e.target.value;
+                        shows_currentPage = 1;
+                        renderShowsSection(shows_currentPage);
+                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+
+                const sortDirBtn = showsSection.querySelector('.sortDirBtn');
+                if (sortDirBtn) {
+                    sortDirBtn.addEventListener('click', () => {
+                        shows_sortDir = shows_sortDir === 'desc' ? 'asc' : 'desc';
+                        shows_currentPage = 1;
+                        renderShowsSection(shows_currentPage);
+                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+
+                const typeTabBtns = showsSection.querySelectorAll('.typeTabBtn');
+                typeTabBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const t = this.getAttribute('data-type');
+                        if (t === 'all') shows_typeFilter = 'Series,Episode';
+                        else if (t === 'Series') shows_typeFilter = 'Series';
+                        else if (t === 'Episode') shows_typeFilter = 'Episode';
+                        shows_currentPage = 1;
+                        renderShowsSection(shows_currentPage);
+                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                    });
+                });
+
+                const prevBtn = showsSection.querySelector('.prevPageBtn');
+                if (prevBtn && !prevBtn.disabled) {
+                    prevBtn.addEventListener('click', () => {
+                        shows_currentPage--;
+                        renderShowsSection(shows_currentPage);
+                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+
+                const nextBtn = showsSection.querySelector('.nextPageBtn');
+                if (nextBtn && !nextBtn.disabled) {
+                    nextBtn.addEventListener('click', () => {
+                        shows_currentPage++;
+                        renderShowsSection(shows_currentPage);
+                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                    });
+                }
+            }
+
+            // Render Movies + Shows sections (async, non-blocking)
+            renderMoviesSection(movies_currentPage).catch(e => {
+                console.error('[UserRatings] Error loading movies section:', e);
+                if (moviesSection) moviesSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Error loading rated movies.</div>';
+            });
+            renderShowsSection(shows_currentPage).catch(e => {
+                console.error('[UserRatings] Error loading shows section:', e);
+                if (showsSection) showsSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Error loading rated shows.</div>';
             });
 
             // Fetch unrated items via server-side endpoint
@@ -2214,7 +2211,7 @@ function updateSummaryStars(rating) {
                 }
             }).then(() => {
                 fillCompactBadges();
-                attachCardHoverListeners(document.querySelector('#ratingsTab'));
+                attachRateButtonListeners(document.querySelector('#ratingsTab'));
                 attachRatedCardListeners(document.querySelector('#ratingsTab'));
             });
 
@@ -2282,7 +2279,7 @@ function updateSummaryStars(rating) {
 
                     container.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
                     fillCompactBadges();
-                    attachCardHoverListeners(container);
+                    attachRateButtonListeners(container);
 
                     const sortSel = container.querySelector('.sortSelect');
                     if (sortSel) {
