@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.12.2.9
+
+### Fixed
+
+- **Sort direction toggle in unrated sections** — The sort direction arrow in "Watched Movies — Not Yet Rated" and "Watched Shows — Not Yet Rated" sections was stuck: clicking toggled the sort but the arrow never flipped, and the direction only changed one way. Root cause: the arrow icon was hardcoded in the re-rendered HTML template, overwriting the manual DOM update. Fixed by adding `unratedSortDir` state variable and making the template read the arrow direction from state (same pattern used by Rated Movies/Shows sections).
+- **Scroll shift after filter/sort changes** — After changing sort, filter, or page in any dashboard section, the page scrolled so the section bottom was visible, pushing the sort/filter controls off-screen. Fixed by adding `block: 'start'` to all `scrollIntoView` calls so the section top (where controls are) aligns to the viewport top.
+
+---
+
 ## v1.12.2.8
 
 ### Changed

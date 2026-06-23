@@ -1986,7 +1986,7 @@ function updateSummaryStars(rating) {
                         movies_sortField = e.target.value;
                         movies_currentPage = 1;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ behavior: 'smooth' });
+                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -1996,7 +1996,7 @@ function updateSummaryStars(rating) {
                         movies_sortDir = movies_sortDir === 'desc' ? 'asc' : 'desc';
                         movies_currentPage = 1;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ behavior: 'smooth' });
+                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2005,7 +2005,7 @@ function updateSummaryStars(rating) {
                     prevBtn.addEventListener('click', () => {
                         movies_currentPage--;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ behavior: 'smooth' });
+                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2014,7 +2014,7 @@ function updateSummaryStars(rating) {
                     nextBtn.addEventListener('click', () => {
                         movies_currentPage++;
                         renderMoviesSection(movies_currentPage);
-                        moviesSection.scrollIntoView({ behavior: 'smooth' });
+                        moviesSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
             }
@@ -2093,7 +2093,7 @@ function updateSummaryStars(rating) {
                         shows_sortField = e.target.value;
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2103,7 +2103,7 @@ function updateSummaryStars(rating) {
                         shows_sortDir = shows_sortDir === 'desc' ? 'asc' : 'desc';
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2117,7 +2117,7 @@ function updateSummaryStars(rating) {
                         else if (t === 'Episode') shows_typeFilter = 'Episode';
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 });
 
@@ -2126,7 +2126,7 @@ function updateSummaryStars(rating) {
                     prevBtn.addEventListener('click', () => {
                         shows_currentPage--;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
 
@@ -2135,7 +2135,7 @@ function updateSummaryStars(rating) {
                     nextBtn.addEventListener('click', () => {
                         shows_currentPage++;
                         renderShowsSection(shows_currentPage);
-                        showsSection.scrollIntoView({ behavior: 'smooth' });
+                        showsSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
                     });
                 }
             }
@@ -2216,6 +2216,8 @@ function updateSummaryStars(rating) {
             // Helper: render an unrated section with client-side pagination (small fixed set, no server call)
             function renderUnratedSection(container, items, title) {
                 let unratedPage = 1;
+                let unratedSortDir = 'desc';
+                let unratedSortField = 'watched';
 
                 const sortUnrated = (arr, field, dir) => {
                     const d = dir === 'asc' ? 1 : -1;
@@ -2233,13 +2235,14 @@ function updateSummaryStars(rating) {
                     }
                 };
 
-                sortUnrated(items, 'watched', 'desc');
+                sortUnrated(items, unratedSortField, unratedSortDir);
 
                 function renderPage(page) {
                     const totalPages = Math.max(1, Math.ceil(items.length / perPage));
                     const startIndex = (page - 1) * perPage;
                     const endIndex = Math.min(startIndex + perPage, items.length);
                     const paginatedItems = items.slice(startIndex, endIndex);
+                    const dirArrow = unratedSortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
 
                     container.innerHTML = `
                         <div class="verticalSection">
@@ -2261,11 +2264,11 @@ function updateSummaryStars(rating) {
                                     </div>
                                 </div>
                                 <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                    <option value="watched" selected>Last Watched</option>
-                                    <option value="title">Title</option>
+                                    <option value="watched" ${unratedSortField === 'watched' ? 'selected' : ''}>Last Watched</option>
+                                    <option value="title" ${unratedSortField === 'title' ? 'selected' : ''}>Title</option>
                                 </select>
                                 <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
-                                    <span class="material-icons arrow_downward" aria-hidden="true"></span>
+                                    <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
                                 </button>
                             </div>
                             <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
@@ -2281,25 +2284,23 @@ function updateSummaryStars(rating) {
                     const sortSel = container.querySelector('.sortSelect');
                     if (sortSel) {
                         sortSel.addEventListener('change', (e) => {
-                            const field = e.target.value;
-                            sortUnrated(items, field, 'desc');
+                            unratedSortField = e.target.value;
+                            unratedSortDir = 'desc';
+                            sortUnrated(items, unratedSortField, unratedSortDir);
                             unratedPage = 1;
                             renderPage(1);
-                            container.scrollIntoView({ behavior: 'smooth' });
+                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
                     const sdb = container.querySelector('.sortDirBtn');
                     if (sdb) {
                         sdb.addEventListener('click', () => {
-                            const cur = sdb.querySelector('.material-icons').classList.contains('arrow_downward') ? 'desc' : 'asc';
-                            const newDir = cur === 'desc' ? 'asc' : 'desc';
-                            const field = container.querySelector('.sortSelect').value;
-                            sortUnrated(items, field, newDir);
-                            sdb.querySelector('.material-icons').className = 'material-icons ' + (newDir === 'desc' ? 'arrow_downward' : 'arrow_upward');
+                            unratedSortDir = unratedSortDir === 'desc' ? 'asc' : 'desc';
+                            sortUnrated(items, unratedSortField, unratedSortDir);
                             unratedPage = 1;
                             renderPage(1);
-                            container.scrollIntoView({ behavior: 'smooth' });
+                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
@@ -2308,7 +2309,7 @@ function updateSummaryStars(rating) {
                         pb.addEventListener('click', () => {
                             unratedPage--;
                             renderPage(unratedPage);
-                            container.scrollIntoView({ behavior: 'smooth' });
+                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
 
@@ -2317,7 +2318,7 @@ function updateSummaryStars(rating) {
                         nb.addEventListener('click', () => {
                             unratedPage++;
                             renderPage(unratedPage);
-                            container.scrollIntoView({ behavior: 'smooth' });
+                            container.scrollIntoView({ block: 'start', behavior: 'smooth' });
                         });
                     }
                 }
