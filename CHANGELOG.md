@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.12.3.0
+
+### New Features
+
+- **Clickable Rate Badge on Unrated Cards** — Unrated dashboard cards show a solid green "Rate" badge button. Clicking opens the rating popup directly. After rating, the badge transitions to "★ N/5". Replaces the earlier hover-to-rate overlay — improves mobile usability where hover was not discoverable.
+- **Half-Star Rating Precision** — The rating popup supports half-star precision. Click the left or right half of any star to set a `.5` value (e.g., 3.5/5).
+- **Version History Table** — Plugin settings now show a scrollable version history table with install dates. Each version installed on the server is recorded with a timestamp; the current version is highlighted.
+- **Configurable Page Size** — The "Recently Rated Items Count" setting now controls how many items are displayed per page across all dashboard sections.
+
+### Performance
+
+- **Server-Side Pagination** — The dashboard fetches only a page of items at a time from the server instead of loading all rated items at once. Eliminates multi-second load times on large libraries.
+
+### UI/UX Improvements
+
+- **Dashboard Simplification** — Replaced duplicate "Recently Rated" sections with two full-featured sections: Rated Movies and Rated Shows, each with sorting, direction toggle, and pagination. Added Watched Movies/Shows sections for not-yet-rated content.
+- **Scheduled Sync Section Reorganized** — "Enable Automatic Sync" toggle now appears first, followed by sync options, with "Sync Now" as the last element.
+- **Sync Watch History Description Clarified** — Updated to: "Sync all watch history from Plex and mark items as played in Jellyfin. This includes all movies and episodes you've watched on Plex, not just rated items."
+
+---
+
 ## v1.12.2.20
 
 ### Changed

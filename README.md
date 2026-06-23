@@ -25,6 +25,9 @@ A social rating system for Jellyfin. Rate movies, TV shows, and episodes, then b
 ### Settings — Backup, Health, Plex Import
 <img src="screenshots/settings.png" width="800">
 
+### Rating Popup with Half-Star Precision
+<img src="screenshots/rating_popup.png" width="800">
+
 ### Mobile Browser
 <img src="screenshots/rating_mobile.png" width="400">
 

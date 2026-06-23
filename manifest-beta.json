@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.3.0",
+        "changelog": "Stable release. New: clickable Rate badge on unrated cards, half-star rating precision, version history table with install dates, configurable page size. Performance: server-side pagination for large libraries. UI: dashboard simplified to Rated Movies/Shows with sorting and pagination, Scheduled Sync section reorganized, Sync Watch History description clarified.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.3.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-23T14:00:00Z"
+      },
+      {
         "version": "1.12.2.20",
         "changelog": "On browser refresh, Home tab is now shown (matching Jellyfin default for Favourites tab). Previously the tab highlight stayed on Home while User Ratings content was restored, causing inconsistent UI. Back-from-details restore is unaffected.",
         "targetAbi": "10.11.0.0",
