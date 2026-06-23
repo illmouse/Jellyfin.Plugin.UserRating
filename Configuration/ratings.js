@@ -2429,31 +2429,8 @@ function updateSummaryStars(rating) {
             }, true); // Use capture to run before Jellyfin's handler
         });
 
-            // If we were on User Ratings before a refresh, restore active highlight now.
-        // Doing this at creation time (rather than a fixed timeout) avoids races with
-        // Jellyfin's home rendering — the button gets the active class the instant it
-        // enters the DOM, and Home's default-active highlight is stripped atomically.
-        const wasUserRatings = window.location.hash.includes('home')
-            && window.history.state
-            && window.history.state.userRatingsActive;
-
-        if (wasUserRatings) {
-            tabsSlider.querySelectorAll('.emby-tab-button').forEach(tab => {
-                tab.classList.remove('emby-tab-button-active');
-            });
-            ratingsTab.classList.add('emby-tab-button-active');
-        }
-
         // Insert the tab
             tabsSlider.appendChild(ratingsTab);
-
-            // Restore ratings content atomically with the tab highlight
-            if (wasUserRatings) {
-                console.log('[UserRatings] Restoring User Ratings on injection (refresh)');
-                displayRatingsList().catch(err => {
-                    console.error('[UserRatings] Error restoring on injection:', err);
-                });
-            }
             
         } catch (error) {
             console.error('[UserRatings] Tab injection error:', error);
@@ -2464,6 +2441,20 @@ function updateSummaryStars(rating) {
     function checkAndInjectTab() {
         injectRatingsTab();
     }
+
+    // On fresh page load (browser refresh), surrender to Jellyfin's default:
+    // let the Home tab be active. Clear userRatingsActive from history state so
+    // nothing restores the User Ratings tab on refresh. In-app navigation
+    // (back from details) re-sets this flag via the tab click handler, so that
+    // flow is unaffected.
+    try {
+        if (window.history.state && window.history.state.userRatingsActive) {
+            const state = window.history.state;
+            delete state.userRatingsActive;
+            window.history.replaceState(state, '', window.location.href);
+            console.log('[UserRatings] Fresh page load — cleared userRatingsActive, Home tab wins');
+        }
+    } catch (err) { /* ignore */ }
 
     // Try immediately and repeatedly
     injectRatingsTab();

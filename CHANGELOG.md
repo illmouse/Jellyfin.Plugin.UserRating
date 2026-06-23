@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.20
+
+### Changed
+
+- **Surrender to Jellyfin default on browser refresh** — On F5 refresh, the Home tab is now shown (content and highlight), matching Jellyfin's native behaviour for the Favourites tab. Previously the plugin tried to restore the User Ratings tab content on refresh but the tab highlight stayed on Home, causing an inconsistent UI. The `userRatingsActive` history state is now cleared on fresh page load. Returning from an item details page (in-app back navigation) still restores the User Ratings tab and scroll position as before.
+
+---
+
 ## v1.12.2.19
 
 ### Fixed
