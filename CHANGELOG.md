@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.12
+
+### Changed
+
+- **Star icon on User Ratings tab restyled** — Removed inline styles from the `star_border` material icon; replaced with a CSS rule (`.emby-tab-button .material-icons`) that gives the icon proper sizing (1.25em), vertical alignment, and spacing. Added `aria-hidden="true"` for accessibility, matching Jellyfin's icon convention. The hollow star now renders at a natural icon size like other Material Icons throughout the UI.
+
+---
+
 ## v1.12.2.11
 
 ### Fixed

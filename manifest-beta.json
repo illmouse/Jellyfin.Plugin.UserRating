@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.2.12",
+        "changelog": "Restyled star icon on User Ratings tab: removed inline styles, added CSS rule for proper icon sizing (1.25em) and alignment. Star now renders like other Jellyfin Material Icons.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.12/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-23T16:00:00Z"
+      },
+      {
         "version": "1.12.2.11",
         "changelog": "Fixed: Extra spacing between tab bar and content — removed redundant padding-top:4em wrapper (libraryPage class already provides native padding). Added: Outline star icon on User Ratings tab button.",
         "targetAbi": "10.11.0.0",
