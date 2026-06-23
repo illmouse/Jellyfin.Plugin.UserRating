@@ -1911,7 +1911,7 @@ function updateSummaryStars(rating) {
             let shows_total = 0;
 
             // Build sections HTML — Movies + Shows placeholders, then unrated placeholders
-            let sectionsHTML = '<div style="padding-top: 4em;">';
+            let sectionsHTML = '<div>';
             sectionsHTML += '<div id="moviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated movies...</div></div>';
             sectionsHTML += '<div id="showsSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated shows...</div></div>';
             sectionsHTML += '</div>';
@@ -2366,7 +2366,7 @@ function updateSummaryStars(rating) {
         ratingsTab.className = 'emby-tab-button emby-button';
         ratingsTab.setAttribute('data-index', nextIndex);
         ratingsTab.setAttribute('data-ratings-tab', 'true');
-        ratingsTab.innerHTML = '<div class="emby-button-foreground">User Ratings</div>';
+        ratingsTab.innerHTML = '<div class="emby-button-foreground"><span class="material-icons" style="font-size:1em;vertical-align:middle;margin-right:0.3em;">star_border</span>User Ratings</div>';
 
         // Add click handler
         ratingsTab.addEventListener('click', async function(e) {

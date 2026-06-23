@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.12.2.11
+
+### Fixed
+
+- **Extra spacing between tab bar and Rated Movies section** — The User Ratings tab had a wider gap between the Home/Favourites/User Ratings tab bar and the first section than built-in tabs. Root cause: the `#ratingsTab` div already has class `libraryPage` which applies native Jellyfin `padding-top` (4.6em–7.5em depending on viewport) — the same mechanism used by Home/Favourites. An additional wrapper `<div style="padding-top: 4em;">` was doubling the gap. Removed the redundant inline padding; the `.libraryPage` class's native padding now handles it alone.
+
+### Added
+
+- **Star icon on User Ratings tab** — Added an outline star (`star_border` material icon) before the "User Ratings" text on the tab button, giving the tab a visual identity consistent with the plugin's rating theme.
+
+---
+
 ## v1.12.2.10
 
 ### Fixed
