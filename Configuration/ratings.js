@@ -2429,8 +2429,31 @@ function updateSummaryStars(rating) {
             }, true); // Use capture to run before Jellyfin's handler
         });
 
-            // Insert the tab
+            // If we were on User Ratings before a refresh, restore active highlight now.
+        // Doing this at creation time (rather than a fixed timeout) avoids races with
+        // Jellyfin's home rendering — the button gets the active class the instant it
+        // enters the DOM, and Home's default-active highlight is stripped atomically.
+        const wasUserRatings = window.location.hash.includes('home')
+            && window.history.state
+            && window.history.state.userRatingsActive;
+
+        if (wasUserRatings) {
+            tabsSlider.querySelectorAll('.emby-tab-button').forEach(tab => {
+                tab.classList.remove('emby-tab-button-active');
+            });
+            ratingsTab.classList.add('emby-tab-button-active');
+        }
+
+        // Insert the tab
             tabsSlider.appendChild(ratingsTab);
+
+            // Restore ratings content atomically with the tab highlight
+            if (wasUserRatings) {
+                console.log('[UserRatings] Restoring User Ratings on injection (refresh)');
+                displayRatingsList().catch(err => {
+                    console.error('[UserRatings] Error restoring on injection:', err);
+                });
+            }
             
         } catch (error) {
             console.error('[UserRatings] Tab injection error:', error);
@@ -2450,16 +2473,6 @@ function updateSummaryStars(rating) {
     setTimeout(injectRatingsTab, 2000);
     setTimeout(injectRatingsTab, 3000);
     setInterval(injectRatingsTab, 2000);
-
-    // On initial load, if history state says User Ratings was active, restore it (handles refresh)
-    setTimeout(() => {
-        if (window.location.hash.includes('home')
-            && window.history.state
-            && window.history.state.userRatingsActive) {
-            console.log('[UserRatings] Initial load - restoring User Ratings from state');
-            displayRatingsList().catch(() => {});
-        }
-    }, 800);
 
     // Watch for page changes
     window.addEventListener('hashchange', () => {

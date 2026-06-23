@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.19
+
+### Fixed
+
+- **User Ratings tab highlight after browser refresh** — On refresh, the tab content was restored but the Home tab remained marked active. The active-class highlight and content restore are now applied atomically at tab-button injection time, eliminating the timing race with Jellyfin's home rendering.
+
+---
+
 ## v1.12.2.18
 
 ### Changed
