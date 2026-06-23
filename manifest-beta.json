@@ -13,8 +13,8 @@
         "changelog": "Rate badge redesign: solid green gradient button look with border, shadow, and hover/active effects. Replaced flat transparent red label. Fully CSS-styled, no inline styles.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.8/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T12:00:00Z"
+        "checksum": "9d40292596a3b1182a207e291ecd0104",
+        "timestamp": "2026-06-23T08:05:45Z"
       },
       {
         "version": "1.12.2.7",
