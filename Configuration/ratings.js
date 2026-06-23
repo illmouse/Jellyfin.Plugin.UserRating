@@ -354,6 +354,35 @@
             }
         }
 
+        /* ===== RATE BADGE (unrated cards) ===== */
+        .rate-badge {
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 0.35em 0.8em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+            pointer-events: auto;
+            user-select: none;
+        }
+        .rate-badge:hover {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            transform: translateY(-1px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .rate-badge:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
         /* ===== COMPACT RATING BADGE (rated cards) ===== */
         .compact-rating {
             position: absolute;
@@ -950,14 +979,11 @@ function updateStarDisplay(container, rating) {
         }
 
         // Change "Rate" badge to "★ N/5" on unrated cards (has rate-badge)
-        if (card.querySelector('.rate-badge')) {
-            const unratedBadge = card.querySelector('.cardIndicators-bottomright div[style*="background"]');
-            if (unratedBadge) {
-                unratedBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
-                unratedBadge.style.cursor = 'default';
-                unratedBadge.classList.remove('rate-badge');
-                unratedBadge.removeAttribute('data-item-id');
-            }
+        const rateBadge = card.querySelector('.rate-badge');
+        if (rateBadge) {
+            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
+            rateBadge.classList.remove('rate-badge');
+            rateBadge.removeAttribute('data-item-id');
         }
 
         // Show/update the compact rating badge
@@ -1827,9 +1853,9 @@ function updateSummaryStars(rating) {
                                 </div>
                                 <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
-                                    <div class="rate-badge" data-item-id="${item.itemId}" style="background: rgba(229, 57, 53, 0.9); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em; cursor: pointer;">
+                                    <div class="rate-badge" data-item-id="${item.itemId}">
                                         <span class="material-icons" style="font-size: 0.9em;">star_border</span>
-                                        <span style="font-weight: 600; font-size: 0.9em;">Rate</span>
+                                        <span>Rate</span>
                                     </div>
                                 </div>
                             </div>

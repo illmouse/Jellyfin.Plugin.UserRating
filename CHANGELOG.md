@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.8
+
+### Changed
+
+- **Rate badge redesign** — The "Rate" badge on unrated cards now has a solid green gradient background with border, border-radius, and box-shadow — looks like a real button instead of a flat transparent label. Hover effect lifts and scales the badge slightly (web feedback), active state presses it down (tactile for touch). Removed all inline styles; badge is fully CSS-styled via `.rate-badge` class.
+
+---
+
 ## v1.12.2.7
 
 ### Changed
