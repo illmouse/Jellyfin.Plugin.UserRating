@@ -13,8 +13,8 @@
         "changelog": "Clarified Sync Watch History description: now states that all Plex watch history is synced, not just rated items.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.17/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T12:00:00Z"
+        "checksum": "1fd9da81b81bf202dda22aa9bf41c596",
+        "timestamp": "2026-06-23T12:34:53Z"
       },
       {
         "version": "1.12.2.16",
