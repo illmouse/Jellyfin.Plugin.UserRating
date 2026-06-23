@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.5
+
+### Fixed
+
+- **Build warning** — Removed unused `logger` parameter from `RatingResolver` after simplification in v1.12.2.4 eliminated all logging calls in the class.
+
+---
+
 ## v1.12.2.4
 
 ### Performance

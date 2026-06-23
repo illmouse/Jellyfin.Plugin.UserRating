@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Controller.Library;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Services;
 
 public class RatingResolver(
 RatingRepository repository,
-ILibraryManager libraryManager,
-ILogger<RatingResolver> logger)
+ILibraryManager libraryManager)
 {
     public UserRating? ResolveRating(Guid itemId, Guid userId)
     {
