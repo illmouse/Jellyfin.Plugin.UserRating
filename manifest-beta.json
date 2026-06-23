@@ -13,8 +13,8 @@
         "changelog": "Dashboard simplified: Removed duplicate Recently Rated + All Rated sections. New Rated Movies and Rated Shows sections with sorting (Rating/Title/Recently Rated/Most Ratings), pagination, and direction toggle. Shows section has tab sub-filter (All/Shows/Episodes). Unrated cards now show always-visible RATE button instead of hover star overlay (better mobile UX). AllRatedItems API typeFilter accepts comma-separated values.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.6/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T10:30:00Z"
+        "checksum": "4fff57895b18026ea61b8deb58a5a41d",
+        "timestamp": "2026-06-23T07:30:08Z"
       },
       {
         "version": "1.12.2.5",
