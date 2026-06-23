@@ -13,8 +13,8 @@
         "changelog": "Fixed User Ratings tab highlight after browser refresh. Previously the tab content was restored but Home stayed marked active. Active highlight and content are now restored atomically when the tab button is injected.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.19/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T13:00:00Z"
+        "checksum": "4bf7be20773c986ffcaf4b1fe3883fde",
+        "timestamp": "2026-06-23T14:19:16Z"
       },
       {
         "version": "1.12.2.18",
