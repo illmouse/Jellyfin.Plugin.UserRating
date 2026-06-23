@@ -341,10 +341,6 @@
                             <div class="fieldDescription">How often to sync from Plex automatically. Default is every 24 hours.</div>
                         </div>
 
-                        <div style="margin-top: 1.5em;">
-                            <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
-                        </div>
-
                         <div id="importProgress" style="display: none; margin-top: 1.5em;">
                             <h4>Sync Progress</h4>
                             <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
@@ -368,6 +364,10 @@
                                 <input type="checkbox" id="enableAutoSync" />
                                 <span>Automatically sync from Plex on a schedule</span>
                             </div>
+                        </div>
+
+                        <div style="margin-top: 1.5em;">
+                            <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
                         </div>
                     </div>
                 </div>

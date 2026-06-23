@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.2.15
+
+### Changed
+
+- **Sync Now button moved to end of Scheduled Sync** — The manual sync button now appears after the "Enable Automatic Sync" checkbox, as the last element in the Scheduled Sync section, rather than between the sync interval input and the progress bar.
+
+---
+
 ## v1.12.2.14
 
 ### Changed
