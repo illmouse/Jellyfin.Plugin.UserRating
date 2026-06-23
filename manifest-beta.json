@@ -13,8 +13,8 @@
         "changelog": "Moved Enable Automatic Sync toggle to the top of the Scheduled Sync section, before the detailed sync options.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.2.16/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-23T11:30:00Z"
+        "checksum": "948263ef5885222b7277ec7868f4d9f4",
+        "timestamp": "2026-06-23T12:27:03Z"
       },
       {
         "version": "1.12.2.15",
