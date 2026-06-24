@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.5.0
+
+### Bug Fixes
+
+- **Rating UI Not Loaded on Details→Details Navigation (Rated Items)** — Navigating from one item's details page directly to another item's details page (without returning to home) caused the user rating UI to fail to appear for items that had ratings. Container queries in `injectRatingsUI` now filter out hidden cached `#itemDetailPage` copies (Jellyfin's ring cache keeps hidden copies during details→details navigation). The MutationObserver no longer resets `isInjecting` mid-flight, which prevented a duplicate injection race that affected rated items more (slower `createRatingsUI` due to 3 sequential API calls).
+
+---
+
 ## v1.12.4.1
 
 ### Bug Fixes
