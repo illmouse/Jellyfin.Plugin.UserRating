@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.12.3.6
+
+### Bug Fixes
+
+- **Removed Scroll Position Restore** — The scroll save/restore mechanism was unreliable (saved `window.scrollY` but restore landed at top anyway due to async rendering timing). Removed all scroll-restore code for stability: back-from-details now lands at the top of the User Ratings tab, which is predictable and consistent. Stability prioritized over convenience.
+
+### Refactors
+
+- **Removed Vestigial `userRatingsDirty` Flag** — The `userRatingsDirty` sessionStorage flag had no remaining effect (the click-driven `displayRatingsList()` already fetches fresh data on every tab activation). Removed all 6 references: the 4 setter calls in rating add/delete handlers, and the reader block in the hashchange handler.
+
+---
+
 ## v1.12.3.5
 
 ### Bug Fixes

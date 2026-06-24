@@ -619,7 +619,6 @@
     let _batchQueuedIds = new Set();
     let _decorateTimer = null;
     let _userRatingsPrimed = false;
-    let _savedRatingsScroll = 0;
 
 function createStarRating(rating, interactive, onHover, onClick) {
     const container = document.createElement('div');
@@ -1087,7 +1086,6 @@ function updateStarDisplay(container, rating) {
                 const cardToAnimate = _popupCardElement;
                 closeRatePopup();
                 userRatingsMap[itemId] = { rating: selected * 2, note: note };
-                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
 
                 if (cardToAnimate) {
                     animateRatingSuccess(cardToAnimate, selected);
@@ -1114,7 +1112,6 @@ function updateStarDisplay(container, rating) {
             if (result.success) {
                 closeRatePopup();
                 if (userRatingsMap) delete userRatingsMap[itemId];
-                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
                 location.reload();
             } else {
                 alert('Error deleting rating: ' + result.message);
@@ -1388,9 +1385,7 @@ function updateStarDisplay(container, rating) {
             if (result.success) {
                 saveBtn.textContent = 'Posted!';
                 saveBtn.disabled = false;
-                
-                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
-                
+
                 await displayAllRatings(itemId, container);
                 deleteBtn.style.display = 'inline-block';
                 updateSummaryStars(currentRating);
@@ -1424,9 +1419,7 @@ function updateStarDisplay(container, rating) {
                 noteInput.value = '';
                 updateStarDisplay(starContainer, 0);
                 deleteBtn.style.display = 'none';
-                
-                try { sessionStorage.setItem('userRatingsDirty', 'true'); } catch (e) {}
-                
+
                 await displayAllRatings(itemId, container);
                 expandMyRating();
                 summaryEl.style.display = 'none';
@@ -1785,11 +1778,6 @@ function updateSummaryStars(rating) {
                 // Back from details -> programmatically click the User Ratings tab button.
                 // Jellyfin's own tab handler manages .is-active/.emby-tab-button-active.
                 console.log('[UserRatings] Restoring User Ratings tab via programmatic click');
-                // Clear dirty flag — the click-driven displayRatingsList() fetches fresh data anyway
-                if (sessionStorage.getItem('userRatingsDirty') === 'true') {
-                    sessionStorage.removeItem('userRatingsDirty');
-                    _savedRatingsScroll = 0; // Don't restore old scroll — data changed
-                }
                 setTimeout(() => {
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
@@ -1812,18 +1800,6 @@ function updateSummaryStars(rating) {
         setTimeout(injectRatingsUI, 300);
         scheduleGlobalDecorate();
     });
-
-    // Track which section the user clicks a card in, so we can restore scroll on back-navigation.
-    (function initSectionTracker() {
-        document.addEventListener('click', function urClickTracker(e) {
-            const link = e.target.closest('a[href*="details"]');
-            if (!link) return;
-            const ratingsTab = document.getElementById('ratingsTab');
-            if (!ratingsTab || !ratingsTab.contains(link)) return;
-            // Save scroll position for restore on back-navigation
-            _savedRatingsScroll = window.scrollY;
-        }, true);
-    })();
 
     // Function to display ratings list in the home page content area
     async function displayRatingsList() {
@@ -2398,14 +2374,6 @@ function updateSummaryStars(rating) {
                 }
 
                 renderPage(1);
-            }
-
-            // Restore scroll position if we saved one (back-from-details navigation).
-            // Use requestAnimationFrame to ensure the browser has finished layout before scrolling.
-            if (_savedRatingsScroll > 0) {
-                const saved = _savedRatingsScroll;
-                _savedRatingsScroll = 0;
-                requestAnimationFrame(() => window.scrollTo(0, saved));
             }
 
         } catch (error) {
