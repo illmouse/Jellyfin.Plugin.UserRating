@@ -619,6 +619,7 @@
     let _batchQueuedIds = new Set();
     let _decorateTimer = null;
     let _userRatingsPrimed = false;
+    let _savedRatingsScroll = 0;
 
 function createStarRating(rating, interactive, onHover, onClick) {
     const container = document.createElement('div');
@@ -1795,15 +1796,17 @@ function updateSummaryStars(rating) {
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
                         tabBtn.click();
                     }
-                }, 100);
 
-                // Re-fetch if there were rating changes since last visit
-                const hasChanges = sessionStorage.getItem('userRatingsDirty') === 'true';
-                if (hasChanges) {
-                    sessionStorage.removeItem('userRatingsDirty');
-                    console.log('[UserRatings] Pending rating changes detected, re-fetching data');
-                    setTimeout(() => displayRatingsList().then(() => restoreLastSection()), 200);
-                }
+                    // If there were rating changes, re-fetch after the click-triggered render
+                    // completes, then scroll to the section the user was viewing.
+                    const hasChanges = sessionStorage.getItem('userRatingsDirty') === 'true';
+                    if (hasChanges) {
+                        sessionStorage.removeItem('userRatingsDirty');
+                        _savedRatingsScroll = 0; // Don't restore old scroll — data changed
+                        console.log('[UserRatings] Pending rating changes detected, re-fetching data');
+                        setTimeout(() => displayRatingsList().then(() => restoreLastSection()), 400);
+                    }
+                }, 100);
             }
         }
         
@@ -1850,13 +1853,16 @@ function updateSummaryStars(rating) {
         poll();
     }
 
-    // Track which section the user clicks a card in, so we can return there on back-navigation
+    // Track which section the user clicks a card in, so we can return there on back-navigation.
+    // Also save scroll position so we can restore it when coming back from details.
     (function initSectionTracker() {
         document.addEventListener('click', function urClickTracker(e) {
             const link = e.target.closest('a[href*="details"]');
             if (!link) return;
             const ratingsTab = document.getElementById('ratingsTab');
             if (!ratingsTab || !ratingsTab.contains(link)) return;
+            // Save scroll position for restore on back-navigation
+            _savedRatingsScroll = ratingsTab.scrollTop;
             const section = link.closest('.verticalSection');
             if (!section) return;
             const titleEl = section.querySelector('h2.sectionTitle');
@@ -1871,24 +1877,25 @@ function updateSummaryStars(rating) {
 
     // Function to display ratings list in the home page content area
     async function displayRatingsList() {
-        // #ratingsTab is created by injectRatingsTab as a .tabContent.pageTabContent
-        // inside #indexPage. Jellyfin manages its visibility via .is-active.
-        let ratingsTabContent = document.querySelector('#ratingsTab');
-
-        if (!ratingsTabContent) {
-            // Fallback: create it if injectRatingsTab hasn't run yet
-            const indexPage = document.querySelector('#indexPage:not(.hide)') || document.querySelector('#indexPage');
-            if (!indexPage) {
-                console.error('[UserRatings] Could not find #indexPage for ratings tab');
-                return;
-            }
-            const existingCount = indexPage.querySelectorAll('.tabContent.pageTabContent').length;
-            ratingsTabContent = document.createElement('div');
-            ratingsTabContent.id = 'ratingsTab';
-            ratingsTabContent.className = 'tabContent pageTabContent';
-            ratingsTabContent.setAttribute('data-index', existingCount);
-            indexPage.appendChild(ratingsTabContent);
+        // Find the visible #indexPage — Jellyfin may have multiple cached copies,
+        // only one is visible (no .hide class). Always create #ratingsTab fresh
+        // inside the visible copy to avoid orphaning in a hidden cached page.
+        const indexPage = document.querySelector('#indexPage:not(.hide)') || document.querySelector('#indexPage');
+        if (!indexPage) {
+            console.error('[UserRatings] Could not find #indexPage for ratings tab');
+            return;
         }
+
+        // Remove any existing #ratingsTab from ALL #indexPage copies (visible or hidden)
+        document.querySelectorAll('#ratingsTab').forEach(tab => tab.remove());
+
+        // Create fresh #ratingsTab inside the visible #indexPage
+        const existingCount = indexPage.querySelectorAll('.tabContent.pageTabContent').length;
+        const ratingsTabContent = document.createElement('div');
+        ratingsTabContent.id = 'ratingsTab';
+        ratingsTabContent.className = 'tabContent pageTabContent';
+        ratingsTabContent.setAttribute('data-index', existingCount);
+        indexPage.appendChild(ratingsTabContent);
 
         // Show loading (content population — visibility is managed by Jellyfin's .is-active)
         ratingsTabContent.innerHTML = '<div style="padding: 3em 2em; text-align: center; color: rgba(255,255,255,0.6);">Loading ratings...</div>';
@@ -2443,6 +2450,12 @@ function updateSummaryStars(rating) {
                 renderPage(1);
             }
 
+            // Restore scroll position if we saved one (back-from-details navigation)
+            if (_savedRatingsScroll > 0) {
+                ratingsTabContent.scrollTop = _savedRatingsScroll;
+                _savedRatingsScroll = 0;
+            }
+
         } catch (error) {
             console.error('[UserRatings] Error displaying ratings list:', error);
             ratingsTabContent.innerHTML = `
@@ -2504,13 +2517,20 @@ function updateSummaryStars(rating) {
             // Let Jellyfin's own tab handler manage .is-active on .pageTabContent and
             // .emby-tab-button-active on buttons. We just populate the content.
             ratingsTab.addEventListener('click', async function() {
-                // Skip if already active (no refetch)
+                // Skip if already active AND #ratingsTab is visible (not orphaned in a
+                // hidden cached #indexPage). If the button is active but #ratingsTab is
+                // not visible, we must re-create it.
                 if (ratingsTab.classList.contains('emby-tab-button-active')) {
-                    return;
+                    const rt = document.querySelector('#ratingsTab');
+                    const visibleIndex = document.querySelector('#indexPage:not(.hide)');
+                    if (rt && visibleIndex && visibleIndex.contains(rt)) {
+                        return; // Already active and visible — no refetch needed
+                    }
                 }
 
                 try {
-                    // Load and display ratings list
+                    // Load and display ratings list (always creates fresh #ratingsTab
+                    // inside the visible #indexPage)
                     await displayRatingsList();
                     // Annotate current history entry so back-button restores us
                     try {
@@ -2552,22 +2572,27 @@ function updateSummaryStars(rating) {
         }
     }
 
-    // Create or ensure #ratingsTab exists as a .tabContent.pageTabContent inside #indexPage
+    // Create #ratingsTab as a .tabContent.pageTabContent inside the visible #indexPage.
+    // Removes any orphaned #ratingsTab from hidden/cached #indexPage copies first.
     function ensureRatingsTabContent() {
-        let ratingsTabContent = document.querySelector('#ratingsTab');
-        if (ratingsTabContent) return;
-
         const indexPage = document.querySelector('#indexPage:not(.hide)') || document.querySelector('#indexPage');
         if (!indexPage) return;
 
+        // Check if #ratingsTab already exists inside the visible #indexPage
+        const existing = indexPage.querySelector('#ratingsTab');
+        if (existing) return;
+
+        // Remove any orphaned #ratingsTab from other (hidden) #indexPage copies
+        document.querySelectorAll('#ratingsTab').forEach(tab => tab.remove());
+
+        // Create fresh inside the visible #indexPage
         const existingCount = indexPage.querySelectorAll('.tabContent.pageTabContent').length;
-        ratingsTabContent = document.createElement('div');
+        const ratingsTabContent = document.createElement('div');
         ratingsTabContent.id = 'ratingsTab';
         ratingsTabContent.className = 'tabContent pageTabContent';
         ratingsTabContent.setAttribute('data-index', existingCount);
-        // Hidden by default — Jellyfin's tab system adds .is-active when user clicks our tab
         indexPage.appendChild(ratingsTabContent);
-        console.log('[UserRatings] Created #ratingsTab as pageTabContent inside #indexPage');
+        console.log('[UserRatings] Created #ratingsTab as pageTabContent inside visible #indexPage');
     }
 
     // Try to inject tab on page load and navigation

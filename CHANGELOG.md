@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.3.4
+
+### Bug Fixes
+
+- **User Ratings Tab Breaks After Navigation** — The v1.12.3.3 fix made `#ratingsTab` a real `.tabContent.pageTabContent` inside `#indexPage`, but Jellyfin's `data-dom-cache` creates duplicate `#indexPage` copies during home↔details navigation. `#ratingsTab` could get trapped inside a hidden cached copy, making the tab content invisible even though the tab button showed as active. Now `displayRatingsList()` always removes any existing `#ratingsTab` from all `#indexPage` copies and creates a fresh one inside the currently visible `#indexPage`. The tab click skip-guard also checks if `#ratingsTab` is actually visible before skipping. Added scroll position save/restore so back-from-details returns the user to the exact pixel they were at.
+
+---
+
 ## v1.12.3.3
 
 ### Bug Fixes
