@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.12.4.0
+
+### Bug Fixes
+
+- **Collapsed/Ghost Pages After Navigation** — Navigating Home → item details → back → different tab left stale pages visible in the background (home bleeding through Favorites, item cards lingering, mixed overlays). The plugin now makes `#ratingsTab` a real `.tabContent.pageTabContent` inside `#indexPage`, recreates it fresh on every tab click, and lets Jellyfin's native tab system manage visibility via `.is-active`.
+
+### New Features
+
+- **Average Rating Overlay on All Cards** — `★ X.X (count)` badge on cards across all Jellyfin surfaces (library, home, collections, search). Items with no ratings show no badge.
+- **Maintained Averages Index** — Server-side `Dictionary<Guid, (Sum, Count)>` index updated on every rating mutation for O(K) batch lookups.
+- **Client-Side Average Cache** — Session-scoped LRU cache (max 500 entries) eliminates redundant batch fetches.
+- **Single-Flight Batch Coalescing** — Concurrent decoration requests coalesced into one in-flight request.
+- **New Batch Endpoint** — `POST /api/UserRatings/BatchAverage` accepts up to 100 ItemIds.
+
+---
+
 ## v1.12.3.8
 
 ### Reverts
