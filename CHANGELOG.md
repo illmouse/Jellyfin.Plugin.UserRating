@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.3.3
+
+### Bug Fixes
+
+- **Collapsed/Ghost Pages After Navigation (Root Cause Fix)** — The v1.12.3.2 fix removed page-level interference but left tab-level state broken. The real root cause was that `#ratingsTab` was a fake sibling `[data-role="page"]` overlay with `position:absolute`, and the tab button click handler called `e.preventDefault()`, blocking Jellyfin's own tab handler from deactivating `.is-active` on native `.pageTabContent` elements. This caused stale `.is-active` classes to accumulate across navigation cycles (e.g. both `homeTab` and `favoritesTab` marked active simultaneously), producing the "ghost page in background" effect. Now `#ratingsTab` is a real `.tabContent.pageTabContent` div inside `#indexPage` (just like `favoritesTab`), `e.preventDefault()` is removed, and Jellyfin's native tab system fully manages visibility via `.is-active`. Back-navigation restore uses a programmatic `.click()` on the tab button instead of manual class toggling.
+
+---
+
 ## v1.12.3.2
 
 ### Bug Fixes
