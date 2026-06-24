@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.3.5",
+        "changelog": "Fixed scroll position restore: was saving ratingsTab.scrollTop (always 0) instead of window.scrollY. Removed dead back-navigation code (restoreLastSection, popstate handler, lastVisibleSection tracking, unused variables). Merged duplicate hashchange listeners. Simplified MutationObserver options.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.3.5/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-24T08:54:21Z"
+      },
+      {
         "version": "1.12.3.4",
         "changelog": "Fixed User Ratings tab breaking after navigation. #ratingsTab was getting trapped in hidden cached #indexPage copies (Jellyfin data-dom-cache). Now always recreates #ratingsTab inside the visible #indexPage on every tab click. Added scroll position save/restore for back-from-details.",
         "targetAbi": "10.11.0.0",

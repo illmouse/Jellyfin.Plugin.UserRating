@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.12.3.5
+
+### Bug Fixes
+
+- **Scroll Position Restore Fixed** — The scroll save/restore code was using `ratingsTab.scrollTop` which was always 0 because `#ratingsTab` is not the scroll container (the window/document is, due to `#indexPage` being `position:absolute` via `.mainAnimatedPage`). Now uses `window.scrollY` for saving and `window.scrollTo()` wrapped in `requestAnimationFrame` for restoring, ensuring the browser has finished layout before scrolling.
+
+### Refactors
+
+- **Removed Dead Back-Navigation Code** — Removed `restoreLastSection()` function and `lastVisibleSection` history-state tracking (replaced by pixel-exact scroll restore). Removed redundant `popstate` handler (hashchange covers all SPA navigation). Removed unused `lastCheckedItemId` variable and `checkAndInjectTab()` wrapper. Merged duplicate hashchange listeners into one. Simplified MutationObserver options (dropped `attributes` and `characterData` that caused excessive callbacks). Simplified dirty-changes handling (the click-driven `displayRatingsList()` already fetches fresh data — no separate re-fetch needed).
+
+---
+
 ## v1.12.3.4
 
 ### Bug Fixes

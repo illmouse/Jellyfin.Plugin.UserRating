@@ -1702,7 +1702,6 @@ function updateSummaryStars(rating) {
     
     // Watch for page changes with more aggressive detection
     let lastUrl = location.href;
-    let lastCheckedItemId = null;
     new MutationObserver((mutations) => {
         const url = location.href;
         
@@ -1763,98 +1762,58 @@ function updateSummaryStars(rating) {
                 }
             }
         }
-    }).observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+    }).observe(document.body, { subtree: true, childList: true });
 
     // Initial injection - start with multiple attempts at different intervals
     setTimeout(injectRatingsUI, 100);
     setTimeout(injectRatingsUI, 300);
     setTimeout(injectRatingsUI, 600);
     
-    // Also check on hash change
+    // hashchange: handle detail-page UI removal, User Ratings tab restore, tab injection, card decoration
     window.addEventListener('hashchange', () => {
-        // Remove old UI on hash change
         const oldUI = document.getElementById('user-ratings-ui');
         if (oldUI) {
             oldUI.remove();
         }
-        
+
         const currentHash = window.location.hash;
 
         if (currentHash.includes('home')) {
-            // Back to home — check whether User Ratings was the active tab
             const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
 
             if (wasUserRatings) {
                 // Back from details -> programmatically click the User Ratings tab button.
-                // This lets Jellyfin's own tab handler manage .is-active on .pageTabContent
-                // and .emby-tab-button-active on buttons — no manual class toggling.
+                // Jellyfin's own tab handler manages .is-active/.emby-tab-button-active.
                 console.log('[UserRatings] Restoring User Ratings tab via programmatic click');
+                // Clear dirty flag — the click-driven displayRatingsList() fetches fresh data anyway
+                if (sessionStorage.getItem('userRatingsDirty') === 'true') {
+                    sessionStorage.removeItem('userRatingsDirty');
+                    _savedRatingsScroll = 0; // Don't restore old scroll — data changed
+                }
                 setTimeout(() => {
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
-                        // Remove active from all tabs so our click handler runs (skip-if-active guard)
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
                         tabBtn.click();
-                    }
-
-                    // If there were rating changes, re-fetch after the click-triggered render
-                    // completes, then scroll to the section the user was viewing.
-                    const hasChanges = sessionStorage.getItem('userRatingsDirty') === 'true';
-                    if (hasChanges) {
-                        sessionStorage.removeItem('userRatingsDirty');
-                        _savedRatingsScroll = 0; // Don't restore old scroll — data changed
-                        console.log('[UserRatings] Pending rating changes detected, re-fetching data');
-                        setTimeout(() => displayRatingsList().then(() => restoreLastSection()), 400);
                     }
                 }, 100);
             }
         }
-        
-        // Reset injection state (don't mark as navigating - let normal navigation proceed)
-        isInjecting = false;
-        injectionAttempts = 0;
-        currentItemId = null;
-        
-        // Try injection with multiple attempts
-        setTimeout(injectRatingsUI, 100);
-        setTimeout(injectRatingsUI, 300);
-    });
 
-    // Also check on popstate (browser back/forward, pushState navigation)
-    window.addEventListener('popstate', () => {
-        const oldUI = document.getElementById('user-ratings-ui');
-        if (oldUI) {
-            oldUI.remove();
-        }
-
+        // Reset injection state
         isInjecting = false;
         injectionAttempts = 0;
         currentItemId = null;
 
+        // Re-inject tab button + detail-page UI + decorate cards
+        setTimeout(injectRatingsTab, 100);
+        setTimeout(injectRatingsTab, 500);
         setTimeout(injectRatingsUI, 100);
         setTimeout(injectRatingsUI, 300);
+        scheduleGlobalDecorate();
     });
 
-    // Anchor-scroll to the section the user was last viewing (if section still exists)
-    function restoreLastSection() {
-        const title = window.history.state && window.history.state.lastVisibleSection;
-        if (!title) return;
-
-        const start = Date.now();
-        const poll = () => {
-            const h2 = Array.from(document.querySelectorAll('#ratingsTab h2.sectionTitle'))
-                .find(h => h.textContent.trim() === title);
-            if (h2) {
-                h2.scrollIntoView({ block: 'start', behavior: 'instant' });
-            } else if (Date.now() - start < 8000) {
-                requestAnimationFrame(poll);
-            }
-        };
-        poll();
-    }
-
-    // Track which section the user clicks a card in, so we can return there on back-navigation.
-    // Also save scroll position so we can restore it when coming back from details.
+    // Track which section the user clicks a card in, so we can restore scroll on back-navigation.
     (function initSectionTracker() {
         document.addEventListener('click', function urClickTracker(e) {
             const link = e.target.closest('a[href*="details"]');
@@ -1862,16 +1821,7 @@ function updateSummaryStars(rating) {
             const ratingsTab = document.getElementById('ratingsTab');
             if (!ratingsTab || !ratingsTab.contains(link)) return;
             // Save scroll position for restore on back-navigation
-            _savedRatingsScroll = ratingsTab.scrollTop;
-            const section = link.closest('.verticalSection');
-            if (!section) return;
-            const titleEl = section.querySelector('h2.sectionTitle');
-            if (!titleEl) return;
-            try {
-                const state = window.history.state || {};
-                state.lastVisibleSection = titleEl.textContent.trim();
-                window.history.replaceState(state, '', window.location.href);
-            } catch (err) {}
+            _savedRatingsScroll = window.scrollY;
         }, true);
     })();
 
@@ -2450,10 +2400,12 @@ function updateSummaryStars(rating) {
                 renderPage(1);
             }
 
-            // Restore scroll position if we saved one (back-from-details navigation)
+            // Restore scroll position if we saved one (back-from-details navigation).
+            // Use requestAnimationFrame to ensure the browser has finished layout before scrolling.
             if (_savedRatingsScroll > 0) {
-                ratingsTabContent.scrollTop = _savedRatingsScroll;
+                const saved = _savedRatingsScroll;
                 _savedRatingsScroll = 0;
+                requestAnimationFrame(() => window.scrollTo(0, saved));
             }
 
         } catch (error) {
@@ -2595,11 +2547,6 @@ function updateSummaryStars(rating) {
         console.log('[UserRatings] Created #ratingsTab as pageTabContent inside visible #indexPage');
     }
 
-    // Try to inject tab on page load and navigation
-    function checkAndInjectTab() {
-        injectRatingsTab();
-    }
-
     // On fresh page load (browser refresh), surrender to Jellyfin's default:
     // let the Home tab be active. Clear userRatingsActive from history state so
     // nothing restores the User Ratings tab on refresh. In-app navigation
@@ -2641,13 +2588,6 @@ function updateSummaryStars(rating) {
     setTimeout(decorateAllCards, 1000);
     setTimeout(decorateAllCards, 2500);
     setInterval(decorateAllCards, 3000);
-
-    // Watch for page changes
-    window.addEventListener('hashchange', () => {
-        setTimeout(injectRatingsTab, 100);
-        setTimeout(injectRatingsTab, 500);
-        scheduleGlobalDecorate();
-    });
 
     // Watch for DOM changes to inject tab and decorate cards globally
     new MutationObserver((mutations) => {
