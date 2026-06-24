@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.12.3.7
+
+### Bug Fixes
+
+- **No Reload on Back-From-Details (Common Case)** — When returning from item details to the User Ratings tab, the plugin now checks if the cached `#ratingsTab` is still present and active in the visible `#indexPage` (Jellyfin's ring cache reused the DOM). If so, it skips re-rendering — matching how Jellyfin's native tabs behave (cached content shown as-is, no flash, scroll potentially preserved). Only when the cached DOM was evicted (deep navigation, 4+ hops) does it fall back to the full re-render via programmatic tab click. Previously, every back-navigation forced a full re-render with a loading flash.
+
+### Refactors
+
+- **Tightened Skip Guard** — The tab click skip guard now checks `.is-active` on `#ratingsTab` in addition to existence and visibility. This prevents a false "already active" skip when Jellyfin resets to the Home tab on cache restore but the button still has `emby-tab-button-active`.
+
+---
+
 ## v1.12.3.6
 
 ### Bug Fixes

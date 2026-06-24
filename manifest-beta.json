@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.3.7",
+        "changelog": "Back-from-details no longer forces re-render when cached #ratingsTab is still active (common case) — matches Jellyfin native tab behavior, no flash, scroll potentially preserved. Falls back to full re-render only when ring cache evicted the DOM. Tightened skip guard to also check .is-active on #ratingsTab.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.3.7/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-24T09:53:04Z"
+      },
+      {
         "version": "1.12.3.6",
         "changelog": "Removed unreliable scroll position restore — back-from-details now lands at top of User Ratings tab for stability. Removed vestigial userRatingsDirty sessionStorage flag (no remaining effect).",
         "targetAbi": "10.11.0.0",
