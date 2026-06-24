@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.12.3.1
+
+### New Features
+
+- **Average Rating Overlay on All Cards** — A non-interactive `★ X.X (count)` average rating badge now appears on cards across all Jellyfin surfaces: library browse grids, home page suggestion rows, collections, and search results. Items with no ratings show no badge. Clicks pass through to the underlying card (badge has `pointer-events: none`).
+
+### Performance
+
+- **Maintained Averages Index** — The server now keeps a `Dictionary<Guid, (Sum, Count)>` index updated on every rating mutation (save, delete, bulk import, re-key, migration), so batch average lookups are O(K) for K requested items instead of a full scan of all ratings. The dashboard's `AllRatedItems` endpoint benefits too.
+- **Client-Side Average Cache** — Session-scoped LRU cache (max 500 entries) keyed by ItemId eliminates redundant batch fetches when navigating between pages that share items.
+- **Single-Flight Batch Coalescing** — Concurrent decoration requests (e.g. during fast scroll) are coalesced into a single in-flight `POST /api/UserRatings/BatchAverage` request, with queued IDs absorbed into the next request. Prevents request storms.
+- **New Batch Endpoint** — `POST /api/UserRatings/BatchAverage` accepts up to 100 ItemIds and returns a map of `{itemId → {averageRating, totalRatings}}`. Unrated items are omitted from the response.
+
+### Bug Fixes
+
+- **Provider Index Stale After 10-Star Migration** — `MigrateTo10StarScale` reassigned `_ratings` but never rebuilt `_providerIndex`, leaving provider-ID lookups stale post-migration. Now calls `RebuildProviderIndex()` alongside the new `RebuildAveragesIndex()`.
+
+### Refactors
+
+- **Unified Card Decoration** — Dashboard card badge injection (average badge + personal compact badge) and the new global card decoration now share a single `decorateCard`/`decorateCardsIn` code path. `buildCategoryGrid`/`buildUnratedGrid` emit plain Jellyfin `backdropCard` markup; badges are injected post-render. Removed `fillCompactBadges` and `attachRatedCardListeners` (folded into `decorateCard`).
+
+---
+
 ## v1.12.3.0
 
 ### New Features

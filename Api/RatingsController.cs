@@ -340,4 +340,36 @@ BackupService backupService) : ControllerBase
         var (migrated, skipped) = repository.MigrateTo10StarScale();
         return Ok(new MigrateResponse(true, migrated, skipped, backupPath));
     }
+
+    [HttpPost("BatchAverage")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult GetBatchAverages([FromBody] BatchAverageRequest? request)
+    {
+        if (request?.itemIds == null || request.itemIds.Count == 0)
+        {
+            return Ok(new BatchAverageResponse(true, new Dictionary<string, BatchAverageItem>()));
+        }
+
+        if (request.itemIds.Count > 100)
+        {
+            return BadRequest(new ApiResponse(false, "Too many item IDs (max 100)"));
+        }
+
+        var guids = new List<Guid>(request.itemIds.Count);
+        foreach (var id in request.itemIds)
+        {
+            if (Guid.TryParse(id, out var g))
+                guids.Add(g);
+        }
+
+        var averages = repository.GetBatchAverages(guids);
+
+        var items = new Dictionary<string, BatchAverageItem>(averages.Count);
+        foreach (var kvp in averages)
+        {
+            items[kvp.Key.ToString("N")] = new BatchAverageItem(kvp.Value.AverageRating, kvp.Value.TotalRatings);
+        }
+
+        return Ok(new BatchAverageResponse(true, items));
+    }
 }

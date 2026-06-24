@@ -101,3 +101,9 @@ public record MigrateResponse(
     int skippedCount,
     string backupPath
 );
+
+public record BatchAverageRequest(List<string> itemIds);
+
+public record BatchAverageItem(double averageRating, int totalRatings);
+
+public record BatchAverageResponse(bool success, Dictionary<string, BatchAverageItem> items);

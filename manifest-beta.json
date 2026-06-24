@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.3.1",
+        "changelog": "New: Average rating overlay on all Jellyfin cards (library browse, home, collections, search). Non-interactive badge shows star average and count. Performance: maintained server-side averages index, client cache with LRU eviction, single-flight batch fetching. Fixed: provider index going stale after 10-star migration.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.3.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-06-24T00:00:00Z"
+      },
+      {
         "version": "1.12.3.0",
         "changelog": "Stable release. New: clickable Rate badge on unrated cards, half-star rating precision, version history table with install dates, configurable page size. Performance: server-side pagination for large libraries. UI: dashboard simplified to Rated Movies/Shows with sorting and pagination, Scheduled Sync section reorganized, Sync Watch History description clarified.",
         "targetAbi": "10.11.0.0",

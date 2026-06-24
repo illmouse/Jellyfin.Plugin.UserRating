@@ -435,6 +435,29 @@
             animation: rate-success-pulse 0.6s ease-out;
         }
 
+        /* ===== AVERAGE RATING BADGE (shared across all card surfaces) ===== */
+        .ur-avg-badge {
+            background: rgba(0,0,0,0.85);
+            padding: 0.4em 0.7em;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+            pointer-events: none;
+            user-select: none;
+        }
+        .ur-avg-badge .ur-avg-star {
+            color: #ffd700;
+            font-size: 1.1em;
+        }
+        .ur-avg-badge .ur-avg-value {
+            font-weight: 600;
+        }
+        .ur-avg-badge .ur-avg-count {
+            opacity: 0.7;
+            font-size: 0.85em;
+        }
+
         /* ===== RATE POPUP MODAL ===== */
         .rate-popup-overlay {
             display: none;
@@ -588,6 +611,14 @@
     let userRatingsMap = null;
     let popupModal = null;
     let popupActiveItemId = null;
+
+    const AVG_CACHE_MAX = 500;
+    let avgCache = new Map();
+    let avgCacheOrder = [];
+    let _batchInFlight = null;
+    let _batchQueuedIds = new Set();
+    let _decorateTimer = null;
+    let _userRatingsPrimed = false;
 
 function createStarRating(rating, interactive, onHover, onClick) {
     const container = document.createElement('div');
@@ -749,6 +780,205 @@ function updateStarDisplay(container, rating) {
 
     function formatStarRating(val) {
         return val === Math.floor(val) ? val + '/5' : val.toFixed(1) + '/5';
+    }
+
+    function avgCacheGet(itemId) {
+        if (avgCache.has(itemId)) {
+            const idx = avgCacheOrder.indexOf(itemId);
+            if (idx > -1) avgCacheOrder.splice(idx, 1);
+            avgCacheOrder.push(itemId);
+            return avgCache.get(itemId);
+        }
+        return null;
+    }
+
+    function avgCacheSet(itemId, entry) {
+        if (avgCache.has(itemId)) {
+            const idx = avgCacheOrder.indexOf(itemId);
+            if (idx > -1) avgCacheOrder.splice(idx, 1);
+        } else if (avgCacheOrder.length >= AVG_CACHE_MAX) {
+            const oldest = avgCacheOrder.shift();
+            if (oldest !== undefined) avgCache.delete(oldest);
+        }
+        avgCache.set(itemId, entry);
+        avgCacheOrder.push(itemId);
+    }
+
+    async function fetchBatchAverage(itemIds) {
+        const ids = Array.from(itemIds);
+        if (ids.length === 0) return {};
+        try {
+            const resp = await fetch(ApiClient.getUrl('api/UserRatings/BatchAverage'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': ApiClient.accessToken()
+                },
+                body: JSON.stringify({ itemIds: ids })
+            });
+            if (!resp.ok) return {};
+            const data = await resp.json();
+            const map = {};
+            if (data.items) {
+                Object.keys(data.items).forEach(k => {
+                    const v = data.items[k];
+                    map[k] = { averageRating: v.averageRating, totalRatings: v.totalRatings };
+                    avgCacheSet(k, { averageRating: v.averageRating, totalRatings: v.totalRatings });
+                });
+            }
+            ids.forEach(id => {
+                if (!map[id]) {
+                    map[id] = { averageRating: 0, totalRatings: 0 };
+                    avgCacheSet(id, { averageRating: 0, totalRatings: 0 });
+                }
+            });
+            return map;
+        } catch (e) {
+            console.error('[UserRatings] Error fetching batch averages:', e);
+            return {};
+        }
+    }
+
+    function fetchBatchAverageCoalesced(itemIds) {
+        const ids = Array.from(new Set(itemIds));
+        ids.forEach(id => _batchQueuedIds.add(id));
+
+        if (_batchInFlight) {
+            return _batchInFlight.then(() => {
+                const stillQueued = Array.from(_batchQueuedIds);
+                if (stillQueued.length === 0) return {};
+                _batchQueuedIds = new Set();
+                _batchInFlight = fetchBatchAverage(stillQueued);
+                return _batchInFlight;
+            });
+        }
+
+        _batchQueuedIds = new Set();
+        _batchInFlight = fetchBatchAverage(ids);
+        return _batchInFlight;
+    }
+
+    function buildAvgBadgeHtml(rating, count) {
+        return '<div class="ur-avg-badge">' +
+            '<span class="ur-avg-star">\u2605</span>' +
+            '<span class="ur-avg-value">' + rating + '</span>' +
+            '<span class="ur-avg-count">(' + count + ')</span>' +
+        '</div>';
+    }
+
+    function decorateCard(card, info) {
+        if (!card || card.getAttribute('data-ur-decorated') === '1') return;
+
+        const scalable = card.querySelector('.cardScalable');
+        if (!scalable) return;
+
+        let indicators = scalable.querySelector('.cardIndicators.cardIndicators-bottomright');
+        if (!indicators) {
+            indicators = document.createElement('div');
+            indicators.className = 'cardIndicators cardIndicators-bottomright';
+            scalable.appendChild(indicators);
+        }
+
+        const hasAvg = info && info.averageRating && info.totalRatings > 0;
+        if (hasAvg) {
+            const rating = (info.averageRating / 2).toFixed(1);
+            if (!indicators.querySelector('.ur-avg-badge')) {
+                indicators.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
+            }
+        }
+
+        let compact = scalable.querySelector('.compact-rating');
+        const userRating = getUserRating(card.getAttribute('data-id'));
+        if (userRating) {
+            if (!compact) {
+                compact = document.createElement('div');
+                compact.className = 'compact-rating';
+                compact.dataset.empty = 'false';
+                compact.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
+                const imgContainer = scalable.querySelector('.cardImageContainer');
+                if (imgContainer && imgContainer.parentNode) {
+                    imgContainer.parentNode.insertBefore(compact, imgContainer);
+                } else {
+                    scalable.appendChild(compact);
+                }
+            }
+            compact.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+            compact.dataset.empty = 'false';
+            compact.style.display = '';
+            if (!compact._rateEditAttached) {
+                compact._rateEditAttached = true;
+                compact.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const itemId = card.getAttribute('data-id');
+                    const nameEl = card.querySelector('.cardText a');
+                    const name = nameEl ? nameEl.textContent.trim() : null;
+                    const existing = getUserRating(itemId);
+                    const r = existing ? existing.rating / 2 : 0;
+                    const note = existing ? (existing.note || '') : '';
+                    _popupCardElement = card;
+                    openRatePopup(itemId, name, r, note);
+                });
+            }
+        } else if (compact) {
+            compact.dataset.empty = 'true';
+            compact.style.display = 'none';
+        }
+
+        card.setAttribute('data-ur-decorated', '1');
+    }
+
+    function decorateCardsIn(container, averagesMap) {
+        const cards = container.querySelectorAll('.card[data-id]:not([data-ur-decorated])');
+        if (!cards.length) return;
+
+        const cached = {};
+        const needFetch = [];
+        cards.forEach(card => {
+            const id = card.getAttribute('data-id');
+            const c = avgCacheGet(id);
+            if (c) {
+                cached[id] = c;
+            } else if (averagesMap && averagesMap[id]) {
+                cached[id] = averagesMap[id];
+            } else {
+                needFetch.push(id);
+            }
+        });
+
+        Object.keys(cached).forEach(id => decorateCardById(container, id, cached[id]));
+
+        if (needFetch.length > 0) {
+            fetchBatchAverageCoalesced(needFetch).then(map => {
+                if (!map) return;
+                Object.keys(map).forEach(id => decorateCardById(container, id, map[id]));
+            });
+        }
+    }
+
+    function decorateCardById(container, itemId, info) {
+        const card = container.querySelector('.card[data-id="' + cssEscape(itemId) + '"]:not([data-ur-decorated])');
+        if (card) decorateCard(card, info);
+    }
+
+    function cssEscape(s) {
+        if (window.CSS && CSS.escape) return CSS.escape(s);
+        return String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+    }
+
+    function decorateAllCards() {
+        if (!_userRatingsPrimed) {
+            _userRatingsPrimed = true;
+            fetchUserRatings().then(() => {
+                _decorateCardsGlobal();
+            }).catch(() => _decorateCardsGlobal());
+        } else {
+            _decorateCardsGlobal();
+        }
+    }
+
+    function _decorateCardsGlobal() {
+        decorateCardsIn(document.body, null);
     }
 
     function setPopupStarFill(stars, value) {
@@ -944,29 +1174,6 @@ function updateStarDisplay(container, rating) {
         });
     }
 
-    function attachRatedCardListeners(container) {
-        const badges = container.querySelectorAll('.compact-rating');
-        badges.forEach(function(badge) {
-            if (badge._rateEditAttached) return;
-            badge._rateEditAttached = true;
-
-            badge.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const card = badge.closest('.card');
-                if (!card) return;
-                const itemId = card.getAttribute('data-id');
-                const nameEl = card.querySelector('.cardText a');
-                const name = nameEl ? nameEl.textContent.trim() : null;
-                const existing = getUserRating(itemId);
-                const rating = existing ? existing.rating / 2 : 0;
-                const note = existing ? (existing.note || '') : '';
-                _popupCardElement = card;
-                openRatePopup(itemId, name, rating, note);
-            });
-        });
-    }
-
     function animateRatingSuccess(card, rating) {
         const imageContainer = card.querySelector('.cardImageContainer');
         if (imageContainer) {
@@ -997,28 +1204,28 @@ function updateStarDisplay(container, rating) {
             compactBadge.className = 'compact-rating';
             compactBadge.dataset.empty = 'false';
             compactBadge.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value">' + rating + '/5</span><span class="cr-edit">\u270E</span>';
-            compactBadge._rateEditAttached = false;
             const imgContainer = card.querySelector('.cardImageContainer');
             if (imgContainer && imgContainer.parentNode) {
                 imgContainer.parentNode.insertBefore(compactBadge, imgContainer);
             } else {
                 card.querySelector('.cardScalable').appendChild(compactBadge);
             }
-            attachRatedCardListeners(card);
-        }
-    }
-
-    function fillCompactBadges() {
-        if (!userRatingsMap) return;
-        document.querySelectorAll('#ratingsTab .compact-rating[data-item-id]').forEach(function(badge) {
-            const itemId = badge.getAttribute('data-item-id');
-            const userRating = getUserRating(itemId);
-            if (userRating) {
-                badge.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
-                badge.dataset.empty = 'false';
-                badge.style.display = '';
+            if (!compactBadge._rateEditAttached) {
+                compactBadge._rateEditAttached = true;
+                compactBadge.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const itemId = card.getAttribute('data-id');
+                    const nameEl = card.querySelector('.cardText a');
+                    const name = nameEl ? nameEl.textContent.trim() : null;
+                    const existing = getUserRating(itemId);
+                    const r = existing ? existing.rating / 2 : 0;
+                    const note = existing ? (existing.note || '') : '';
+                    _popupCardElement = card;
+                    openRatePopup(itemId, name, r, note);
+                });
             }
-        });
+        }
     }
 
     function reInjectUI(itemId) {
@@ -1801,8 +2008,6 @@ function updateSummaryStars(rating) {
                 const itemType = details.Type || details.type;
                 const urls = getItemCardImage(itemId, seriesId, itemType);
                 const title = details.Name || details.name || 'Unknown';
-                const rating = (item.averageRating / 2).toFixed(1);
-                const count = item.totalRatings;
                 const serverId = ApiClient.serverId();
 
                 return `
@@ -1811,18 +2016,7 @@ function updateSummaryStars(rating) {
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
                                 <a href="#/details?id=${itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
-                                <div class="compact-rating" data-empty="true" data-item-id="${itemId}" style="display:none;">
-                                    <span class="cr-star">&#x2605;</span>
-                                    <span class="cr-value"></span>
-                                    <span class="cr-edit">&#x270E;</span>
-                                </div>
-                                <div class="cardIndicators cardIndicators-bottomright">
-                                    <div style="background: rgba(0,0,0,0.85); padding: 0.4em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3em;">
-                                        <span style="color: #ffd700; font-size: 1.1em;">★</span>
-                                        <span style="font-weight: 600;">${rating}</span>
-                                        <span style="opacity: 0.7; font-size: 0.85em;">(${count})</span>
-                                    </div>
-                                </div>
+                                <div class="cardIndicators cardIndicators-bottomright"></div>
                             </div>
                             <div class="cardText cardTextCentered cardText-first">
                                 <bdi>
@@ -1835,7 +2029,7 @@ function updateSummaryStars(rating) {
                 `;
             }).join('');
 
-            // Function to build unrated item cards (backdrop cards with "Unrated" badge)
+            // Function to build unrated item cards (backdrop cards with "Rate" badge)
             const buildUnratedGrid = (items) => items.map(item => {
                 const serverId = ApiClient.serverId();
                 const urls = getItemCardImage(item.itemId, item.seriesId, item.type);
@@ -1846,11 +2040,6 @@ function updateSummaryStars(rating) {
                         <div class="cardBox cardBox-bottompadded">
                             <div class="cardScalable">
                                 <div class="cardPadder cardPadder-backdrop"></div>
-                                <div class="compact-rating" data-empty="true" data-item-id="${item.itemId}" style="display:none;">
-                                    <span class="cr-star">&#x2605;</span>
-                                    <span class="cr-value"></span>
-                                    <span class="cr-edit">&#x270E;</span>
-                                </div>
                                 <a href="#/details?id=${item.itemId}&serverId=${serverId}" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="${title}" data-thumb="${urls.thumb}" data-backdrop="${urls.backdrop}" data-primary="${urls.primary}" data-fallback-step="0"></a>
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div class="rate-badge" data-item-id="${item.itemId}">
@@ -1977,8 +2166,11 @@ function updateSummaryStars(rating) {
                 `;
 
                 moviesSection.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
-                fillCompactBadges();
-                attachRatedCardListeners(moviesSection);
+                const moviesAvgMap = {};
+                pageItems.forEach(it => {
+                    if (it.itemId) moviesAvgMap[it.itemId] = { averageRating: it.averageRating, totalRatings: it.totalRatings };
+                });
+                decorateCardsIn(moviesSection, moviesAvgMap);
 
                 const sortSelect = moviesSection.querySelector('.sortSelect');
                 if (sortSelect) {
@@ -2080,8 +2272,11 @@ function updateSummaryStars(rating) {
                 `;
 
                 showsSection.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
-                fillCompactBadges();
-                attachRatedCardListeners(showsSection);
+                const showsAvgMap = {};
+                pageItems.forEach(it => {
+                    if (it.itemId) showsAvgMap[it.itemId] = { averageRating: it.averageRating, totalRatings: it.totalRatings };
+                });
+                decorateCardsIn(showsSection, showsAvgMap);
 
                 const sortSelect = showsSection.querySelector('.sortSelect');
                 if (sortSelect) {
@@ -2199,9 +2394,11 @@ function updateSummaryStars(rating) {
                     }
                 }
             }).then(() => {
-                fillCompactBadges();
-                attachRateButtonListeners(document.querySelector('#ratingsTab'));
-                attachRatedCardListeners(document.querySelector('#ratingsTab'));
+                const tab = document.querySelector('#ratingsTab');
+                if (tab) {
+                    decorateCardsIn(tab, null);
+                    attachRateButtonListeners(tab);
+                }
             });
 
             // Helper: render an unrated section with client-side pagination (small fixed set, no server call)
@@ -2269,7 +2466,7 @@ function updateSummaryStars(rating) {
                     `;
 
                     container.querySelectorAll('[data-fallback-step]').forEach(applyImageFallback);
-                    fillCompactBadges();
+                    decorateCardsIn(container, null);
                     attachRateButtonListeners(container);
 
                     const sortSel = container.querySelector('.sortSelect');
@@ -2465,15 +2662,49 @@ function updateSummaryStars(rating) {
     setTimeout(injectRatingsTab, 3000);
     setInterval(injectRatingsTab, 2000);
 
+    // Prime user ratings cache at boot so global card decoration can fill compact badges
+    fetchUserRatings().catch(() => {});
+    _userRatingsPrimed = true;
+
+    // Global card decoration — decorate cards across all Jellyfin surfaces (library, home, collections, search)
+    function scheduleGlobalDecorate() {
+        if (_decorateTimer) return;
+        _decorateTimer = setTimeout(function() {
+            _decorateTimer = null;
+            decorateAllCards();
+        }, 150);
+    }
+
+    decorateAllCards();
+    setTimeout(decorateAllCards, 300);
+    setTimeout(decorateAllCards, 1000);
+    setTimeout(decorateAllCards, 2500);
+    setInterval(decorateAllCards, 3000);
+
     // Watch for page changes
     window.addEventListener('hashchange', () => {
         setTimeout(injectRatingsTab, 100);
         setTimeout(injectRatingsTab, 500);
+        scheduleGlobalDecorate();
     });
 
-    // Watch for DOM changes to inject tab
-    new MutationObserver(() => {
+    // Watch for DOM changes to inject tab and decorate cards globally
+    new MutationObserver((mutations) => {
         injectRatingsTab();
+        let hasCard = false;
+        for (const m of mutations) {
+            if (m.addedNodes && m.addedNodes.length > 0) {
+                for (const n of m.addedNodes) {
+                    if (n.nodeType !== 1) continue;
+                    if (n.classList && (n.classList.contains('card') || n.querySelector && n.querySelector('.card[data-id]'))) {
+                        hasCard = true;
+                        break;
+                    }
+                }
+            }
+            if (hasCard) break;
+        }
+        if (hasCard) scheduleGlobalDecorate();
     }).observe(document.body, {
         subtree: true,
         childList: true

@@ -16,6 +16,7 @@ public class RatingRepository
     private readonly string _dataPath;
     private Dictionary<string, UserRating> _ratings = new();
     private Dictionary<(string provider, string id, Guid userId), string> _providerIndex = new();
+    private Dictionary<Guid, (double Sum, int Count)> _averagesByItem = new();
     private readonly object _lock = new object();
     private readonly ILogger<RatingRepository> _logger;
     private bool _loadFailed;
@@ -75,6 +76,7 @@ public class RatingRepository
                 if (!File.Exists(_dataPath))
                 {
                     _ratings = new Dictionary<string, UserRating>();
+                    _averagesByItem = new Dictionary<Guid, (double Sum, int Count)>();
                     _loadFailed = false;
                     return;
                 }
@@ -84,6 +86,7 @@ public class RatingRepository
                 if (raw == null)
                 {
                     _ratings = new Dictionary<string, UserRating>();
+                    _averagesByItem = new Dictionary<Guid, (double Sum, int Count)>();
                     _metadata = new PluginMetadata();
                     _loadFailed = false;
                     return;
@@ -157,6 +160,7 @@ public class RatingRepository
                 _logger.LogInformation("Loaded {Count} ratings from {Path}", _ratings.Count, _dataPath);
 
                 RebuildProviderIndex();
+                RebuildAveragesIndex();
 
                 UpdatePluginVersion();
             }
@@ -179,6 +183,7 @@ public class RatingRepository
                 }
 
                 _ratings = new Dictionary<string, UserRating>();
+                _averagesByItem = new Dictionary<Guid, (double Sum, int Count)>();
                 _loadFailed = true;
             }
         }
@@ -190,6 +195,37 @@ public class RatingRepository
         foreach (var kvp in _ratings)
         {
             IndexProviderIds(kvp.Key, kvp.Value);
+        }
+    }
+
+    private void RebuildAveragesIndex()
+    {
+        _averagesByItem = new Dictionary<Guid, (double Sum, int Count)>();
+        foreach (var r in _ratings.Values)
+        {
+            if (_averagesByItem.TryGetValue(r.ItemId, out var entry))
+                _averagesByItem[r.ItemId] = (entry.Sum + r.Rating, entry.Count + 1);
+            else
+                _averagesByItem[r.ItemId] = (r.Rating, 1);
+        }
+    }
+
+    private void IndexAdd(Guid itemId, int rating)
+    {
+        if (_averagesByItem.TryGetValue(itemId, out var entry))
+            _averagesByItem[itemId] = (entry.Sum + rating, entry.Count + 1);
+        else
+            _averagesByItem[itemId] = (rating, 1);
+    }
+
+    private void IndexRemove(Guid itemId, int rating)
+    {
+        if (_averagesByItem.TryGetValue(itemId, out var entry))
+        {
+            if (entry.Count <= 1)
+                _averagesByItem.Remove(itemId);
+            else
+                _averagesByItem[itemId] = (entry.Sum - rating, entry.Count - 1);
         }
     }
 
@@ -312,6 +348,8 @@ public class RatingRepository
             }
 
             _ratings = updated;
+            RebuildProviderIndex();
+            RebuildAveragesIndex();
 
             _metadata.Migrations.Add(new MigrationRecord
             {
@@ -344,9 +382,11 @@ public class RatingRepository
             if (_ratings.TryGetValue(key, out var existing))
             {
                 UnindexProviderIds(existing);
+                IndexRemove(existing.ItemId, existing.Rating);
             }
             _ratings[key] = rating;
             IndexProviderIds(key, rating);
+            IndexAdd(rating.ItemId, rating.Rating);
             SaveRatings();
         }
     }
@@ -390,6 +430,7 @@ public class RatingRepository
             if (_ratings.TryGetValue(key, out var existing))
             {
                 UnindexProviderIds(existing);
+                IndexRemove(existing.ItemId, existing.Rating);
             }
             _ratings.Remove(key);
             SaveRatings();
@@ -417,6 +458,7 @@ public class RatingRepository
         {
             _ratings.Clear();
             _providerIndex.Clear();
+            _averagesByItem.Clear();
             _loadFailed = false;
             SaveRatings();
         }
@@ -426,17 +468,37 @@ public class RatingRepository
     {
         lock (_lock)
         {
-            return _ratings.Values
-                .GroupBy(r => r.ItemId)
-                .Select(g => new RatedItemSummary
+            var lastRatedByItem = new Dictionary<Guid, DateTime>();
+            foreach (var r in _ratings.Values)
+            {
+                if (!lastRatedByItem.TryGetValue(r.ItemId, out var last) || r.Timestamp > last)
+                    lastRatedByItem[r.ItemId] = r.Timestamp;
+            }
+
+            return _averagesByItem
+                .Select(kv => new RatedItemSummary
                 {
-                    ItemId = g.Key,
-                    AverageRating = g.Average(r => r.Rating),
-                    TotalRatings = g.Count(),
-                    LastRated = g.Max(r => r.Timestamp)
+                    ItemId = kv.Key,
+                    AverageRating = kv.Value.Sum / kv.Value.Count,
+                    TotalRatings = kv.Value.Count,
+                    LastRated = lastRatedByItem.TryGetValue(kv.Key, out var last) ? last : DateTime.MinValue
                 })
                 .OrderByDescending(s => s.LastRated)
                 .ToList();
+        }
+    }
+
+    public Dictionary<Guid, (double AverageRating, int TotalRatings)> GetBatchAverages(IEnumerable<Guid> itemIds)
+    {
+        lock (_lock)
+        {
+            var result = new Dictionary<Guid, (double AverageRating, int TotalRatings)>();
+            foreach (var id in itemIds)
+            {
+                if (_averagesByItem.TryGetValue(id, out var entry) && entry.Count > 0)
+                    result[id] = (entry.Sum / entry.Count, entry.Count);
+            }
+            return result;
         }
     }
 
@@ -462,6 +524,7 @@ public class RatingRepository
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
+                        IndexAdd(rating.ItemId, rating.Rating);
                         imported++;
                         break;
 
@@ -469,10 +532,12 @@ public class RatingRepository
                         if (_ratings.TryGetValue(key, out var existingOv))
                         {
                             UnindexProviderIds(existingOv);
+                            IndexRemove(existingOv.ItemId, existingOv.Rating);
                             overwritten++;
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
+                        IndexAdd(rating.ItemId, rating.Rating);
                         imported++;
                         break;
 
@@ -482,8 +547,10 @@ public class RatingRepository
                             if (rating.Rating > existing.Rating)
                             {
                                 UnindexProviderIds(existing);
+                                IndexRemove(existing.ItemId, existing.Rating);
                                 _ratings[key] = rating;
                                 IndexProviderIds(key, rating);
+                                IndexAdd(rating.ItemId, rating.Rating);
                                 overwritten++;
                                 imported++;
                             }
@@ -496,6 +563,7 @@ public class RatingRepository
                         {
                             _ratings[key] = rating;
                             IndexProviderIds(key, rating);
+                            IndexAdd(rating.ItemId, rating.Rating);
                             imported++;
                         }
                         break;
@@ -508,6 +576,7 @@ public class RatingRepository
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
+                        IndexAdd(rating.ItemId, rating.Rating);
                         imported++;
                         break;
                 }
@@ -551,9 +620,11 @@ public class RatingRepository
                 var updated = rating with { ItemId = newItemId };
                 var newKey = GetKey(newItemId, userId);
                 UnindexProviderIds(rating);
+                IndexRemove(oldItemId, rating.Rating);
                 _ratings.Remove(oldKey);
                 _ratings[newKey] = updated;
                 IndexProviderIds(newKey, updated);
+                IndexAdd(newItemId, rating.Rating);
                 SaveRatings();
             }
         }
