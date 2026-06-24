@@ -13,8 +13,8 @@
         "changelog": "Root cause fix for collapsed/ghost pages: #ratingsTab is now a real .tabContent.pageTabContent inside #indexPage (not a sibling overlay). Removed e.preventDefault() so Jellyfin's native tab system manages .is-active. No more stale tab state accumulating across navigation cycles.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.3.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-24T07:56:07Z"
+        "checksum": "1c27e9e063c2e164742ba18f7fd35930",
+        "timestamp": "2026-06-24T07:57:03Z"
       },
       {
         "version": "1.12.3.2",
