@@ -13,8 +13,8 @@
         "changelog": "Fixed: rating UI not loaded on details-to-details navigation for rated items. Container queries now skip hidden cached page copies; isInjecting race fix for rated items.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-06-24T12:00:00Z"
+        "checksum": "9a3feef1ae5c653782b6b4d5629a26fe",
+        "timestamp": "2026-06-24T12:05:18Z"
       },
       {
         "version": "1.12.4.1",
