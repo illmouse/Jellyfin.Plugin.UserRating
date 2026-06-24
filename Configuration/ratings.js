@@ -1716,11 +1716,13 @@ function updateSummaryStars(rating) {
                 oldUI.remove();
             }
             
-            // Hide ratings tab when navigating away from home
+            // Hide ratings tab on any URL change — hashchange handler will re-show it if
+            // history.state.userRatingsActive is set on return to home.
             const ratingsTab = document.querySelector('#ratingsTab');
-            if (ratingsTab && !url.includes('#/home')) {
+            if (ratingsTab) {
                 ratingsTab.classList.remove('is-active');
                 ratingsTab.style.display = 'none';
+                ratingsTab.classList.add('hide');
             }
             
             // Reset injection state (don't mark as navigating - let normal navigation proceed)
@@ -1795,10 +1797,8 @@ function updateSummaryStars(rating) {
                 const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
 
                 if (wasUserRatings) {
-                    // Back from details -> restore User Ratings tab
+                    // Back from details -> restore User Ratings tab (don't touch Jellyfin's own pages)
                     console.log('[UserRatings] Restoring User Ratings tab (history.state.userRatingsActive)');
-                    const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
-                    if (homePage) homePage.classList.add('hide');
                     ratingsTab.classList.remove('hide');
                     ratingsTab.style.display = 'block';
 
@@ -1817,27 +1817,10 @@ function updateSummaryStars(rating) {
                         displayRatingsList().then(() => restoreLastSection());
                     }
                 } else {
-                    // Native home navigation - hide ratings, show home
-                    console.log('[UserRatings] Navigating to home - ensuring clean state');
+                    // Native home navigation — hide ratings tab, let Jellyfin reconcile its own pages
+                    console.log('[UserRatings] Navigating to home — hiding ratings tab');
                     ratingsTab.style.display = 'none';
                     ratingsTab.classList.add('hide');
-
-                    // Hide ALL pages except home
-                    const allPages = document.querySelectorAll('[data-role="page"]');
-                    allPages.forEach(page => {
-                        if (page.id === 'ratingsTab' || !page.classList.contains('homePage')) {
-                            page.classList.add('hide');
-                            page.style.display = 'none';
-                        }
-                    });
-
-                    // Show only the home page
-                    const homePage = document.querySelector('[data-role="page"].homePage:not(#ratingsTab)');
-                    if (homePage) {
-                        homePage.classList.remove('hide');
-                        homePage.style.display = '';
-                        console.log('[UserRatings] Restored home page only');
-                    }
                 }
             }
         }
@@ -1910,8 +1893,10 @@ function updateSummaryStars(rating) {
         let ratingsTabContent = document.querySelector('#ratingsTab');
         
             if (!ratingsTabContent) {
-                // Find the home page - this is the main page container
-                const homePage = document.querySelector('[data-role="page"]:not(.hide)');
+                // Find the home page — target #indexPage explicitly to avoid picking
+                // #itemDetailPage or duplicate/stale [data-role="page"] copies.
+                const homePage = document.querySelector('#indexPage')
+                    || document.querySelector('[data-role="page"].homePage');
                 
                 if (!homePage) {
                     console.error('[UserRatings] Could not find home page');
@@ -1946,12 +1931,9 @@ function updateSummaryStars(rating) {
                 homePage.parentNode.appendChild(ratingsTabContent);
             }
         
-        // Hide the home page and show ratings tab
-        const homePage = document.querySelector('[data-role="page"]:not(.hide):not(#ratingsTab)');
-        if (homePage) {
-            homePage.classList.add('hide');
-        }
-        
+        // Show ratings tab on top (absolute-positioned overlay with pointer-events:auto
+        // blocks clicks to #indexPage underneath). Don't touch #indexPage's .hide class —
+        // let Jellyfin's router manage its own page visibility.
         ratingsTabContent.classList.remove('hide');
         ratingsTabContent.style.display = 'block';
         ratingsTabContent.style.pointerEvents = 'auto';
@@ -2602,17 +2584,11 @@ function updateSummaryStars(rating) {
         const otherTabs = tabsSlider.querySelectorAll('.emby-tab-button:not([data-ratings-tab="true"])');
         otherTabs.forEach((tab, index) => {
             tab.addEventListener('click', function(e) {
-                // Hide ratings tab
+                // Hide ratings tab only — let Jellyfin's own tab handler manage #indexPage visibility
                 const ratingsTabContent = document.querySelector('#ratingsTab');
                 if (ratingsTabContent) {
                     ratingsTabContent.style.display = 'none';
                     ratingsTabContent.classList.add('hide');
-                }
-
-                // Show the home page
-                const homePage = document.querySelector('[data-role="page"].hide:not(#ratingsTab)');
-                if (homePage) {
-                    homePage.classList.remove('hide');
                 }
 
                 // Clear userRatingsActive so last-clicked native tab wins on back

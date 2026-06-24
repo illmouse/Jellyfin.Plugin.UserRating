@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.3.2
+
+### Bug Fixes
+
+- **Collapsed/Ghost Pages After Navigation** — Fixed a bug where navigating Home → item card → Home → Favorites (or User Ratings) left stale pages visible in the background: home bleeding through behind Favorites, item cards lingering behind other tabs, mixed User Ratings + item card overlays. The plugin was fighting Jellyfin's SPA router by toggling `.hide`/`display` on `[data-role="page"]` elements it didn't own, using fragile `querySelector` selectors that matched the wrong page copy after Jellyfin re-created `#indexPage` during home↔details transitions. The plugin now only manages its own `#ratingsTab` element and lets Jellyfin reconcile its own pages.
+
+---
+
 ## v1.12.3.1
 
 ### New Features
