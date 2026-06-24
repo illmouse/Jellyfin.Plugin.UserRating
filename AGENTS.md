@@ -6,11 +6,23 @@
 
 ## Referenced Instructions
 
-Documents under `llm_wiki/` contain detailed procedures that are too large to keep inline. **Only read these when they are needed** — do not load them proactively. More documents will be added over time.
+Documents under `llm_wiki/` contain detailed procedures and architecture reference for the project. **Only read these when they are needed** — do not load them proactively.
+
+### Procedures
 
 | When | Read |
 |---|---|
 | User asks to release or push a new version | [`llm_wiki/release-process.md`](llm_wiki/release-process.md) |
+
+### Architecture Reference
+
+| When working on | Read |
+|---|---|
+| Tab/navigation/page-level DOM, view caching, `#ratingsTab` or `#indexPage` | [`llm_wiki/jellyfin-spa-internals.md`](llm_wiki/jellyfin-spa-internals.md) |
+| `Configuration/ratings.js` — injection logic, event handlers, state variables | [`llm_wiki/ratings-js-architecture.md`](llm_wiki/ratings-js-architecture.md) |
+| Client-side navigation/tab/injection changes — anti-patterns and gotchas | [`llm_wiki/client-side-pitfalls.md`](llm_wiki/client-side-pitfalls.md) |
+| `Data/` or `Services/` — rating storage, provider resolution, health checks, backups | [`llm_wiki/rating-database.md`](llm_wiki/rating-database.md) |
+| `Services/PlexImportService.cs`, token encryption, progress tracking, scheduled sync | [`llm_wiki/plex-import.md`](llm_wiki/plex-import.md) |
 
 ## Build & Test
 
