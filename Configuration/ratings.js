@@ -1775,18 +1775,9 @@ function updateSummaryStars(rating) {
             const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
 
             if (wasUserRatings) {
-                // Back from details -> restore User Ratings tab.
-                // If the cached #indexPage still has #ratingsTab with .is-active,
-                // Jellyfin's ring cache reused the DOM — no click needed (like native tabs).
-                // Otherwise, the cached DOM was evicted — click the tab button to recreate.
+                // Back from details -> programmatically click the User Ratings tab button.
+                // Jellyfin's own tab handler manages .is-active/.emby-tab-button-active.
                 setTimeout(() => {
-                    const rt = document.querySelector('#ratingsTab');
-                    const visibleIndex = document.querySelector('#indexPage:not(.hide)');
-                    if (rt && visibleIndex && visibleIndex.contains(rt) && rt.classList.contains('is-active')) {
-                        console.log('[UserRatings] Cached #ratingsTab still active — skipping re-render');
-                        return;
-                    }
-                    console.log('[UserRatings] Restoring User Ratings tab via programmatic click');
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
@@ -2445,14 +2436,14 @@ function updateSummaryStars(rating) {
             // Let Jellyfin's own tab handler manage .is-active on .pageTabContent and
             // .emby-tab-button-active on buttons. We just populate the content.
             ratingsTab.addEventListener('click', async function() {
-                // Skip if already active AND #ratingsTab is visible AND has .is-active.
-                // If button is active but #ratingsTab is missing or not active (e.g.
-                // Jellyfin reset to Home tab on cache restore), we must re-create it.
+                // Skip if already active AND #ratingsTab is visible (not orphaned in a
+                // hidden cached #indexPage). If the button is active but #ratingsTab is
+                // not visible, we must re-create it.
                 if (ratingsTab.classList.contains('emby-tab-button-active')) {
                     const rt = document.querySelector('#ratingsTab');
                     const visibleIndex = document.querySelector('#indexPage:not(.hide)');
-                    if (rt && visibleIndex && visibleIndex.contains(rt) && rt.classList.contains('is-active')) {
-                        return; // Already active, visible, and active — no refetch needed
+                    if (rt && visibleIndex && visibleIndex.contains(rt)) {
+                        return; // Already active and visible — no refetch needed
                     }
                 }
 

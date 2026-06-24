@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.3.8
+
+### Reverts
+
+- **Reverted v1.12.3.7 cached-DOM-reuse experiment.** The attempt to skip re-render when `#ratingsTab` was still active in cached `#indexPage` caused multiple regressions: rating content not loaded on details page when opening from ratingsTab, Home tab marked active on return despite being on ratingsTab, Home tab click not loading content, and Favorites tab breaking after return. Reverted to v1.12.3.6 behavior: always re-render on back-from-details via programmatic tab click. Back-from-details lands at top of User Ratings tab (no scroll restore), which is stable.
+
+---
+
 ## v1.12.3.7
 
 ### Bug Fixes
