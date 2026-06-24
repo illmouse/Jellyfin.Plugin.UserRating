@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.4.1
+
+### Bug Fixes
+
+- **Rating UI Not Loaded on Details→Details Navigation (Rated Items)** — When navigating from one item's details page directly to another item's details page (without returning to home), the user rating UI failed to appear for items that had ratings. Two root causes fixed: (1) Container queries in `injectRatingsUI` used `document.querySelector()` which returns the first match in DOM order — Jellyfin keeps hidden cached `#itemDetailPage` copies with `.hide` class during details→details navigation, and the hidden copy often precedes the visible one in DOM order, causing the UI to be injected into an invisible container. Now uses `querySelectorAll` + visibility filtering (walks parent chain to check for `.hide`). (2) The MutationObserver reset `isInjecting = false` when progressive detail-page sections appeared (Cast, More Like This), which raced with the slower `createRatingsUI` for rated items (extra API calls + render time), causing duplicate or missed injections. Now guards with `!isInjecting` check before triggering re-injection.
+
+---
+
 ## v1.12.4.0
 
 ### Bug Fixes

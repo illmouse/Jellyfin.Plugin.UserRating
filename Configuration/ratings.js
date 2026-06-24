@@ -1627,34 +1627,46 @@ function updateSummaryStars(rating) {
             existingUI.remove();
         }
         
-        // Try multiple selector strategies to find the container
+        // Try multiple selector strategies to find the container.
+        // IMPORTANT: Jellyfin caches hidden #itemDetailPage copies (with .hide class)
+        // during details→details navigation. querySelector returns the first match in
+        // DOM order, which may be inside a hidden cached page. We must filter those out.
         let targetContainer = null;
-        
+
+        function isVisibleContainer(el) {
+            if (!el) return false;
+            let node = el;
+            while (node) {
+                if (node.classList && node.classList.contains('hide')) return false;
+                node = node.parentElement;
+            }
+            return true;
+        }
+
+        function findVisible(selector) {
+            const candidates = document.querySelectorAll(selector);
+            return Array.from(candidates).find(isVisibleContainer) || null;
+        }
+
         // Strategy 1: Look for .detailSection inside .detailPagePrimaryContent
-        targetContainer = document.querySelector('.detailPagePrimaryContent .detailSection');
-        
+        targetContainer = findVisible('.detailPagePrimaryContent .detailSection');
+
         // Strategy 2: Look for .detailPagePrimaryContent itself
         if (!targetContainer) {
-            const primaryContent = document.querySelector('.detailPagePrimaryContent');
-            if (primaryContent) {
-                // Check if it has children (content loaded)
-                if (primaryContent.children.length > 0) {
-                    targetContainer = primaryContent;
-                }
+            const primaryContent = findVisible('.detailPagePrimaryContent');
+            if (primaryContent && primaryContent.children.length > 0) {
+                targetContainer = primaryContent;
             }
         }
-        
+
         // Strategy 3: Look for any detail section
         if (!targetContainer) {
-            targetContainer = document.querySelector('.detailSection');
+            targetContainer = findVisible('.detailSection');
         }
-        
+
         // Strategy 4: Look for itemDetailPage
         if (!targetContainer) {
-            const detailPage = document.querySelector('.itemDetailPage .detailPageContent');
-            if (detailPage) {
-                targetContainer = detailPage;
-            }
+            targetContainer = findVisible('.itemDetailPage .detailPageContent');
         }
         
         if (!targetContainer) {
@@ -1724,7 +1736,10 @@ function updateSummaryStars(rating) {
         }
         
         // Even if URL didn't change, check if detail page content appeared
-        // This handles cases where the page loads but URL was already set
+        // This handles cases where the page loads but URL was already set.
+        // IMPORTANT: Don't reset isInjecting if injection is already in flight
+        // (createRatingsUI for rated items is slow — extra API calls + render).
+        // Resetting mid-flight causes a duplicate injection race.
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === 1) { // Element node
@@ -1734,10 +1749,11 @@ function updateSummaryStars(rating) {
                         node.classList.contains('detailSection') ||
                         node.classList.contains('itemDetailPage')
                     )) {
-                        console.log('[UserRatings] Detail page container detected, triggering injection');
-                        isInjecting = false;
-                        injectionAttempts = 0;
-                        setTimeout(injectRatingsUI, 100);
+                        if (!isInjecting) {
+                            console.log('[UserRatings] Detail page container detected, triggering injection');
+                            injectionAttempts = 0;
+                            setTimeout(injectRatingsUI, 100);
+                        }
                         return;
                     }
                     // Also check children
@@ -1746,10 +1762,11 @@ function updateSummaryStars(rating) {
                         node.querySelector('.detailSection') ||
                         node.querySelector('.itemDetailPage')
                     )) {
-                        console.log('[UserRatings] Detail page content detected in mutation, triggering injection');
-                        isInjecting = false;
-                        injectionAttempts = 0;
-                        setTimeout(injectRatingsUI, 100);
+                        if (!isInjecting) {
+                            console.log('[UserRatings] Detail page content detected in mutation, triggering injection');
+                            injectionAttempts = 0;
+                            setTimeout(injectRatingsUI, 100);
+                        }
                         return;
                     }
                 }
