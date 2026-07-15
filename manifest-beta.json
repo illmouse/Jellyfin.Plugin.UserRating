@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.0.1",
+        "changelog": "Fixed mobile card badge overlap: on narrow screens, personal and average badges now stack vertically in the top-left corner with smaller font and padding. Average badge count hidden on mobile.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.13.0.0",
         "changelog": "Detail page rating redesign: compact badge next to IMDb rating + horizontal Ratings scroller at page bottom. Visual consistency: star gold for community avg, heart red for personal rating everywhere. User avatars in rating cards. Global /10 score display. Native scroll buttons. Fixed badge injection reliability and personal rating badge race condition on home tab.",
         "targetAbi": "10.11.0.0",

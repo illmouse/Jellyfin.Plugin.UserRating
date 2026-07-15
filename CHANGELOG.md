@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.1
+
+### Fixes
+
+- **Mobile Card Badge Overlap** — On narrow mobile screens (≤480px), the personal rating badge (♥ top-left) and community average badge (★ top-right) would overlap. Both badges now stack vertically in the top-left corner on mobile, with smaller font and reduced padding. The average badge count (e.g. "(12)") is hidden on mobile to save space.
+
 ## v1.13.0.0
 
 ### Features

@@ -462,6 +462,35 @@
             font-size: 0.85em;
         }
 
+        /* ===== MOBILE: stack badges top-left, shrink ===== */
+        @media (max-width: 480px) {
+            .compact-rating {
+                font-size: 0.65em;
+                padding: 0.15em 0.35em;
+                gap: 0.15em;
+            }
+            .compact-rating .cr-heart {
+                font-size: 1em;
+            }
+            .compact-rating .cr-value {
+                font-size: 0.9em;
+            }
+            .ur-avg-badge {
+                top: 2.4em;
+                right: auto;
+                left: 0.4em;
+                font-size: 0.6em;
+                padding: 0.15em 0.35em;
+                gap: 0.2em;
+            }
+            .ur-avg-badge .ur-avg-star {
+                font-size: 1em;
+            }
+            .ur-avg-badge .ur-avg-count {
+                display: none;
+            }
+        }
+
         /* ===== DETAIL PAGE RATING BADGE (next to IMDb rating) ===== */
         .ur-detail-badge {
             cursor: pointer;
