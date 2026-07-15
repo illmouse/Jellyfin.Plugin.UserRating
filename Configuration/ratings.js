@@ -450,8 +450,8 @@
             pointer-events: none;
             user-select: none;
         }
-        /* When personal badge present, stack avg below it */
-        .card[data-ur-has-personal="1"] .ur-avg-badge {
+        /* When personal badge present, stack it below avg */
+        .card[data-ur-has-avg="1"] .compact-rating {
             top: 2.2em;
         }
         .ur-avg-badge .ur-avg-star {
@@ -490,7 +490,7 @@
             .ur-avg-badge .ur-avg-count {
                 display: none;
             }
-            .card[data-ur-has-personal="1"] .ur-avg-badge {
+            .card[data-ur-has-avg="1"] .compact-rating {
                 top: 2.4em;
             }
         }
@@ -1166,16 +1166,18 @@ function updateStarDisplay(container, rating) {
 
         const hasAvg = info && info.averageRating && info.totalRatings > 0;
         if (hasAvg) {
+            card.setAttribute('data-ur-has-avg', '1');
             const rating = info.averageRating.toFixed(1);
             if (!scalable.querySelector('.ur-avg-badge')) {
                 scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
             }
+        } else {
+            card.removeAttribute('data-ur-has-avg');
         }
 
         let compact = scalable.querySelector('.compact-rating');
         const userRating = getUserRating(card.getAttribute('data-id'));
         if (userRating) {
-            card.setAttribute('data-ur-has-personal', '1');
             if (!compact) {
                 compact = document.createElement('div');
                 compact.className = 'compact-rating';
@@ -1209,9 +1211,6 @@ function updateStarDisplay(container, rating) {
         } else if (compact) {
             compact.dataset.empty = 'true';
             compact.style.display = 'none';
-            card.removeAttribute('data-ur-has-personal');
-        } else {
-            card.removeAttribute('data-ur-has-personal');
         }
 
         card.setAttribute('data-ur-decorated', '1');
@@ -1493,10 +1492,8 @@ function updateStarDisplay(container, rating) {
                 compactBadge.dataset.empty = 'true';
                 compactBadge.style.display = 'none';
             }
-            card.removeAttribute('data-ur-has-personal');
             return;
         }
-        card.setAttribute('data-ur-has-personal', '1');
         if (compactBadge) {
             compactBadge.querySelector('.cr-value').textContent = (rating * 2) + '/10';
             compactBadge.dataset.empty = 'false';
@@ -2830,7 +2827,6 @@ function updateStarDisplay(container, rating) {
             const itemId = card.getAttribute('data-id');
             const userRating = getUserRating(itemId);
             if (userRating) {
-                card.setAttribute('data-ur-has-personal', '1');
                 if (!compact) {
                     const c = document.createElement('div');
                     c.className = 'compact-rating';

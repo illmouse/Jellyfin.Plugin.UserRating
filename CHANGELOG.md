@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.3
+
+### Changes
+
+- **Badge Stacking Order** — Swapped: community average (★) now appears on top, personal rating (♥) below. Uses `data-ur-has-avg` attribute to position the personal badge at `top:2.2em` when an avg badge is present. Right corner remains free for Jellyfin's watched checkmark.
+
 ## v1.13.0.2
 
 ### Fixes
