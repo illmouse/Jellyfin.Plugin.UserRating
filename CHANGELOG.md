@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.12.5.6 (beta)
+
+### Improvements
+
+- **Visual Consistency** — Unified icon language across all surfaces: ★ gold for community average, ♥ red for personal rating. Removed the person icon from the detail badge. Card personal badges now use ♥ red (was ★ gold). Card average badges moved to top-right corner.
+- **RATE Text Color** — "RATE" CTA text in the detail badge now uses default text color instead of red, keeping it unobtrusive.
+- **User Avatars** — Rating cards and the rating details popup now display user avatars fetched from the Jellyfin API (`Users/{userId}/Images/Primary`). Falls back to letter initials when the user has no avatar or the userId is from a Plex import.
+
+---
+
 ## v1.12.5.5 (beta)
 
 ### Fixes

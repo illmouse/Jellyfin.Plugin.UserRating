@@ -403,8 +403,8 @@
         .compact-rating:hover {
             background: rgba(0,0,0,0.9);
         }
-        .compact-rating .cr-star {
-            color: #ffd700;
+        .compact-rating .cr-heart {
+            color: #e53935;
             font-size: 1.1em;
         }
         .compact-rating .cr-value {
@@ -437,6 +437,10 @@
 
         /* ===== AVERAGE RATING BADGE (shared across all card surfaces) ===== */
         .ur-avg-badge {
+            position: absolute;
+            top: 0.4em;
+            right: 0.4em;
+            z-index: 3;
             background: rgba(0,0,0,0.85);
             padding: 0.4em 0.7em;
             border-radius: 4px;
@@ -478,11 +482,6 @@
             color: #ffd700;
             font-size: 1em;
         }
-        .ur-detail-badge .ur-db-person {
-            color: var(--highlightOutlineColor, #00a4dc);
-            font-size: 1.1em;
-            line-height: 1;
-        }
         .ur-detail-badge .ur-db-mine {
             color: inherit;
             font-weight: 600;
@@ -501,7 +500,6 @@
         }
         .ur-detail-badge:hover .ur-db-rate {
             opacity: 1;
-            color: var(--highlightOutlineColor, #00a4dc);
         }
 
         /* ===== RATINGS SECTION (bottom of detail page, Cast/Similar style) ===== */
@@ -586,6 +584,13 @@
             font-weight: 600;
             font-size: 0.9em;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+        #urRatingsCollapsible .ur-rc-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
         #urRatingsCollapsible .ur-rc-name {
             font-weight: 600;
@@ -662,6 +667,13 @@
             justify-content: center;
             font-weight: 600;
             font-size: 1em;
+            overflow: hidden;
+        }
+        .ur-rating-details-popup .ur-rdp-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
         .ur-rating-details-popup .ur-rdp-name {
             font-weight: 600;
@@ -1108,18 +1120,11 @@ function updateStarDisplay(container, rating) {
         const scalable = card.querySelector('.cardScalable');
         if (!scalable) return;
 
-        let indicators = scalable.querySelector('.cardIndicators.cardIndicators-bottomright');
-        if (!indicators) {
-            indicators = document.createElement('div');
-            indicators.className = 'cardIndicators cardIndicators-bottomright';
-            scalable.appendChild(indicators);
-        }
-
         const hasAvg = info && info.averageRating && info.totalRatings > 0;
         if (hasAvg) {
             const rating = info.averageRating.toFixed(1);
-            if (!indicators.querySelector('.ur-avg-badge')) {
-                indicators.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
+            if (!scalable.querySelector('.ur-avg-badge')) {
+                scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
             }
         }
 
@@ -1130,7 +1135,7 @@ function updateStarDisplay(container, rating) {
                 compact = document.createElement('div');
                 compact.className = 'compact-rating';
                 compact.dataset.empty = 'false';
-                compact.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
+                compact.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
                 const imgContainer = scalable.querySelector('.cardImageContainer');
                 if (imgContainer && imgContainer.parentNode) {
                     imgContainer.parentNode.insertBefore(compact, imgContainer);
@@ -1429,10 +1434,10 @@ function updateStarDisplay(container, rating) {
             }, 700);
         }
 
-        // Change "Rate" badge to "★ N/10" on unrated cards (has rate-badge)
+        // Change "Rate" badge to "♥ N/10" on unrated cards (has rate-badge)
         const rateBadge = card.querySelector('.rate-badge');
         if (rateBadge) {
-            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + (rating * 2) + '/10</span>';
+            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#e53935;">\u2665 ' + (rating * 2) + '/10</span>';
             rateBadge.classList.remove('rate-badge');
             rateBadge.removeAttribute('data-item-id');
         }
@@ -1455,7 +1460,7 @@ function updateStarDisplay(container, rating) {
             compactBadge = document.createElement('div');
             compactBadge.className = 'compact-rating';
             compactBadge.dataset.empty = 'false';
-            compactBadge.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value">' + (rating * 2) + '/10</span><span class="cr-edit">\u270E</span>';
+            compactBadge.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value">' + (rating * 2) + '/10</span><span class="cr-edit">\u270E</span>';
             const imgContainer = card.querySelector('.cardImageContainer');
             if (imgContainer && imgContainer.parentNode) {
                 imgContainer.parentNode.insertBefore(compactBadge, imgContainer);
@@ -1500,11 +1505,11 @@ function updateStarDisplay(container, rating) {
     function buildDetailBadgeHtml(avg, totalRatings, myRating) {
         const myVal = myRating ? (myRating.rating / 2) : 0;
         const avgStr = avg > 0 ? avg.toFixed(1) : null;
-        const personIcon = '<span class="material-icons ur-db-person">person</span>';
+        const starIcon = '<span class="ur-db-star">\u2605</span>';
         const heart = '<span class="ur-db-heart">\u2665</span>';
         if (myRating && myVal > 0) {
             if (avgStr) {
-                return personIcon +
+                return starIcon +
                     '<span class="ur-db-avg">' + avgStr + '</span>' +
                     '<span class="ur-db-sep">\u00B7</span>' +
                     heart +
@@ -1514,7 +1519,7 @@ function updateStarDisplay(container, rating) {
                 '<span class="ur-db-mine">' + formatStarRating(myVal) + '</span>';
         }
         if (avgStr) {
-            return personIcon +
+            return starIcon +
                 '<span class="ur-db-avg">' + avgStr + '</span>' +
                 '<span class="ur-db-sep">\u00B7</span>' +
                 heart +
@@ -1587,6 +1592,25 @@ function updateStarDisplay(container, rating) {
 
     // ===== DETAIL PAGE: RATINGS SECTION AT BOTTOM (Cast/Similar style) =====
 
+    function setUserAvatar(avatarEl, userId, userName) {
+        var letter = (userName.charAt(0) || '?').toUpperCase();
+        avatarEl.textContent = letter;
+        if (userId) {
+            var img = document.createElement('img');
+            img.alt = userName || '';
+            img.src = ApiClient.getUrl('Users/' + userId + '/Images/Primary',
+                { maxwidth: 64, maxheight: 64, quality: 80 }) +
+                '&api_key=' + ApiClient.accessToken();
+            img.onload = function() {
+                avatarEl.textContent = '';
+                avatarEl.appendChild(img);
+            };
+            img.onerror = function() {
+                avatarEl.textContent = letter;
+            };
+        }
+    }
+
     function buildRatingCard(rating, currentUserId) {
         const userName = rating.userName || rating.UserName || 'Unknown User';
         const ratingValue = rating.rating || rating.Rating || 0;
@@ -1605,7 +1629,7 @@ function updateStarDisplay(container, rating) {
 
         const avatar = document.createElement('div');
         avatar.className = 'ur-rc-avatar';
-        avatar.textContent = (userName.charAt(0) || '?').toUpperCase();
+        setUserAvatar(avatar, userId, userName);
         header.appendChild(avatar);
 
         const name = document.createElement('span');
@@ -1642,7 +1666,7 @@ function updateStarDisplay(container, rating) {
         card.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            openRatingDetailsPopup({ userName: userName, rating: ratingValue, note: noteText, timestamp: timestamp });
+            openRatingDetailsPopup({ userName: userName, userId: userId, rating: ratingValue, note: noteText, timestamp: timestamp });
         });
         return card;
     }
@@ -1741,9 +1765,10 @@ function updateStarDisplay(container, rating) {
         const ratingValue = rating.rating || rating.Rating || 0;
         const noteText = rating.note || rating.Note || '';
         const timestamp = rating.timestamp || rating.Timestamp;
+        const userId = rating.userId || rating.UserId || '';
 
         _detailsPopup.querySelector('.ur-rdp-name').textContent = userName;
-        _detailsPopup.querySelector('.ur-rdp-avatar').textContent = (userName.charAt(0) || '?').toUpperCase();
+        setUserAvatar(_detailsPopup.querySelector('.ur-rdp-avatar'), userId, userName);
         var fullStars = Math.floor(ratingValue / 2);
         var hasHalf = ratingValue % 2 === 1;
         var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);

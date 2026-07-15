@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.5.6",
+        "changelog": "Visual consistency: star gold for community average and heart red for personal rating across all surfaces. User avatars now shown in rating cards and details popup with letter fallback. RATE text uses default color.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.6/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.12.5.5",
         "changelog": "Fixed badge not loading intermittently on movie detail pages (timing race). Retry gate now waits for starRatingContainer. Fallback append when star rating missing. Success validation retries if badge absent after injection. Ratings section now has emby-scroller-container class.",
         "targetAbi": "10.11.0.0",
