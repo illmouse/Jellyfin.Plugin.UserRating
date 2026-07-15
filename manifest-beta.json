@@ -13,8 +13,8 @@
         "changelog": "Fixed card badge overlap (em unit mismatch), badge positioning (avg top-left, personal below), and badge cleanup (removed edit icon, ratings count, /10 suffix on cards, aligned badge sizes).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.1.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-16T00:00:00Z"
+        "checksum": "c04a4cd995886ae895980d2b911f9ee5",
+        "timestamp": "2026-07-15T17:13:59Z"
       },
       {
         "version": "1.13.0.7",
