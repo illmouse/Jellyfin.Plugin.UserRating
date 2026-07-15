@@ -13,8 +13,8 @@
         "changelog": "Moved average rating badge from top-right to top-left on all screens, stacking below personal rating badge. Right corner now free for Jellyfin watched checkmark icon.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.2/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-15T00:00:00Z"
+        "checksum": "fe8d646247f1e4c9b4274ab21baf03c1",
+        "timestamp": "2026-07-15T16:23:19Z"
       },
       {
         "version": "1.13.0.1",
