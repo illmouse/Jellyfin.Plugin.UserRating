@@ -13,8 +13,8 @@
         "changelog": "Global /10 rating scale (5-star visual preserved, scores show /10). Heart icon now red, person icon now gold. Fixed popup showing Post Rating on already-rated items (async loadMyRating). Fixed ratings section crash on details-to-details navigation (replaced emby-scroller/emby-itemscontainer web components with plain divs). Scroll buttons now gray out at start/end.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-15T00:00:00Z"
+        "checksum": "218c975ff5a7aafd063acbe0c6eb4b74",
+        "timestamp": "2026-07-15T13:25:39Z"
       },
       {
         "version": "1.12.5.2",
