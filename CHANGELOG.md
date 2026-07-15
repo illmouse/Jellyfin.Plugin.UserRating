@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.13.1.0
+
+### Fixes
+
+- **Card Badge Overlap** — Fixed root cause of personal rating badge overlapping the average rating badge on cards: em unit mismatch between `.compact-rating` (font-size:0.8em) and `.ur-avg-badge` (no font-size). Both badges now share the same em context.
+- **Card Badge Positioning** — Moved community average badge to top-left on all screens, stacking personal rating below it. Right corner freed for Jellyfin's watched checkmark icon. Mobile badges shrink and stack with reduced gap.
+- **Card Badge Cleanup** — Removed edit icon from personal rating badge (hover background remains on desktop). Removed ratings count from average rating badge. Removed /10 suffix from personal rating on card badges. Aligned both badges to identical padding, gap, and border-radius.
+
 ## v1.13.0.7
 
 ### Changes

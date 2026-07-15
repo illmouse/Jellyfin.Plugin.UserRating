@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.1.0",
+        "changelog": "Fixed card badge overlap (em unit mismatch), badge positioning (avg top-left, personal below), and badge cleanup (removed edit icon, ratings count, /10 suffix on cards, aligned badge sizes).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.1.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-16T00:00:00Z"
+      },
+      {
         "version": "1.13.0.7",
         "changelog": "Card badge cleanup: removed edit icon from personal badge, removed ratings count from avg badge, removed /10 suffix from personal rating on cards, aligned badge sizes, reduced mobile gap between badges.",
         "targetAbi": "10.11.0.0",
