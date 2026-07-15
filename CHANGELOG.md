@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.12.5.4 (beta)
+
+### Fixes
+
+- **Person Icon Color** — The community-average person icon is now blue/teal (`var(--highlightOutlineColor, #00a4dc)`) instead of gold, providing better visual distinction from the gold ★ used for the public IMDb rating.
+- **Rating Number Color** — The numeric score after the heart (♥) now uses the default page text color (`inherit`) instead of red. The heart itself stays red; only the number changes.
+- **Ratings Title-to-Cards Gap** — Reduced the margin between the "Ratings" section title and the card scroller from `0.8em` to `0.4em` to match native Cast/Similar section spacing.
+
+### Improvements
+
+- **Native Scroll Button Styling** — Scroll buttons in the Ratings section now use native Jellyfin styling (`paper-icon-button-light` class: transparent background, circular, Material Icons `chevron_left`/`chevron_right`). Buttons sit inline with the `h2` title in the same row (flat siblings, not a nested wrapper), matching the Cast & Crew and More Like This sections above.
+
+---
+
 ## v1.12.5.3 (beta)
 
 ### Fixes

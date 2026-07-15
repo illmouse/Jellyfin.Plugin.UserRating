@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.5.4",
+        "changelog": "Badge color fixes: person icon now blue/teal (accent color), rating number after heart uses default text color (was red). Reduced gap between Ratings title and cards. Scroll buttons now match native Jellyfin styling (paper-icon-button-light, chevron icons, transparent bg) and sit inline with the h2 title row.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.4/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.12.5.3",
         "changelog": "Global /10 rating scale (5-star visual preserved, scores show /10). Heart icon now red, person icon now gold. Fixed popup showing Post Rating on already-rated items (async loadMyRating). Fixed ratings section crash on details-to-details navigation (replaced emby-scroller/emby-itemscontainer web components with plain divs). Scroll buttons now gray out at start/end.",
         "targetAbi": "10.11.0.0",

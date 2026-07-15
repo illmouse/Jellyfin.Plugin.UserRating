@@ -479,12 +479,12 @@
             font-size: 1em;
         }
         .ur-detail-badge .ur-db-person {
-            color: #ffd700;
+            color: var(--highlightOutlineColor, #00a4dc);
             font-size: 1.1em;
             line-height: 1;
         }
         .ur-detail-badge .ur-db-mine {
-            color: #e53935;
+            color: inherit;
             font-weight: 600;
         }
         .ur-detail-badge .ur-db-heart {
@@ -506,7 +506,12 @@
 
         /* ===== RATINGS SECTION (bottom of detail page, Cast/Similar style) ===== */
         #urRatingsCollapsible .sectionTitle {
-            margin-bottom: 0.8em;
+            margin-bottom: 0.4em;
+        }
+        #urRatingsCollapsible .emby-scrollbuttons {
+            display: inline-flex;
+            vertical-align: middle;
+            padding-top: .4em;
         }
         #urRatingsCollapsible .ur-scroller {
             overflow-x: auto;
@@ -519,28 +524,30 @@
             white-space: nowrap;
         }
         #urRatingsCollapsible .ur-scroll-btn {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: var(--textColor, #fff);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: inline-flex;
+            -webkit-align-items: center;
             align-items: center;
-            justify-content: center;
+            background: transparent;
+            border: 0;
+            border-radius: 50%;
+            box-sizing: border-box;
+            color: inherit;
             cursor: pointer;
-            transition: opacity 0.15s, background 0.15s;
-            font-size: 1.2em;
-            line-height: 1;
-            padding: 0;
+            display: inline-flex;
+            font-family: inherit;
+            font-size: inherit;
+            margin: 0 .29em;
+            padding: .556em;
+            outline: none !important;
+            overflow: hidden;
         }
-        #urRatingsCollapsible .ur-scroll-btn:hover:not(:disabled) {
-            background: rgba(255,255,255,0.16);
+        #urRatingsCollapsible .ur-scroll-btn .material-icons {
+            font-size: 1.6695652174em;
+            vertical-align: middle;
         }
         #urRatingsCollapsible .ur-scroll-btn:disabled,
         #urRatingsCollapsible .ur-scroll-btn.is-disabled {
-            opacity: 0.3;
             cursor: default;
+            opacity: .3;
         }
         #urRatingsCollapsible .ur-rating-card {
             width: 220px;
@@ -1659,24 +1666,24 @@ function updateStarDisplay(container, rating) {
         h2.textContent = 'Ratings';
         section.appendChild(h2);
 
-        // Plain scroll buttons (no emby web component — avoids addScrollEventListener crash)
-        const btnRow = document.createElement('div');
-        btnRow.style.cssText = 'display:flex;justify-content:flex-end;gap:0.4em;margin-bottom:0.6em;';
+        // Native-faithful scroll buttons (flat sibling after h2, not a nested row)
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'emby-scrollbuttons padded-right';
         const leftBtn = document.createElement('button');
         leftBtn.type = 'button';
-        leftBtn.className = 'ur-scroll-btn';
+        leftBtn.className = 'ur-scroll-btn emby-scrollbuttons-button paper-icon-button-light';
         leftBtn.setAttribute('data-direction', 'left');
-        leftBtn.title = 'Scroll left';
+        leftBtn.title = 'Previous';
         leftBtn.innerHTML = '<span class="material-icons chevron_left" aria-hidden="true"></span>';
         const rightBtn = document.createElement('button');
         rightBtn.type = 'button';
-        rightBtn.className = 'ur-scroll-btn';
+        rightBtn.className = 'ur-scroll-btn emby-scrollbuttons-button paper-icon-button-light';
         rightBtn.setAttribute('data-direction', 'right');
-        rightBtn.title = 'Scroll right';
+        rightBtn.title = 'Next';
         rightBtn.innerHTML = '<span class="material-icons chevron_right" aria-hidden="true"></span>';
-        btnRow.appendChild(leftBtn);
-        btnRow.appendChild(rightBtn);
-        section.appendChild(btnRow);
+        btnContainer.appendChild(leftBtn);
+        btnContainer.appendChild(rightBtn);
+        section.appendChild(btnContainer);
 
         // Plain scroller (no is="emby-scroller"/is="emby-itemscontainer")
         const scroller = document.createElement('div');
