@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.13.0.0
+
+### Features
+
+- **Detail Page Rating Redesign** — Replaced the tall inline rating panel with a compact badge next to the IMDb rating and a horizontal "Ratings" scroller at the bottom of the detail page (mimicking Cast & Crew / More Like This sections). Click a community rating card to see the full review in a popup.
+- **Visual Consistency** — Unified icon language across all surfaces: ★ gold for community average, ♥ red for personal rating. Card average badges in top-right corner, personal badges in top-left.
+- **User Avatars** — Rating cards and the rating details popup now display user avatars from the Jellyfin API with letter-initial fallback.
+- **Global /10 Score Display** — All rating scores now display on a 10-point scale (e.g. `9/10`) instead of `/5`, matching IMDb/TMDB conventions. The 5-star half-star visual picker is preserved.
+- **Native Scroll Buttons** — Ratings section uses Jellyfin-native scroll button styling (paper-icon-button-light, chevron icons) inline with the section title.
+
+### Fixes
+
+- **Badge Injection Reliability** — Retry gate now waits for `.starRatingContainer`, fallback append when missing, success validation retries if badge absent after injection. `emby-scroller-container` class added to ratings section.
+- **Personal Rating Badge Race** — Fixed race condition where personal rating badges were missing on home tab cards. `ensureUserRatings()` with promise caching ensures user ratings are fetched before card decoration, with a re-pass for cards decorated during the race window.
+- **Popup Edit Mode** — Badge click handler now async-loads the user's rating before opening the popup, so "Update" and "Delete" buttons appear correctly on already-rated items.
+
+---
+
 ## v1.12.5.7 (beta)
 
 ### Fixes
