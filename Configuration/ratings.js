@@ -439,7 +439,7 @@
         .ur-avg-badge {
             position: absolute;
             top: 0.4em;
-            right: 0.4em;
+            left: 0.4em;
             z-index: 3;
             background: rgba(0,0,0,0.85);
             padding: 0.4em 0.7em;
@@ -449,6 +449,10 @@
             gap: 0.3em;
             pointer-events: none;
             user-select: none;
+        }
+        /* When personal badge present, stack avg below it */
+        .card[data-ur-has-personal="1"] .ur-avg-badge {
+            top: 2.2em;
         }
         .ur-avg-badge .ur-avg-star {
             color: #ffd700;
@@ -462,7 +466,7 @@
             font-size: 0.85em;
         }
 
-        /* ===== MOBILE: stack badges top-left, shrink ===== */
+        /* ===== MOBILE: shrink badges (already top-left stacked on all screens) ===== */
         @media (max-width: 480px) {
             .compact-rating {
                 font-size: 0.65em;
@@ -476,9 +480,6 @@
                 font-size: 0.9em;
             }
             .ur-avg-badge {
-                top: 2.4em;
-                right: auto;
-                left: 0.4em;
                 font-size: 0.6em;
                 padding: 0.15em 0.35em;
                 gap: 0.2em;
@@ -488,6 +489,9 @@
             }
             .ur-avg-badge .ur-avg-count {
                 display: none;
+            }
+            .card[data-ur-has-personal="1"] .ur-avg-badge {
+                top: 2.4em;
             }
         }
 
@@ -1171,6 +1175,7 @@ function updateStarDisplay(container, rating) {
         let compact = scalable.querySelector('.compact-rating');
         const userRating = getUserRating(card.getAttribute('data-id'));
         if (userRating) {
+            card.setAttribute('data-ur-has-personal', '1');
             if (!compact) {
                 compact = document.createElement('div');
                 compact.className = 'compact-rating';
@@ -1204,6 +1209,9 @@ function updateStarDisplay(container, rating) {
         } else if (compact) {
             compact.dataset.empty = 'true';
             compact.style.display = 'none';
+            card.removeAttribute('data-ur-has-personal');
+        } else {
+            card.removeAttribute('data-ur-has-personal');
         }
 
         card.setAttribute('data-ur-decorated', '1');
@@ -1485,8 +1493,10 @@ function updateStarDisplay(container, rating) {
                 compactBadge.dataset.empty = 'true';
                 compactBadge.style.display = 'none';
             }
+            card.removeAttribute('data-ur-has-personal');
             return;
         }
+        card.setAttribute('data-ur-has-personal', '1');
         if (compactBadge) {
             compactBadge.querySelector('.cr-value').textContent = (rating * 2) + '/10';
             compactBadge.dataset.empty = 'false';
@@ -2820,6 +2830,7 @@ function updateStarDisplay(container, rating) {
             const itemId = card.getAttribute('data-id');
             const userRating = getUserRating(itemId);
             if (userRating) {
+                card.setAttribute('data-ur-has-personal', '1');
                 if (!compact) {
                     const c = document.createElement('div');
                     c.className = 'compact-rating';

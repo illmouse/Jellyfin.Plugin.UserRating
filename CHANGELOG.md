@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.2
+
+### Fixes
+
+- **Card Badge Position** — Moved the community average badge (★) from top-right to top-left on all screens, stacking it below the personal rating badge (♥). The top-right corner is now free for Jellyfin's watched checkmark icon. Badges use `data-ur-has-personal` attribute to position the avg badge at `top:2.2em` when a personal badge is present, `top:0.4em` when alone. Mobile media query simplifies to font/padding shrink only.
+
 ## v1.13.0.1
 
 ### Fixes
