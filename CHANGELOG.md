@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.12.5.5 (beta)
+
+### Fixes
+
+- **Badge Not Loading on Movie Detail Pages** — Intermittent timing race: `injectRatingsUI` found `.itemMiscInfo-primary` but `.starRatingContainer` wasn't rendered yet (Jellyfin adds it progressively after metadata fetch). The retry gate now waits for `.starRatingContainer` before proceeding, not just `.itemMiscInfo-primary`.
+- **Fallback Append When Star Rating Missing** — If `.starRatingContainer` is absent, the badge now appends to the end of `.itemMiscInfo-primary` instead of silently bailing with `return null`. Ensures the badge always renders even on items without community ratings.
+- **Success Validation** — After `Promise.all` resolves, the injector now checks whether the badge actually exists in the DOM. If missing, it retries instead of logging a misleading "injected" success. Turns silent failures into retries.
+- **Missing `emby-scroller-container` Class** — `#urRatingsCollapsible` now includes the `emby-scroller-container` class, matching native Cast/Similar sections for proper positioning and styling hooks.
+
+---
+
 ## v1.12.5.4 (beta)
 
 ### Fixes

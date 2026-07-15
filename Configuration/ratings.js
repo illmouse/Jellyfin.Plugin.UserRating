@@ -1552,14 +1552,17 @@ function updateStarDisplay(container, rating) {
         const miscInfo = findVisibleDetail('.itemMiscInfo-primary');
         if (!miscInfo) return null;
         const starContainer = miscInfo.querySelector('.starRatingContainer');
-        if (!starContainer) return null;
 
         let badge = miscInfo.querySelector('[data-ur-badge]');
         if (!badge) {
             badge = document.createElement('div');
             badge.className = 'mediaInfoItem ur-detail-badge';
             badge.setAttribute('data-ur-badge', '1');
-            starContainer.insertAdjacentElement('afterend', badge);
+            if (starContainer) {
+                starContainer.insertAdjacentElement('afterend', badge);
+            } else {
+                miscInfo.appendChild(badge);
+            }
             badge.addEventListener('click', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1659,7 +1662,7 @@ function updateStarDisplay(container, rating) {
         if (section) section.remove();
         section = document.createElement('div');
         section.id = 'urRatingsCollapsible';
-        section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding';
+        section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding emby-scroller-container';
 
         const h2 = document.createElement('h2');
         h2.className = 'sectionTitle sectionTitle-cards padded-right';
@@ -1885,7 +1888,7 @@ function updateStarDisplay(container, rating) {
         }
 
         const miscInfo = findVisibleDetail('.itemMiscInfo-primary');
-        if (!miscInfo) {
+        if (!miscInfo || !miscInfo.querySelector('.starRatingContainer')) {
             if (injectionAttempts < maxInjectionAttempts) {
                 injectionAttempts++;
                 const retryDelay = Math.min(100 * Math.pow(1.5, injectionAttempts), 3000);
@@ -1915,7 +1918,13 @@ function updateStarDisplay(container, rating) {
         ]).then(() => {
             setTimeout(() => {
                 isInjecting = false;
-                console.log('[UserRatings] ✓ Detail-page UI injected');
+                if (!document.querySelector('[data-ur-badge]') && currentItemId) {
+                    console.log('[UserRatings] Badge missing after injection, retrying');
+                    injectionAttempts = 0;
+                    setTimeout(injectRatingsUI, 200);
+                } else {
+                    console.log('[UserRatings] ✓ Detail-page UI injected');
+                }
             }, 200);
         }).catch(() => {
             isInjecting = false;
