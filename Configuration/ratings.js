@@ -478,6 +478,11 @@
             color: #ffd700;
             font-size: 1em;
         }
+        .ur-detail-badge .ur-db-person {
+            color: var(--highlightOutlineColor, #00a4dc);
+            font-size: 1.1em;
+            line-height: 1;
+        }
         .ur-detail-badge .ur-db-mine {
             color: var(--highlightOutlineColor, #00a4dc);
             font-weight: 600;
@@ -502,16 +507,17 @@
         /* ===== RATINGS SECTION (bottom of detail page, Cast/Similar style) ===== */
         #urRatingsCollapsible .ur-rating-card {
             width: 220px;
-            flex-shrink: 0;
             background: var(--cardBackground, rgba(20,20,20,0.5));
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 8px;
             padding: 0.8em;
             cursor: pointer;
             transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-            display: flex;
+            display: inline-flex;
             flex-direction: column;
             gap: 0.4em;
+            vertical-align: top;
+            margin-right: 0.4em;
         }
         #urRatingsCollapsible .ur-rating-card:hover {
             transform: translateY(-2px);
@@ -1448,30 +1454,52 @@ function updateStarDisplay(container, rating) {
     function buildDetailBadgeHtml(avg, totalRatings, myRating) {
         const myVal = myRating ? (myRating.rating / 2) : 0;
         const avgStr = avg > 0 ? (avg / 2).toFixed(1) : null;
+        const personIcon = '<span class="material-icons ur-db-person">person</span>';
+        const heart = '<span class="ur-db-heart">\u2665</span>';
         if (myRating && myVal > 0) {
             if (avgStr) {
-                return '<span class="ur-db-star">\u2605</span>' +
+                return personIcon +
                     '<span class="ur-db-avg">' + avgStr + '</span>' +
-                    '<span class="ur-db-sep">·</span>' +
-                    '<span class="ur-db-heart">\u2665</span>' +
+                    '<span class="ur-db-sep">\u00B7</span>' +
+                    heart +
                     '<span class="ur-db-mine">' + formatStarRating(myVal) + '</span>';
             }
-            return '<span class="ur-db-heart">\u2665</span>' +
+            return heart +
                 '<span class="ur-db-mine">' + formatStarRating(myVal) + '</span>';
         }
         if (avgStr) {
-            return '<span class="ur-db-star">\u2605</span>' +
+            return personIcon +
                 '<span class="ur-db-avg">' + avgStr + '</span>' +
-                '<span class="ur-db-sep">·</span>' +
-                '<span class="ur-db-rate">Rate</span>';
+                '<span class="ur-db-sep">\u00B7</span>' +
+                heart +
+                '<span class="ur-db-rate">RATE</span>';
         }
-        return '<span class="ur-db-rate">No ratings · Rate</span>';
+        return heart +
+            '<span class="ur-db-rate">RATE</span>';
+    }
+
+    function buildDetailBadgeTitle(avg, totalRatings, myRating) {
+        const myVal = myRating ? (myRating.rating / 2) : 0;
+        const avgStr = avg > 0 ? (avg / 2).toFixed(1) : null;
+        const parts = [];
+        if (avgStr) {
+            parts.push('Community: ' + avgStr + ' (' + totalRatings + (totalRatings === 1 ? ' rating' : ' ratings') + ')');
+        } else {
+            parts.push('No community ratings');
+        }
+        if (myRating && myVal > 0) {
+            parts.push('Your rating: ' + formatStarRating(myVal));
+        } else {
+            parts.push('Click to rate');
+        }
+        return parts.join(' \u00B7 ');
     }
 
     function updateDetailBadge(badge, avg, totalRatings, myRating) {
         badge.innerHTML = buildDetailBadgeHtml(avg, totalRatings, myRating);
         badge.dataset.urAvg = String(avg || 0);
         badge.dataset.urTotal = String(totalRatings || 0);
+        badge.title = buildDetailBadgeTitle(avg, totalRatings, myRating);
     }
 
     async function injectRatingBadge(itemId, itemName) {
@@ -1497,7 +1525,7 @@ function updateStarDisplay(container, rating) {
             });
         }
 
-        const myRating = getUserRating(itemId);
+        const myRating = await loadMyRating(itemId);
         let avg = 0, totalRatings = 0;
         try {
             const data = await loadRatings(itemId);
@@ -1587,36 +1615,38 @@ function updateStarDisplay(container, rating) {
         section.id = 'urRatingsCollapsible';
         section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding emby-scroller-container';
 
-        const titleRow = document.createElement('div');
-        titleRow.className = 'sectionTitleContainer sectionTitleContainer-cards padded-right';
-
         const h2 = document.createElement('h2');
         h2.className = 'sectionTitle sectionTitle-cards padded-right';
         h2.textContent = 'Ratings';
-        titleRow.appendChild(h2);
+        section.appendChild(h2);
 
         const scrollBtns = document.createElement('div');
-        scrollBtns.className = 'emby-scrollbuttons-wrapper';
-        scrollBtns.innerHTML = '<button is="emby-scrollbuttons" class="emby-scrollbuttons" data-scroll="left" tabindex="-1"><span class="material-icons scrollbutton-icon keyboard_arrow_left"></span></button>' +
-            '<button is="emby-scrollbuttons" class="emby-scrollbuttons" data-scroll="right" tabindex="-1"><span class="material-icons scrollbutton-icon keyboard_arrow_right"></span></button>';
-        titleRow.appendChild(scrollBtns);
-        section.appendChild(titleRow);
+        scrollBtns.setAttribute('is', 'emby-scrollbuttons');
+        scrollBtns.className = 'emby-scrollbuttons padded-right';
+        scrollBtns.innerHTML =
+            '<button type="button" is="paper-icon-button-light" data-ripple="false" data-direction="left" title="Previous" class="emby-scrollbuttons-button paper-icon-button-light"><span class="material-icons chevron_left" aria-hidden="true"></span></button>' +
+            '<button type="button" is="paper-icon-button-light" data-ripple="false" data-direction="right" title="Next" class="emby-scrollbuttons-button paper-icon-button-light"><span class="material-icons chevron_right" aria-hidden="true"></span></button>';
+        section.appendChild(scrollBtns);
+
+        const scroller = document.createElement('div');
+        scroller.setAttribute('is', 'emby-scroller');
+        scroller.className = 'emby-scroller';
 
         const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'focuscontainer-x itemsContainer animatedScrollX scrollSliderX';
-        itemsContainer.style.display = 'flex';
-        itemsContainer.style.gap = '0.6em';
-        itemsContainer.style.overflowX = 'auto';
+        itemsContainer.setAttribute('is', 'emby-itemscontainer');
+        itemsContainer.className = 'focuscontainer-x itemsContainer animatedScrollX scrollSlider';
+        itemsContainer.style.whiteSpace = 'nowrap';
 
         const currentUserId = ApiClient.getCurrentUserId();
         ratings.forEach(r => itemsContainer.appendChild(buildRatingCard(r, currentUserId)));
-        section.appendChild(itemsContainer);
+        scroller.appendChild(itemsContainer);
+        section.appendChild(scroller);
 
         anchor.insertAdjacentElement('afterend', section);
 
         try {
-            const scroller = section.querySelector('emby-scrollbuttons');
-            if (scroller && scroller.refresh) scroller.refresh();
+            const sb = section.querySelector('[is="emby-scrollbuttons"]');
+            if (sb && sb.refresh) sb.refresh();
         } catch (e) {}
     }
 

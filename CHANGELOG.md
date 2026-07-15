@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.12.5.2 (beta)
+
+### Fixes
+
+- **Heart Icon Not Showing on Badge** — `injectRatingBadge` now uses `await loadMyRating(itemId)` (async API call) instead of the sync `getUserRating` lookup, which read from `userRatingsMap` before it was populated by the fire-and-forget `fetchUserRatings()`. The badge now correctly renders in the rated state on page load.
+- **Badge Format Overhaul** — Replaced the gold ★ for community average with a teal person Material Icon (`person`) for visual distinction from the public IMDb rating. Personal rating keeps the teal ♥ heart. Removed the `/5` suffix from all badge states. Unrated states now show `♥ RATE` as the call-to-action.
+- **Hover Tooltip** — Badge now has a `title` attribute showing both the community average (with rating count) and the user's personal rating (or "Click to rate" when unrated).
+
+### Improvements
+
+- **Native Ratings Section DOM** — Rewrote `injectRatingsSection` to produce a DOM structure faithful to Jellyfin's native Cast/Similar sections: flat `h2` + `emby-scrollbuttons` (with `paper-icon-button-light` buttons and `chevron_left`/`chevron_right` Material Icons) + `emby-scroller`/`emby-itemscontainer` wrappers. Rating cards use `inline-flex` with `vertical-align:top` to match native `white-space:nowrap` scroll behavior.
+
+---
+
 ## v1.12.5.1 (beta)
 
 ### Redesign
