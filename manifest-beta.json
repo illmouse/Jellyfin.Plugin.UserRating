@@ -13,8 +13,8 @@
         "changelog": "Fixed badge overlap root cause: aligned em contexts by setting font-size:0.8em on .ur-avg-badge to match .compact-rating. Both badges now share the same em unit, eliminating the 2px overlap.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.6/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-16T00:00:00Z"
+        "checksum": "8e3a00249115faef40ae4a0c782a573c",
+        "timestamp": "2026-07-15T16:50:55Z"
       },
       {
         "version": "1.13.0.5",
