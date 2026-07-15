@@ -13,8 +13,8 @@
         "changelog": "Card badge cleanup: removed edit icon from personal badge, removed ratings count from avg badge, removed /10 suffix from personal rating on cards, aligned badge sizes, reduced mobile gap between badges.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.7/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-16T00:00:00Z"
+        "checksum": "1c78e06ef66155af025b2101f23a0f6e",
+        "timestamp": "2026-07-15T17:08:26Z"
       },
       {
         "version": "1.13.0.6",
