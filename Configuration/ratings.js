@@ -479,16 +479,16 @@
             font-size: 1em;
         }
         .ur-detail-badge .ur-db-person {
-            color: var(--highlightOutlineColor, #00a4dc);
+            color: #ffd700;
             font-size: 1.1em;
             line-height: 1;
         }
         .ur-detail-badge .ur-db-mine {
-            color: var(--highlightOutlineColor, #00a4dc);
+            color: #e53935;
             font-weight: 600;
         }
         .ur-detail-badge .ur-db-heart {
-            color: var(--highlightOutlineColor, #00a4dc);
+            color: #e53935;
             font-size: 1em;
         }
         .ur-detail-badge .ur-db-sep {
@@ -505,6 +505,43 @@
         }
 
         /* ===== RATINGS SECTION (bottom of detail page, Cast/Similar style) ===== */
+        #urRatingsCollapsible .sectionTitle {
+            margin-bottom: 0.8em;
+        }
+        #urRatingsCollapsible .ur-scroller {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.3em;
+        }
+        #urRatingsCollapsible .ur-items {
+            white-space: nowrap;
+        }
+        #urRatingsCollapsible .ur-scroll-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--textColor, #fff);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.15s, background 0.15s;
+            font-size: 1.2em;
+            line-height: 1;
+            padding: 0;
+        }
+        #urRatingsCollapsible .ur-scroll-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.16);
+        }
+        #urRatingsCollapsible .ur-scroll-btn:disabled,
+        #urRatingsCollapsible .ur-scroll-btn.is-disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
         #urRatingsCollapsible .ur-rating-card {
             width: 220px;
             background: var(--cardBackground, rgba(20,20,20,0.5));
@@ -518,6 +555,7 @@
             gap: 0.4em;
             vertical-align: top;
             margin-right: 0.4em;
+            white-space: normal;
         }
         #urRatingsCollapsible .ur-rating-card:hover {
             transform: translateY(-2px);
@@ -969,7 +1007,8 @@ function updateStarDisplay(container, rating) {
     }
 
     function formatStarRating(val) {
-        return val === Math.floor(val) ? val + '/5' : val.toFixed(1) + '/5';
+        var v10 = val * 2;
+        return v10 === Math.floor(v10) ? v10 + '/10' : v10.toFixed(1) + '/10';
     }
 
     function avgCacheGet(itemId) {
@@ -1071,7 +1110,7 @@ function updateStarDisplay(container, rating) {
 
         const hasAvg = info && info.averageRating && info.totalRatings > 0;
         if (hasAvg) {
-            const rating = (info.averageRating / 2).toFixed(1);
+            const rating = info.averageRating.toFixed(1);
             if (!indicators.querySelector('.ur-avg-badge')) {
                 indicators.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
             }
@@ -1383,10 +1422,10 @@ function updateStarDisplay(container, rating) {
             }, 700);
         }
 
-        // Change "Rate" badge to "★ N/5" on unrated cards (has rate-badge)
+        // Change "Rate" badge to "★ N/10" on unrated cards (has rate-badge)
         const rateBadge = card.querySelector('.rate-badge');
         if (rateBadge) {
-            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + rating + '/5</span>';
+            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#ffd700;">\u2605 ' + (rating * 2) + '/10</span>';
             rateBadge.classList.remove('rate-badge');
             rateBadge.removeAttribute('data-item-id');
         }
@@ -1402,14 +1441,14 @@ function updateStarDisplay(container, rating) {
             return;
         }
         if (compactBadge) {
-            compactBadge.querySelector('.cr-value').textContent = rating + '/5';
+            compactBadge.querySelector('.cr-value').textContent = (rating * 2) + '/10';
             compactBadge.dataset.empty = 'false';
             compactBadge.style.display = '';
         } else {
             compactBadge = document.createElement('div');
             compactBadge.className = 'compact-rating';
             compactBadge.dataset.empty = 'false';
-            compactBadge.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value">' + rating + '/5</span><span class="cr-edit">\u270E</span>';
+            compactBadge.innerHTML = '<span class="cr-star">\u2605</span><span class="cr-value">' + (rating * 2) + '/10</span><span class="cr-edit">\u270E</span>';
             const imgContainer = card.querySelector('.cardImageContainer');
             if (imgContainer && imgContainer.parentNode) {
                 imgContainer.parentNode.insertBefore(compactBadge, imgContainer);
@@ -1453,7 +1492,7 @@ function updateStarDisplay(container, rating) {
 
     function buildDetailBadgeHtml(avg, totalRatings, myRating) {
         const myVal = myRating ? (myRating.rating / 2) : 0;
-        const avgStr = avg > 0 ? (avg / 2).toFixed(1) : null;
+        const avgStr = avg > 0 ? avg.toFixed(1) : null;
         const personIcon = '<span class="material-icons ur-db-person">person</span>';
         const heart = '<span class="ur-db-heart">\u2665</span>';
         if (myRating && myVal > 0) {
@@ -1480,7 +1519,7 @@ function updateStarDisplay(container, rating) {
 
     function buildDetailBadgeTitle(avg, totalRatings, myRating) {
         const myVal = myRating ? (myRating.rating / 2) : 0;
-        const avgStr = avg > 0 ? (avg / 2).toFixed(1) : null;
+        const avgStr = avg > 0 ? avg.toFixed(1) : null;
         const parts = [];
         if (avgStr) {
             parts.push('Community: ' + avgStr + ' (' + totalRatings + (totalRatings === 1 ? ' rating' : ' ratings') + ')');
@@ -1514,10 +1553,10 @@ function updateStarDisplay(container, rating) {
             badge.className = 'mediaInfoItem ur-detail-badge';
             badge.setAttribute('data-ur-badge', '1');
             starContainer.insertAdjacentElement('afterend', badge);
-            badge.addEventListener('click', function(e) {
+            badge.addEventListener('click', async function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                const my = getUserRating(itemId);
+                const my = await loadMyRating(itemId);
                 const r = my ? (my.rating / 2) : 0;
                 const note = my ? (my.note || '') : '';
                 _popupCardElement = null;
@@ -1613,29 +1652,37 @@ function updateStarDisplay(container, rating) {
         if (section) section.remove();
         section = document.createElement('div');
         section.id = 'urRatingsCollapsible';
-        section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding emby-scroller-container';
+        section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding';
 
         const h2 = document.createElement('h2');
         h2.className = 'sectionTitle sectionTitle-cards padded-right';
         h2.textContent = 'Ratings';
         section.appendChild(h2);
 
-        const scrollBtns = document.createElement('div');
-        scrollBtns.setAttribute('is', 'emby-scrollbuttons');
-        scrollBtns.className = 'emby-scrollbuttons padded-right';
-        scrollBtns.innerHTML =
-            '<button type="button" is="paper-icon-button-light" data-ripple="false" data-direction="left" title="Previous" class="emby-scrollbuttons-button paper-icon-button-light"><span class="material-icons chevron_left" aria-hidden="true"></span></button>' +
-            '<button type="button" is="paper-icon-button-light" data-ripple="false" data-direction="right" title="Next" class="emby-scrollbuttons-button paper-icon-button-light"><span class="material-icons chevron_right" aria-hidden="true"></span></button>';
-        section.appendChild(scrollBtns);
+        // Plain scroll buttons (no emby web component — avoids addScrollEventListener crash)
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;justify-content:flex-end;gap:0.4em;margin-bottom:0.6em;';
+        const leftBtn = document.createElement('button');
+        leftBtn.type = 'button';
+        leftBtn.className = 'ur-scroll-btn';
+        leftBtn.setAttribute('data-direction', 'left');
+        leftBtn.title = 'Scroll left';
+        leftBtn.innerHTML = '<span class="material-icons chevron_left" aria-hidden="true"></span>';
+        const rightBtn = document.createElement('button');
+        rightBtn.type = 'button';
+        rightBtn.className = 'ur-scroll-btn';
+        rightBtn.setAttribute('data-direction', 'right');
+        rightBtn.title = 'Scroll right';
+        rightBtn.innerHTML = '<span class="material-icons chevron_right" aria-hidden="true"></span>';
+        btnRow.appendChild(leftBtn);
+        btnRow.appendChild(rightBtn);
+        section.appendChild(btnRow);
 
+        // Plain scroller (no is="emby-scroller"/is="emby-itemscontainer")
         const scroller = document.createElement('div');
-        scroller.setAttribute('is', 'emby-scroller');
-        scroller.className = 'emby-scroller';
-
+        scroller.className = 'ur-scroller';
         const itemsContainer = document.createElement('div');
-        itemsContainer.setAttribute('is', 'emby-itemscontainer');
-        itemsContainer.className = 'focuscontainer-x itemsContainer animatedScrollX scrollSlider';
-        itemsContainer.style.whiteSpace = 'nowrap';
+        itemsContainer.className = 'ur-items';
 
         const currentUserId = ApiClient.getCurrentUserId();
         ratings.forEach(r => itemsContainer.appendChild(buildRatingCard(r, currentUserId)));
@@ -1644,10 +1691,34 @@ function updateStarDisplay(container, rating) {
 
         anchor.insertAdjacentElement('afterend', section);
 
-        try {
-            const sb = section.querySelector('[is="emby-scrollbuttons"]');
-            if (sb && sb.refresh) sb.refresh();
-        } catch (e) {}
+        // Manual scroll + button disable logic
+        function updateScrollButtons() {
+            const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+            if (scroller.scrollLeft <= 2) {
+                leftBtn.classList.add('is-disabled');
+                leftBtn.disabled = true;
+            } else {
+                leftBtn.classList.remove('is-disabled');
+                leftBtn.disabled = false;
+            }
+            if (scroller.scrollLeft >= maxScroll - 2) {
+                rightBtn.classList.add('is-disabled');
+                rightBtn.disabled = true;
+            } else {
+                rightBtn.classList.remove('is-disabled');
+                rightBtn.disabled = false;
+            }
+        }
+        leftBtn.addEventListener('click', function() {
+            scroller.scrollBy({ left: -scroller.clientWidth * 0.8, behavior: 'smooth' });
+        });
+        rightBtn.addEventListener('click', function() {
+            scroller.scrollBy({ left: scroller.clientWidth * 0.8, behavior: 'smooth' });
+        });
+        scroller.addEventListener('scroll', updateScrollButtons, { passive: true });
+        window.addEventListener('resize', updateScrollButtons);
+        // Initial state
+        requestAnimationFrame(updateScrollButtons);
     }
 
     // ===== RATING DETAILS POPUP (read-only) =====

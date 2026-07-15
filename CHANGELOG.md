@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.12.5.3 (beta)
+
+### Fixes
+
+- **Global /10 Rating Scale** — All rating displays now show scores on a 10-point scale (e.g. `♥ 9/10`, `★ 8.6/10`) instead of the previous `/5` suffix. The 5-star visual with half-stars is preserved; only the numeric score changes. Backend already stored 1-10; this is a display-only change.
+- **Heart Icon Color** — The personal rating heart (♥) is now red (`#e53935`) instead of teal, matching conventional "favorite/love" semantics.
+- **Person Icon Color** — The community-average person icon is now gold (`#ffd700`), matching the star color used for public IMDb ratings.
+- **Popup Shows "Post Rating" on Already-Rated Items** — The badge click handler used sync `getUserRating(itemId)` which read from `userRatingsMap` before the fire-and-forget `fetchUserRatings()` populated it. Now uses `await loadMyRating(itemId)` so the popup correctly shows "Update" + delete button for already-rated items.
+- **Ratings Section Crash on Navigation** — `injectRatingsSection` used `is="emby-scroller"`/`is="emby-itemscontainer"` attributes which triggered Jellyfin's web component upgrade (`attachedCallback` → `addScrollEventListener is not a function` crash) because our itemsContainer was a plain div. Replaced with plain divs and manual scroll button logic. Fixes the "rating icons not loading" issue on details→details navigation.
+- **Scroll Button Disable State** — Left scroll button now grays out when at the start of the scroller; right button grays out at the end. Matches native Jellyfin scroll button behavior.
+
+### Improvements
+
+- **Plain-Divs Scroller** — Ratings section no longer relies on Jellyfin web component prototypes, making it robust against Jellyfin version changes that alter the `emby-scroller`/`emby-itemscontainer` element interfaces.
+
+---
+
 ## v1.12.5.2 (beta)
 
 ### Fixes
