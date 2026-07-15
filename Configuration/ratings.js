@@ -472,12 +472,13 @@
                 font-size: 0.65em;
                 padding: 0.15em 0.35em;
                 gap: 0.15em;
+                line-height: 1.2;
             }
             .compact-rating .cr-heart {
                 font-size: 1em;
             }
             .compact-rating .cr-value {
-                font-size: 0.9em;
+                font-size: 1em;
             }
             .ur-avg-badge {
                 font-size: 0.6em;

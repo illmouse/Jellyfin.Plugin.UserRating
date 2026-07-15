@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.4
+
+### Fixes
+
+- **Mobile Badge Background Overflow** — On mobile, the personal rating badge background box was larger than its text content due to excess line-height. Reduced `line-height` to `1.2` and aligned heart icon + score font sizes to `1em` on mobile so the background hugs the content tightly.
+
 ## v1.13.0.3
 
 ### Changes
