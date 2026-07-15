@@ -411,16 +411,6 @@
             font-weight: 600;
             color: #fff;
         }
-        .compact-rating .cr-edit {
-            opacity: 0;
-            transition: opacity 0.2s;
-            color: rgba(255,255,255,0.4);
-            font-size: 0.85em;
-            margin-left: 0.15em;
-        }
-        .card-hoverable:hover .compact-rating .cr-edit {
-            opacity: 1;
-        }
         .compact-rating[data-empty="true"] {
             display: none;
         }
@@ -442,14 +432,15 @@
             left: 0.4em;
             z-index: 3;
             background: rgba(0,0,0,0.85);
-            padding: 0.4em 0.7em;
-            border-radius: 4px;
+            padding: 0.2em 0.5em;
+            border-radius: 3px;
             display: inline-flex;
             align-items: center;
-            gap: 0.3em;
+            gap: 0.25em;
             pointer-events: none;
             user-select: none;
             font-size: 0.8em;
+            line-height: 1.5;
         }
         /* When avg badge present, stack personal below it */
         .card[data-ur-has-avg="1"] .compact-rating {
@@ -461,10 +452,6 @@
         }
         .ur-avg-badge .ur-avg-value {
             font-weight: 600;
-        }
-        .ur-avg-badge .ur-avg-count {
-            opacity: 0.7;
-            font-size: 0.85em;
         }
 
         /* ===== MOBILE: shrink badges (already top-left stacked on all screens) ===== */
@@ -484,16 +471,15 @@
             .ur-avg-badge {
                 font-size: 0.65em;
                 padding: 0.15em 0.35em;
-                gap: 0.2em;
+                gap: 0.15em;
+                line-height: 1.2;
+                border-radius: 3px;
             }
             .ur-avg-badge .ur-avg-star {
                 font-size: 1em;
             }
-            .ur-avg-badge .ur-avg-count {
-                display: none;
-            }
             .card[data-ur-has-avg="1"] .compact-rating {
-                top: 2.8em;
+                top: 2.2em;
             }
         }
 
@@ -1076,6 +1062,11 @@ function updateStarDisplay(container, rating) {
         return v10 === Math.floor(v10) ? v10 + '/10' : v10.toFixed(1) + '/10';
     }
 
+    function formatCardRating(val) {
+        var v10 = val * 2;
+        return v10 === Math.floor(v10) ? String(v10) : v10.toFixed(1);
+    }
+
     function avgCacheGet(itemId) {
         if (avgCache.has(itemId)) {
             const idx = avgCacheOrder.indexOf(itemId);
@@ -1152,11 +1143,10 @@ function updateStarDisplay(container, rating) {
         return _batchInFlight;
     }
 
-    function buildAvgBadgeHtml(rating, count) {
+    function buildAvgBadgeHtml(rating) {
         return '<div class="ur-avg-badge">' +
             '<span class="ur-avg-star">\u2605</span>' +
             '<span class="ur-avg-value">' + rating + '</span>' +
-            '<span class="ur-avg-count">(' + count + ')</span>' +
         '</div>';
     }
 
@@ -1171,7 +1161,7 @@ function updateStarDisplay(container, rating) {
             card.setAttribute('data-ur-has-avg', '1');
             const rating = info.averageRating.toFixed(1);
             if (!scalable.querySelector('.ur-avg-badge')) {
-                scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, info.totalRatings));
+                scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating));
             }
         } else {
             card.removeAttribute('data-ur-has-avg');
@@ -1184,7 +1174,7 @@ function updateStarDisplay(container, rating) {
                 compact = document.createElement('div');
                 compact.className = 'compact-rating';
                 compact.dataset.empty = 'false';
-                compact.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
+                compact.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span>';
                 const imgContainer = scalable.querySelector('.cardImageContainer');
                 if (imgContainer && imgContainer.parentNode) {
                     imgContainer.parentNode.insertBefore(compact, imgContainer);
@@ -1192,7 +1182,7 @@ function updateStarDisplay(container, rating) {
                     scalable.appendChild(compact);
                 }
             }
-            compact.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+            compact.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
             compact.dataset.empty = 'false';
             compact.style.display = '';
             if (!compact._rateEditAttached) {
@@ -1481,7 +1471,7 @@ function updateStarDisplay(container, rating) {
         // Change "Rate" badge to "♥ N/10" on unrated cards (has rate-badge)
         const rateBadge = card.querySelector('.rate-badge');
         if (rateBadge) {
-            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#e53935;">\u2665 ' + (rating * 2) + '/10</span>';
+            rateBadge.innerHTML = '<span style="font-weight:600;font-size:0.9em;color:#e53935;">\u2665 ' + (rating * 2) + '</span>';
             rateBadge.classList.remove('rate-badge');
             rateBadge.removeAttribute('data-item-id');
         }
@@ -1497,14 +1487,14 @@ function updateStarDisplay(container, rating) {
             return;
         }
         if (compactBadge) {
-            compactBadge.querySelector('.cr-value').textContent = (rating * 2) + '/10';
+            compactBadge.querySelector('.cr-value').textContent = (rating * 2);
             compactBadge.dataset.empty = 'false';
             compactBadge.style.display = '';
         } else {
             compactBadge = document.createElement('div');
             compactBadge.className = 'compact-rating';
             compactBadge.dataset.empty = 'false';
-            compactBadge.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value">' + (rating * 2) + '/10</span><span class="cr-edit">\u270E</span>';
+            compactBadge.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value">' + (rating * 2) + '</span>';
             const imgContainer = card.querySelector('.cardImageContainer');
             if (imgContainer && imgContainer.parentNode) {
                 imgContainer.parentNode.insertBefore(compactBadge, imgContainer);
@@ -2833,8 +2823,8 @@ function updateStarDisplay(container, rating) {
                     const c = document.createElement('div');
                     c.className = 'compact-rating';
                     c.dataset.empty = 'false';
-                    c.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
-                    c.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+                    c.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span>';
+                    c.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
                     const imgContainer = scalable.querySelector('.cardImageContainer');
                     if (imgContainer && imgContainer.parentNode) {
                         imgContainer.parentNode.insertBefore(c, imgContainer);
@@ -2857,7 +2847,7 @@ function updateStarDisplay(container, rating) {
                         });
                     }
                 } else if (compact.dataset.empty === 'true') {
-                    compact.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+            compact.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
                     compact.dataset.empty = 'false';
                     compact.style.display = '';
                 }

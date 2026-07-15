@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.0.7",
+        "changelog": "Card badge cleanup: removed edit icon from personal badge, removed ratings count from avg badge, removed /10 suffix from personal rating on cards, aligned badge sizes, reduced mobile gap between badges.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.7/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-16T00:00:00Z"
+      },
+      {
         "version": "1.13.0.6",
         "changelog": "Fixed badge overlap root cause: aligned em contexts by setting font-size:0.8em on .ur-avg-badge to match .compact-rating. Both badges now share the same em unit, eliminating the 2px overlap.",
         "targetAbi": "10.11.0.0",

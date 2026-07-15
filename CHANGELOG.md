@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.7
+
+### Changes
+
+- **Card Badge Cleanup** — Removed edit icon (✎) from personal rating badge on cards (hover background remains on desktop for interactivity feedback). Removed ratings count `(N)` from average rating badge on all screens. Removed `/10` suffix from personal rating on card badges (just shows the number, e.g. `♥ 9` instead of `♥ 9/10`). Aligned both badges to identical padding, gap, border-radius, and line-height. Reduced mobile gap between stacked badges from `2.8em` to `2.2em`.
+
 ## v1.13.0.6
 
 ### Fixes
