@@ -13,8 +13,8 @@
         "changelog": "Detail-page UI redesign: compact rating badge next to IMDb rating (community avg + your rating with heart icon), horizontal Ratings section at page bottom mimicking Cast/Similar scrollers, read-only review details popup. Removed the tall inline ratings block. No-reload popup handlers.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.1/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-15T00:00:00Z"
+        "checksum": "8cc7640d1629be1ecad01193f8ee1cdd",
+        "timestamp": "2026-07-15T12:24:29Z"
       },
       {
         "version": "1.12.5.0",
