@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.5.7",
+        "changelog": "Fixed race condition where personal rating badges were missing on home tab cards. User ratings fetch is now awaited before card decoration with promise caching and a re-pass for cards decorated during the race window.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.7/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.12.5.6",
         "changelog": "Visual consistency: star gold for community average and heart red for personal rating across all surfaces. User avatars now shown in rating cards and details popup with letter fallback. RATE text uses default color.",
         "targetAbi": "10.11.0.0",

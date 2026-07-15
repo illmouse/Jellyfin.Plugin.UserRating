@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.5.7 (beta)
+
+### Fixes
+
+- **Personal Rating Badges Missing on Home Tab** — Race condition: `fetchUserRatings()` was fire-and-forget at script load with `_userRatingsPrimed=true` set immediately, before the API call resolved. When home tab cards appeared, `decorateAllCards` saw `_userRatingsPrimed=true` and skipped waiting, calling sync `getUserRating()` on an empty `userRatingsMap` → no personal badges rendered. Now uses `ensureUserRatings()` with promise caching: `decorateAllCards` always awaits the fetch before decorating, and a re-pass after fetch completion adds personal badges to cards decorated during the race window.
+
+---
+
 ## v1.12.5.6 (beta)
 
 ### Improvements

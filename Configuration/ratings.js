@@ -866,6 +866,17 @@
     let _batchQueuedIds = new Set();
     let _decorateTimer = null;
     let _userRatingsPrimed = false;
+    let _fetchPromise = null;
+
+    function ensureUserRatings() {
+        if (!_fetchPromise) {
+            _fetchPromise = fetchUserRatings().catch(function() {}).then(function() {
+                _userRatingsPrimed = true;
+                _fetchPromise = null;
+            });
+        }
+        return _fetchPromise;
+    }
 
 function createStarRating(rating, interactive, onHover, onClick) {
     const container = document.createElement('div');
@@ -1208,14 +1219,9 @@ function updateStarDisplay(container, rating) {
     }
 
     function decorateAllCards() {
-        if (!_userRatingsPrimed) {
-            _userRatingsPrimed = true;
-            fetchUserRatings().then(() => {
-                _decorateCardsGlobal();
-            }).catch(() => _decorateCardsGlobal());
-        } else {
+        ensureUserRatings().then(function() {
             _decorateCardsGlobal();
-        }
+        });
     }
 
     function _decorateCardsGlobal() {
@@ -2065,7 +2071,7 @@ function updateStarDisplay(container, rating) {
 
         try {
             // Fetch user's ratings for compact badge display
-            await fetchUserRatings();
+            await ensureUserRatings();
 
             // Get config for page size (items per page in Rated Movies/Shows + Watched sections)
             let perPage = 24;
@@ -2776,8 +2782,50 @@ function updateStarDisplay(container, rating) {
     setInterval(injectRatingsTab, 2000);
 
     // Prime user ratings cache at boot so global card decoration can fill compact badges
-    fetchUserRatings().catch(() => {});
-    _userRatingsPrimed = true;
+    ensureUserRatings().then(function() {
+        // Re-pass: add personal badges to cards decorated before userRatingsMap was ready
+        document.querySelectorAll('.card[data-ur-decorated="1"]').forEach(function(card) {
+            const scalable = card.querySelector('.cardScalable');
+            if (!scalable) return;
+            const compact = scalable.querySelector('.compact-rating');
+            const itemId = card.getAttribute('data-id');
+            const userRating = getUserRating(itemId);
+            if (userRating) {
+                if (!compact) {
+                    const c = document.createElement('div');
+                    c.className = 'compact-rating';
+                    c.dataset.empty = 'false';
+                    c.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span><span class="cr-edit">\u270E</span>';
+                    c.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+                    const imgContainer = scalable.querySelector('.cardImageContainer');
+                    if (imgContainer && imgContainer.parentNode) {
+                        imgContainer.parentNode.insertBefore(c, imgContainer);
+                    } else {
+                        scalable.appendChild(c);
+                    }
+                    if (!c._rateEditAttached) {
+                        c._rateEditAttached = true;
+                        c.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const id = card.getAttribute('data-id');
+                            const nameEl = card.querySelector('.cardText a');
+                            const name = nameEl ? nameEl.textContent.trim() : null;
+                            const existing = getUserRating(id);
+                            const r = existing ? existing.rating / 2 : 0;
+                            const note = existing ? (existing.note || '') : '';
+                            _popupCardElement = card;
+                            openRatePopup(id, name, r, note);
+                        });
+                    }
+                } else if (compact.dataset.empty === 'true') {
+                    compact.querySelector('.cr-value').textContent = formatStarRating(userRating.rating / 2);
+                    compact.dataset.empty = 'false';
+                    compact.style.display = '';
+                }
+            }
+        });
+    });
 
     // Global card decoration — decorate cards across all Jellyfin surfaces (library, home, collections, search)
     function scheduleGlobalDecorate() {
