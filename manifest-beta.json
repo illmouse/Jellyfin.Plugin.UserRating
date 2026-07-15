@@ -13,8 +13,8 @@
         "changelog": "Detail page rating redesign: compact badge next to IMDb rating + horizontal Ratings scroller at page bottom. Visual consistency: star gold for community avg, heart red for personal rating everywhere. User avatars in rating cards. Global /10 score display. Native scroll buttons. Fixed badge injection reliability and personal rating badge race condition on home tab.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-15T00:00:00Z"
+        "checksum": "0a4dcee6fb18ef7c2cd8b61e2a862e0d",
+        "timestamp": "2026-07-15T15:54:20Z"
       },
       {
         "version": "1.12.5.7",
