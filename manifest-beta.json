@@ -13,8 +13,8 @@
         "changelog": "Fixed personal rating badge being overlapped by average rating badge. Increased vertical stacking offset to account for avg badge height.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.5/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-07-15T00:00:00Z"
+        "checksum": "23c1d89c698d4001917f62db63da6baa",
+        "timestamp": "2026-07-15T16:36:59Z"
       },
       {
         "version": "1.13.0.4",
