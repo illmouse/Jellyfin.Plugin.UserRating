@@ -449,6 +449,7 @@
             gap: 0.3em;
             pointer-events: none;
             user-select: none;
+            font-size: 0.8em;
         }
         /* When avg badge present, stack personal below it */
         .card[data-ur-has-avg="1"] .compact-rating {
@@ -481,7 +482,7 @@
                 font-size: 1em;
             }
             .ur-avg-badge {
-                font-size: 0.6em;
+                font-size: 0.65em;
                 padding: 0.15em 0.35em;
                 gap: 0.2em;
             }
@@ -492,7 +493,7 @@
                 display: none;
             }
             .card[data-ur-has-avg="1"] .compact-rating {
-                top: 3.0em;
+                top: 2.8em;
             }
         }
 

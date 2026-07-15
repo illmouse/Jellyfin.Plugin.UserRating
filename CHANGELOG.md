@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.6
+
+### Fixes
+
+- **Badge Overlap Root Cause Fix** — The personal rating badge was overlapped by the average rating badge because of an em unit mismatch: `.compact-rating` had `font-size: 0.8em` making its `top: 2.8em` offset equal to `2.24em` in parent units, while `.ur-avg-badge` had no explicit font-size (inheriting `1em` parent), making its height `~2.4em` parent. Fixed by setting `font-size: 0.8em` on `.ur-avg-badge` so both badges share the same em context. Mobile: aligned `.ur-avg-badge` to `0.65em` matching mobile `.compact-rating`, with `top: 2.8em` for both.
+
 ## v1.13.0.5
 
 ### Fixes
