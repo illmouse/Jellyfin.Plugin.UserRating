@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0.5
+
+### Fixes
+
+- **Badge Overlap Fix** — Personal rating badge was overlapped by the average rating badge because the `top` offset (`2.2em`) was relative to the personal badge's own smaller font-size, not the avg badge's actual height. Increased offset to `2.8em` (desktop) / `3.0em` (mobile) to clear the avg badge completely.
+
 ## v1.13.0.4
 
 ### Fixes

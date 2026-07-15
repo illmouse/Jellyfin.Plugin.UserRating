@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.0.5",
+        "changelog": "Fixed personal rating badge being overlapped by average rating badge. Increased vertical stacking offset to account for avg badge height.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.0.5/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.13.0.4",
         "changelog": "Fixed mobile personal rating badge background being larger than the text content. Reduced line-height and aligned heart icon and score font sizes on mobile.",
         "targetAbi": "10.11.0.0",

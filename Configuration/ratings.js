@@ -450,9 +450,9 @@
             pointer-events: none;
             user-select: none;
         }
-        /* When personal badge present, stack it below avg */
+        /* When avg badge present, stack personal below it */
         .card[data-ur-has-avg="1"] .compact-rating {
-            top: 2.2em;
+            top: 2.8em;
         }
         .ur-avg-badge .ur-avg-star {
             color: #ffd700;
@@ -492,7 +492,7 @@
                 display: none;
             }
             .card[data-ur-has-avg="1"] .compact-rating {
-                top: 2.4em;
+                top: 3.0em;
             }
         }
 
