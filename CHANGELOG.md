@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.12.5.1 (beta)
+
+### Redesign
+
+- **Detail-Page Rating UI Redesign** — Replaced the tall inline `#user-ratings-ui` block with a compact clickable badge inserted next to the public IMDb rating in `.itemMiscInfo-primary`. The badge shows the community average (gold ★) alongside the user's own rating (teal ♥) when rated, or a "Rate" call-to-action when unrated. Clicking the badge opens the existing rate popup (no card context needed).
+- **Bottom "Ratings" Section** — Added a horizontal scroller `#urRatingsCollapsible` after the "More Like This" section, mimicking Jellyfin's Cast/Similar card layout. Each card shows a reviewer's avatar, name, star rating, date, and a 3-line-clamped comment. Clicking a card opens a new read-only details popup with the full review.
+- **No-Reload Popup Handlers** — Save/delete from the detail-page popup now refresh the badge and ratings section in-place (updating `userRatingsMap` and re-rendering the user's card) instead of calling `location.reload()`. Card-context path remains intact.
+- **Removed** `createRatingsUI`, `displayAllRatings`, and the old `#user-ratings-ui` injection flow. The MutationObserver and hashchange handler now clean up the badge/section/details popup on navigation.
+
+---
+
 ## v1.12.5.0
 
 ### Bug Fixes

@@ -458,6 +458,190 @@
             font-size: 0.85em;
         }
 
+        /* ===== DETAIL PAGE RATING BADGE (next to IMDb rating) ===== */
+        .ur-detail-badge {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25em;
+            color: var(--textColor, #ddd);
+            transition: color 0.15s, background 0.15s;
+            border-radius: 4px;
+            padding: 0.1em 0.3em;
+            user-select: none;
+        }
+        .ur-detail-badge:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+        }
+        .ur-detail-badge .ur-db-star {
+            color: #ffd700;
+            font-size: 1em;
+        }
+        .ur-detail-badge .ur-db-mine {
+            color: var(--highlightOutlineColor, #00a4dc);
+            font-weight: 600;
+        }
+        .ur-detail-badge .ur-db-heart {
+            color: var(--highlightOutlineColor, #00a4dc);
+            font-size: 1em;
+        }
+        .ur-detail-badge .ur-db-sep {
+            opacity: 0.4;
+            margin: 0 0.15em;
+        }
+        .ur-detail-badge .ur-db-rate {
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+        .ur-detail-badge:hover .ur-db-rate {
+            opacity: 1;
+            color: var(--highlightOutlineColor, #00a4dc);
+        }
+
+        /* ===== RATINGS SECTION (bottom of detail page, Cast/Similar style) ===== */
+        #urRatingsCollapsible .ur-rating-card {
+            width: 220px;
+            flex-shrink: 0;
+            background: var(--cardBackground, rgba(20,20,20,0.5));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            padding: 0.8em;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4em;
+        }
+        #urRatingsCollapsible .ur-rating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.18);
+        }
+        #urRatingsCollapsible .ur-rc-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        #urRatingsCollapsible .ur-rc-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00a4dc, #aa5ccf);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        #urRatingsCollapsible .ur-rc-name {
+            font-weight: 600;
+            font-size: 0.95em;
+            color: var(--textColor, #fff);
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #urRatingsCollapsible .ur-rc-stars {
+            color: #ffd700;
+            font-size: 0.95em;
+            letter-spacing: 1px;
+        }
+        #urRatingsCollapsible .ur-rc-date {
+            font-size: 0.75em;
+            opacity: 0.6;
+            margin-left: auto;
+        }
+        #urRatingsCollapsible .ur-rc-comment {
+            font-size: 0.85em;
+            color: var(--dimTextColor, rgba(255,255,255,0.6));
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ===== RATING DETAILS POPUP (read-only) ===== */
+        .ur-rating-details-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .ur-rating-details-overlay.open {
+            display: flex;
+        }
+        .ur-rating-details-popup {
+            background: #1e1e1e;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 1.6em 1.8em;
+            width: 420px;
+            max-width: 92vw;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            animation: popup-slide-in 0.2s ease-out;
+        }
+        .ur-rating-details-popup .ur-rdp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.8em;
+        }
+        .ur-rating-details-popup .ur-rdp-user {
+            display: flex;
+            align-items: center;
+            gap: 0.6em;
+        }
+        .ur-rating-details-popup .ur-rdp-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00a4dc, #aa5ccf);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        .ur-rating-details-popup .ur-rdp-name {
+            font-weight: 600;
+            color: var(--textColor, #fff);
+        }
+        .ur-rating-details-popup .ur-rdp-date {
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+        .ur-rating-details-popup .ur-rdp-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 1.4em;
+            cursor: pointer;
+            padding: 0 0.2em;
+            line-height: 1;
+        }
+        .ur-rating-details-popup .ur-rdp-close:hover { color: #fff; }
+        .ur-rating-details-popup .ur-rdp-stars {
+            color: #ffd700;
+            font-size: 1.3em;
+            letter-spacing: 2px;
+            margin-bottom: 0.8em;
+        }
+        .ur-rating-details-popup .ur-rdp-note {
+            color: var(--textColor, #ddd);
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
         /* ===== RATE POPUP MODAL ===== */
         .rate-popup-overlay {
             display: none;
@@ -1084,11 +1268,15 @@ function updateStarDisplay(container, rating) {
 
             if (result.success) {
                 const cardToAnimate = _popupCardElement;
+                const wasEditing = popupModal.dataset.selectedRating !== '0' && (popupModal.querySelector('#rpDelete').style.display !== 'none');
+                const isNewRating = !wasEditing;
                 closeRatePopup();
                 userRatingsMap[itemId] = { rating: selected * 2, note: note };
 
                 if (cardToAnimate) {
                     animateRatingSuccess(cardToAnimate, selected);
+                } else {
+                    onDetailPageRatingChanged(itemId, true);
                 }
             } else {
                 alert('Error saving rating: ' + result.message);
@@ -1110,9 +1298,15 @@ function updateStarDisplay(container, rating) {
             btn.textContent = 'Delete';
 
             if (result.success) {
+                const cardToAnimate = _popupCardElement;
                 closeRatePopup();
                 if (userRatingsMap) delete userRatingsMap[itemId];
-                location.reload();
+
+                if (cardToAnimate) {
+                    animateRatingSuccess(cardToAnimate, 0);
+                } else {
+                    onDetailPageRatingChanged(itemId, false);
+                }
             } else {
                 alert('Error deleting rating: ' + result.message);
             }
@@ -1193,6 +1387,14 @@ function updateStarDisplay(container, rating) {
 
         // Show/update the compact rating badge
         let compactBadge = card.querySelector('.compact-rating');
+        if (rating === 0) {
+            // Deletion: hide the compact badge
+            if (compactBadge) {
+                compactBadge.dataset.empty = 'true';
+                compactBadge.style.display = 'none';
+            }
+            return;
+        }
         if (compactBadge) {
             compactBadge.querySelector('.cr-value').textContent = rating + '/5';
             compactBadge.dataset.empty = 'false';
@@ -1227,449 +1429,355 @@ function updateStarDisplay(container, rating) {
     }
 
     function reInjectUI(itemId) {
-        const existingUI = document.getElementById('user-ratings-ui');
-        if (existingUI) {
-            existingUI.remove();
-        }
+        removeDetailPageUI();
         isInjecting = false;
         if (itemId) {
             setTimeout(() => injectRatingsUI(), 150);
         }
     }
 
-    async function createRatingsUI(itemId) {
-        console.log('[UserRatings] → createRatingsUI started for:', itemId);
-        const container = document.createElement('div');
-        container.className = 'user-ratings-container';
-        container.id = 'user-ratings-ui';
-        
-        // Get item name for personalized heading
-        let itemName = 'this item';
+    function removeDetailPageUI() {
+        document.querySelectorAll('[data-ur-badge]').forEach(el => el.remove());
+        const section = document.getElementById('urRatingsCollapsible');
+        if (section) section.remove();
+        closeRatingDetailsPopup();
+    }
+
+    // ===== DETAIL PAGE: BADGE NEXT TO IMDb RATING =====
+
+    function buildDetailBadgeHtml(avg, totalRatings, myRating) {
+        const myVal = myRating ? (myRating.rating / 2) : 0;
+        const avgStr = avg > 0 ? (avg / 2).toFixed(1) : null;
+        if (myRating && myVal > 0) {
+            if (avgStr) {
+                return '<span class="ur-db-star">\u2605</span>' +
+                    '<span class="ur-db-avg">' + avgStr + '</span>' +
+                    '<span class="ur-db-sep">·</span>' +
+                    '<span class="ur-db-heart">\u2665</span>' +
+                    '<span class="ur-db-mine">' + formatStarRating(myVal) + '</span>';
+            }
+            return '<span class="ur-db-heart">\u2665</span>' +
+                '<span class="ur-db-mine">' + formatStarRating(myVal) + '</span>';
+        }
+        if (avgStr) {
+            return '<span class="ur-db-star">\u2605</span>' +
+                '<span class="ur-db-avg">' + avgStr + '</span>' +
+                '<span class="ur-db-sep">·</span>' +
+                '<span class="ur-db-rate">Rate</span>';
+        }
+        return '<span class="ur-db-rate">No ratings · Rate</span>';
+    }
+
+    function updateDetailBadge(badge, avg, totalRatings, myRating) {
+        badge.innerHTML = buildDetailBadgeHtml(avg, totalRatings, myRating);
+        badge.dataset.urAvg = String(avg || 0);
+        badge.dataset.urTotal = String(totalRatings || 0);
+    }
+
+    async function injectRatingBadge(itemId, itemName) {
+        const miscInfo = findVisibleDetail('.itemMiscInfo-primary');
+        if (!miscInfo) return null;
+        const starContainer = miscInfo.querySelector('.starRatingContainer');
+        if (!starContainer) return null;
+
+        let badge = miscInfo.querySelector('[data-ur-badge]');
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'mediaInfoItem ur-detail-badge';
+            badge.setAttribute('data-ur-badge', '1');
+            starContainer.insertAdjacentElement('afterend', badge);
+            badge.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const my = getUserRating(itemId);
+                const r = my ? (my.rating / 2) : 0;
+                const note = my ? (my.note || '') : '';
+                _popupCardElement = null;
+                openRatePopup(itemId, itemName, r, note);
+            });
+        }
+
+        const myRating = getUserRating(itemId);
+        let avg = 0, totalRatings = 0;
         try {
-            console.log('[UserRatings] → Loading item details...');
-            const itemDetails = await ApiClient.getItem(ApiClient.getCurrentUserId(), itemId);
-            if (itemDetails && itemDetails.Name) {
-                itemName = itemDetails.Name;
-            }
-            console.log('[UserRatings] → Item details loaded:', itemName);
-        } catch (error) {
-            console.log('[UserRatings] Could not load item name:', error);
+            const data = await loadRatings(itemId);
+            avg = data.averageRating || 0;
+            totalRatings = data.totalRatings || 0;
+        } catch (e) { /* keep zeros */ }
+        updateDetailBadge(badge, avg, totalRatings, myRating);
+        return badge;
+    }
+
+    // ===== DETAIL PAGE: RATINGS SECTION AT BOTTOM (Cast/Similar style) =====
+
+    function buildRatingCard(rating, currentUserId) {
+        const userName = rating.userName || rating.UserName || 'Unknown User';
+        const ratingValue = rating.rating || rating.Rating || 0;
+        const noteText = rating.note || rating.Note || '';
+        const timestamp = rating.timestamp || rating.Timestamp;
+        const userId = rating.userId || rating.UserId || '';
+
+        const card = document.createElement('div');
+        card.className = 'ur-rating-card';
+        if (userId && userId === currentUserId) {
+            card.setAttribute('data-ur-mine', '1');
         }
-        
-        // Header
+
         const header = document.createElement('div');
-        header.className = 'user-ratings-header';
-        header.innerHTML = '<span>User Ratings</span>';
-        
-        const avgSpan = document.createElement('span');
-        avgSpan.className = 'user-ratings-average';
-        avgSpan.id = 'ratings-average-display';
-        header.appendChild(avgSpan);
-        
-        const summaryEl = document.createElement('div');
-        summaryEl.className = 'my-rating-summary';
-        summaryEl.innerHTML = '<span class="summary-stars"></span><span class="summary-label">Your rating</span><button class="edit-rating-btn">Edit</button>';
-        summaryEl.querySelector('.edit-rating-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            expandMyRating();
-            summaryEl.style.display = 'none';
-        });
-        summaryEl.addEventListener('click', () => {
-            expandMyRating();
-            summaryEl.style.display = 'none';
-        });
-        header.appendChild(summaryEl);
-        container.appendChild(header);
-        
-        // My Rating Section
-        const myRatingSection = document.createElement('div');
-        myRatingSection.className = 'user-ratings-my-rating';
-        
-        // Star Rating Section
-        const starSection = document.createElement('div');
-        starSection.className = 'rating-form-section';
-        
-        const myRatingTitle = document.createElement('div');
-        myRatingTitle.className = 'user-ratings-section-title';
-        myRatingTitle.textContent = `How would you rate ${itemName}?`;
-        starSection.appendChild(myRatingTitle);
-        
-        const collapseBtn = document.createElement('button');
-        collapseBtn.className = 'collapse-rating-btn';
-        collapseBtn.textContent = '✕ Close';
-        collapseBtn.addEventListener('click', () => {
-            collapseMyRating();
-            summaryEl.style.display = '';
-        });
-        
-        const titleRow = document.createElement('div');
-        titleRow.style.cssText = 'display:flex;align-items:center;';
-        titleRow.appendChild(myRatingTitle);
-        titleRow.appendChild(collapseBtn);
-        starSection.appendChild(titleRow);
-        
-        const starRatingContainer = document.createElement('div');
-        starRatingContainer.className = 'star-rating-container';
-        
-        const starContainer = createStarRating(0, true,
-            (rating) => {
-                updateStarDisplay(starContainer, rating);
-                ratingPrompt.style.display = rating === 0 ? 'inline' : 'none';
-            },
-            (rating) => {
-                currentRating = rating;
-                updateStarDisplay(starContainer, rating);
-                ratingPrompt.style.display = 'none';
-            }
-        );
-        starRatingContainer.appendChild(starContainer);
-        
-        const ratingPrompt = document.createElement('span');
-        ratingPrompt.className = 'rating-prompt';
-        ratingPrompt.textContent = 'Select your rating';
-        starRatingContainer.appendChild(ratingPrompt);
-        
-        starSection.appendChild(starRatingContainer);
-        myRatingSection.appendChild(starSection);
-        
-        // Review Text Section
-        const reviewSection = document.createElement('div');
-        reviewSection.className = 'rating-form-section';
-        
-        const reviewTitle = document.createElement('div');
-        reviewTitle.className = 'user-ratings-section-title';
-        reviewTitle.textContent = 'Tell us about your experience';
-        reviewSection.appendChild(reviewTitle);
-        
-        const reviewSubtitle = document.createElement('div');
-        reviewSubtitle.className = 'user-ratings-section-subtitle';
-        reviewSubtitle.textContent = 'Share your thoughts (optional)';
-        reviewSection.appendChild(reviewSubtitle);
-        
-        const noteInput = document.createElement('textarea');
-        noteInput.className = 'rating-note-input';
-        noteInput.placeholder = 'Start your review...';
-        reviewSection.appendChild(noteInput);
-        
-        const charCount = document.createElement('div');
-        charCount.className = 'rating-char-count';
-        charCount.textContent = '0 characters';
-        reviewSection.appendChild(charCount);
-        
-        // Character counter
-        noteInput.addEventListener('input', () => {
-            const length = noteInput.value.length;
-            charCount.textContent = `${length} character${length !== 1 ? 's' : ''}`;
-        });
-        
-        myRatingSection.appendChild(reviewSection);
-        
-        // Actions
-        const actionsContainer = document.createElement('div');
-        actionsContainer.className = 'rating-actions';
-        
-        const saveBtn = document.createElement('button');
-        saveBtn.className = 'save-btn';
-        saveBtn.textContent = 'Post Rating';
-        saveBtn.addEventListener('click', async () => {
-            if (currentRating === 0) {
-                alert('Please select a rating');
-                return;
-            }
-            
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Posting...';
-            
-            const result = await saveRating(itemId, currentRating, noteInput.value);
-            
-            if (result.success) {
-                saveBtn.textContent = 'Posted!';
-                saveBtn.disabled = false;
+        header.className = 'ur-rc-header';
 
-                await displayAllRatings(itemId, container);
-                deleteBtn.style.display = 'inline-block';
-                updateSummaryStars(currentRating);
-                collapseMyRating();
-                container.classList.add('has-rating');
-                summaryEl.style.display = '';
-            } else {
-                alert('Error saving rating: ' + result.message);
-                saveBtn.textContent = 'Post Rating';
-                saveBtn.disabled = false;
-            }
-        });
-        actionsContainer.appendChild(saveBtn);
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Delete Rating';
-        deleteBtn.style.display = 'none';
-        deleteBtn.addEventListener('click', async () => {
-            if (!confirm('Delete your rating?')) {
-                return;
-            }
-            
-            deleteBtn.disabled = true;
-            deleteBtn.textContent = 'Deleting...';
-            
-            const result = await deleteRating(itemId);
-            
-            if (result.success) {
-                currentRating = 0;
-                noteInput.value = '';
-                updateStarDisplay(starContainer, 0);
-                deleteBtn.style.display = 'none';
+        const avatar = document.createElement('div');
+        avatar.className = 'ur-rc-avatar';
+        avatar.textContent = (userName.charAt(0) || '?').toUpperCase();
+        header.appendChild(avatar);
 
-                await displayAllRatings(itemId, container);
-                expandMyRating();
-                summaryEl.style.display = 'none';
-            } else {
-                alert('Error deleting rating: ' + result.message);
-            }
-            
-            deleteBtn.textContent = 'Delete Rating';
-            deleteBtn.disabled = false;
-        });
-        actionsContainer.appendChild(deleteBtn);
-        
-        myRatingSection.appendChild(actionsContainer);
-        
-        const summaryStars = summaryEl.querySelector('.summary-stars');
-        
-function updateSummaryStars(rating) {
-    if (summaryStars) {
-        var fullStars = Math.floor(rating / 2);
-        var hasHalf = rating % 2 === 1;
+        const name = document.createElement('span');
+        name.className = 'ur-rc-name';
+        name.textContent = userName;
+        header.appendChild(name);
+
+        if (timestamp) {
+            const date = document.createElement('span');
+            date.className = 'ur-rc-date';
+            const dateObj = new Date(timestamp);
+            date.textContent = dateObj.toLocaleDateString(undefined, {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+            header.appendChild(date);
+        }
+        card.appendChild(header);
+
+        const stars = document.createElement('div');
+        stars.className = 'ur-rc-stars';
+        var fullStars = Math.floor(ratingValue / 2);
+        var hasHalf = ratingValue % 2 === 1;
         var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
-        summaryStars.textContent = '\u2605'.repeat(fullStars) + (hasHalf ? '\u00BD' : '') + '\u2606'.repeat(emptyStars);
-    }
-}
-        
-        function collapseMyRating() {
-            myRatingSection.classList.add('collapsed');
+        stars.textContent = '\u2605'.repeat(fullStars) + (hasHalf ? '\u00BD' : '') + '\u2606'.repeat(emptyStars);
+        card.appendChild(stars);
+
+        if (noteText) {
+            const comment = document.createElement('div');
+            comment.className = 'ur-rc-comment';
+            comment.textContent = noteText;
+            card.appendChild(comment);
         }
-        
-        function expandMyRating() {
-            myRatingSection.classList.remove('collapsed');
-        }
-        
-        container.appendChild(myRatingSection);
-        
-        // All Ratings Section
-        const allRatingsSection = document.createElement('div');
-        allRatingsSection.className = 'user-ratings-all';
-        allRatingsSection.id = 'all-ratings-section';
-        container.appendChild(allRatingsSection);
-        
-        // Load existing rating
-        console.log('[UserRatings] → Loading my rating...');
-        const myRating = await loadMyRating(itemId);
-        console.log('[UserRatings] → My rating loaded:', myRating);
-        if (myRating && myRating.rating) {
-            currentRating = myRating.rating;
-            updateStarDisplay(starContainer, myRating.rating);
-            ratingPrompt.style.display = 'none';
-            noteInput.value = myRating.note || '';
-            const length = noteInput.value.length;
-            charCount.textContent = `${length} character${length !== 1 ? 's' : ''}`;
-            deleteBtn.style.display = 'inline-block';
-            updateSummaryStars(myRating.rating);
-            collapseMyRating();
-            container.classList.add('has-rating');
-            summaryEl.style.display = '';
-        } else {
-            container.classList.remove('has-rating');
-            summaryEl.style.display = 'none';
-        }
-        
-        // Load all ratings
-        console.log('[UserRatings] → Loading all ratings...');
-        await displayAllRatings(itemId, container);
-        console.log('[UserRatings] → All ratings loaded, returning container');
-        
-        return container;
+
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openRatingDetailsPopup({ userName: userName, rating: ratingValue, note: noteText, timestamp: timestamp });
+        });
+        return card;
     }
 
-    async function displayAllRatings(itemId, container) {
-        console.log('[UserRatings] → displayAllRatings started');
-        const allRatingsSection = container.querySelector('#all-ratings-section');
-        const avgDisplay = container.querySelector('#ratings-average-display');
-        
-        if (!allRatingsSection) {
-            console.log('[UserRatings] → No allRatingsSection found, returning early');
-            return;
-        }
-        
-        allRatingsSection.innerHTML = '';
-        
-        console.log('[UserRatings] → Calling loadRatings...');
-        const data = await loadRatings(itemId);
-        console.log('[UserRatings] → loadRatings returned, processing data...');
+    async function injectRatingsSection(itemId) {
+        let data;
+        try { data = await loadRatings(itemId); }
+        catch (e) { return; }
         const ratings = data.ratings || [];
-        const averageRating = data.averageRating || 0;
         const totalRatings = data.totalRatings || 0;
-        
-        // Update average display
-        if (totalRatings > 0) {
-            avgDisplay.textContent = `★ ${(averageRating / 2).toFixed(1)} (${totalRatings} ${totalRatings === 1 ? 'rating' : 'ratings'})`;
-        } else {
-            avgDisplay.textContent = 'No ratings yet';
-        }
-        
-        if (ratings.length === 0) {
-            return;
-        }
-        
-        const title = document.createElement('div');
-        title.className = 'user-ratings-section-title';
-        title.textContent = 'All Ratings';
-        allRatingsSection.appendChild(title);
-        
-        ratings.forEach(rating => {
-            const item = document.createElement('div');
-            item.className = 'rating-item';
-            
-            // Header with user, stars, and date
-            const header = document.createElement('div');
-            header.className = 'rating-item-header';
-            
-            const leftSide = document.createElement('div');
-            const userName = document.createElement('span');
-            userName.className = 'rating-item-user';
-            userName.textContent = rating.userName || rating.UserName || 'Unknown User';
-            leftSide.appendChild(userName);
-            
-    const stars = document.createElement('span');
-    stars.className = 'rating-item-stars';
-    const ratingValue = rating.rating || rating.Rating || 0;
-    var fullStars = Math.floor(ratingValue / 2);
-    var hasHalf = ratingValue % 2 === 1;
-    var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
-    stars.textContent = '\u2605'.repeat(fullStars) + (hasHalf ? '\u00BD' : '') + '\u2606'.repeat(emptyStars);
-            leftSide.appendChild(stars);
-            
-            header.appendChild(leftSide);
-            
-            // Date
-            const timestamp = rating.timestamp || rating.Timestamp;
-            if (timestamp) {
-                const date = document.createElement('span');
-                date.className = 'rating-item-date';
-                const dateObj = new Date(timestamp);
-                date.textContent = dateObj.toLocaleDateString(undefined, { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-                header.appendChild(date);
-            }
-            
-            item.appendChild(header);
-            
-            // Note
-            const noteText = rating.note || rating.Note;
-            if (noteText) {
-                const note = document.createElement('div');
-                note.className = 'rating-item-note';
-                note.textContent = noteText;
-                item.appendChild(note);
-            }
-            
-            allRatingsSection.appendChild(item);
-        });
-        console.log('[UserRatings] → displayAllRatings completed');
+        if (totalRatings === 0 || ratings.length === 0) return;
+
+        const anchor = findVisibleDetail('#similarCollapsible') || findVisibleDetail('#castCollapsible');
+        if (!anchor) return;
+
+        let section = document.getElementById('urRatingsCollapsible');
+        if (section) section.remove();
+        section = document.createElement('div');
+        section.id = 'urRatingsCollapsible';
+        section.className = 'verticalSection detailVerticalSection verticalSection-extrabottompadding emby-scroller-container';
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'sectionTitleContainer sectionTitleContainer-cards padded-right';
+
+        const h2 = document.createElement('h2');
+        h2.className = 'sectionTitle sectionTitle-cards padded-right';
+        h2.textContent = 'Ratings';
+        titleRow.appendChild(h2);
+
+        const scrollBtns = document.createElement('div');
+        scrollBtns.className = 'emby-scrollbuttons-wrapper';
+        scrollBtns.innerHTML = '<button is="emby-scrollbuttons" class="emby-scrollbuttons" data-scroll="left" tabindex="-1"><span class="material-icons scrollbutton-icon keyboard_arrow_left"></span></button>' +
+            '<button is="emby-scrollbuttons" class="emby-scrollbuttons" data-scroll="right" tabindex="-1"><span class="material-icons scrollbutton-icon keyboard_arrow_right"></span></button>';
+        titleRow.appendChild(scrollBtns);
+        section.appendChild(titleRow);
+
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'focuscontainer-x itemsContainer animatedScrollX scrollSliderX';
+        itemsContainer.style.display = 'flex';
+        itemsContainer.style.gap = '0.6em';
+        itemsContainer.style.overflowX = 'auto';
+
+        const currentUserId = ApiClient.getCurrentUserId();
+        ratings.forEach(r => itemsContainer.appendChild(buildRatingCard(r, currentUserId)));
+        section.appendChild(itemsContainer);
+
+        anchor.insertAdjacentElement('afterend', section);
+
+        try {
+            const scroller = section.querySelector('emby-scrollbuttons');
+            if (scroller && scroller.refresh) scroller.refresh();
+        } catch (e) {}
     }
+
+    // ===== RATING DETAILS POPUP (read-only) =====
+
+    let _detailsPopup = null;
+
+    function openRatingDetailsPopup(rating) {
+        if (!_detailsPopup) createRatingDetailsPopup();
+        const userName = rating.userName || rating.UserName || 'Unknown User';
+        const ratingValue = rating.rating || rating.Rating || 0;
+        const noteText = rating.note || rating.Note || '';
+        const timestamp = rating.timestamp || rating.Timestamp;
+
+        _detailsPopup.querySelector('.ur-rdp-name').textContent = userName;
+        _detailsPopup.querySelector('.ur-rdp-avatar').textContent = (userName.charAt(0) || '?').toUpperCase();
+        var fullStars = Math.floor(ratingValue / 2);
+        var hasHalf = ratingValue % 2 === 1;
+        var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+        _detailsPopup.querySelector('.ur-rdp-stars').textContent = '\u2605'.repeat(fullStars) + (hasHalf ? '\u00BD' : '') + '\u2606'.repeat(emptyStars);
+        const noteEl = _detailsPopup.querySelector('.ur-rdp-note');
+        if (noteText) {
+            noteEl.textContent = noteText;
+            noteEl.style.display = '';
+        } else {
+            noteEl.style.display = 'none';
+        }
+        if (timestamp) {
+            const dateObj = new Date(timestamp);
+            _detailsPopup.querySelector('.ur-rdp-date').textContent = dateObj.toLocaleDateString(undefined, {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+        } else {
+            _detailsPopup.querySelector('.ur-rdp-date').textContent = '';
+        }
+        _detailsPopup.classList.add('open');
+    }
+
+    function closeRatingDetailsPopup() {
+        if (_detailsPopup) _detailsPopup.classList.remove('open');
+    }
+
+    function createRatingDetailsPopup() {
+        if (_detailsPopup) return _detailsPopup;
+        const overlay = document.createElement('div');
+        overlay.className = 'ur-rating-details-overlay';
+        overlay.innerHTML =
+            '<div class="ur-rating-details-popup">' +
+                '<div class="ur-rdp-header">' +
+                    '<div class="ur-rdp-user">' +
+                        '<div class="ur-rdp-avatar"></div>' +
+                        '<div>' +
+                            '<div class="ur-rdp-name"></div>' +
+                            '<div class="ur-rdp-date"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="ur-rdp-close">\u00D7</button>' +
+                '</div>' +
+                '<div class="ur-rdp-stars"></div>' +
+                '<div class="ur-rdp-note"></div>' +
+            '</div>';
+        overlay.querySelector('.ur-rdp-close').addEventListener('click', closeRatingDetailsPopup);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeRatingDetailsPopup();
+        });
+        document.body.appendChild(overlay);
+        _detailsPopup = overlay;
+        return overlay;
+    }
+
+    // ===== DETAIL-PAGE RATING CHANGED HOOK (no reload) =====
+
+    function onDetailPageRatingChanged(itemId, saved) {
+        if (currentItemId !== itemId) return;
+
+        const badge = document.querySelector('[data-ur-badge]');
+        if (badge) {
+            const myRating = getUserRating(itemId);
+            const avg = parseFloat(badge.dataset.urAvg || '0');
+            const totalRatings = parseInt(badge.dataset.urTotal || '0', 10);
+            updateDetailBadge(badge, avg, totalRatings, myRating);
+        }
+
+        let itemName = null;
+        try {
+            const nameEl = findVisibleDetail('.nameContainer');
+            if (nameEl) itemName = nameEl.textContent.trim();
+        } catch (e) {}
+
+        if (saved) {
+            injectRatingsSection(itemId).catch(() => {});
+        } else {
+            const section = document.getElementById('urRatingsCollapsible');
+            if (section) {
+                const myCard = section.querySelector('[data-ur-mine="1"]');
+                if (myCard) myCard.remove();
+                if (!section.querySelector('.ur-rating-card')) section.remove();
+            }
+        }
+    }
+
+    // ===== HELPERS: VISIBLE CONTAINER LOOKUP =====
+
+    function isVisibleContainer(el) {
+        if (!el) return false;
+        let node = el;
+        while (node) {
+            if (node.classList && node.classList.contains('hide')) return false;
+            node = node.parentElement;
+        }
+        return true;
+    }
+
+    function findVisibleDetail(selector) {
+        const candidates = document.querySelectorAll(selector);
+        return Array.from(candidates).find(isVisibleContainer) || null;
+    }
+
+    // ===== DETAIL-PAGE INJECTION ENTRYPOINT =====
 
     let injectionAttempts = 0;
-    const maxInjectionAttempts = 30; // Increased from 20
-    
+    const maxInjectionAttempts = 30;
+
     function injectRatingsUI() {
-        // Prevent concurrent injections
         if (isInjecting) {
             console.log('[UserRatings] Already injecting, skipping');
             return;
         }
-        
-        // Get item ID from URL first
+
         let itemId = null;
         const urlParams = new URLSearchParams(window.location.search);
         itemId = urlParams.get('id');
-        
+
         if (!itemId && window.location.hash.includes('?')) {
             const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
             itemId = hashParams.get('id');
         }
-        
+
         if (!itemId) {
             const guidMatch = window.location.href.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
-            if (guidMatch) {
-                itemId = guidMatch[1];
-            }
+            if (guidMatch) itemId = guidMatch[1];
         }
-        
+
         if (!itemId) {
             console.log('[UserRatings] No item ID found');
             injectionAttempts = 0;
             return;
         }
-        
-        // Check if UI already exists - if for same item, skip; if different item, remove it
-        const existingUI = document.getElementById('user-ratings-ui');
-        if (existingUI && currentItemId === itemId) {
-            console.log('[UserRatings] UI already exists for this item, skipping');
+
+        if (currentItemId === itemId && document.querySelector('[data-ur-badge]')) {
+            console.log('[UserRatings] Badge already exists for this item, skipping');
             injectionAttempts = 0;
             return;
         }
-        
-        // If UI exists for different item, remove it
-        if (existingUI && currentItemId !== itemId) {
-            console.log('[UserRatings] Removing UI for previous item');
-            existingUI.remove();
-        }
-        
-        // Try multiple selector strategies to find the container.
-        // IMPORTANT: Jellyfin caches hidden #itemDetailPage copies (with .hide class)
-        // during details→details navigation. querySelector returns the first match in
-        // DOM order, which may be inside a hidden cached page. We must filter those out.
-        let targetContainer = null;
 
-        function isVisibleContainer(el) {
-            if (!el) return false;
-            let node = el;
-            while (node) {
-                if (node.classList && node.classList.contains('hide')) return false;
-                node = node.parentElement;
-            }
-            return true;
+        if (currentItemId !== itemId) {
+            removeDetailPageUI();
         }
 
-        function findVisible(selector) {
-            const candidates = document.querySelectorAll(selector);
-            return Array.from(candidates).find(isVisibleContainer) || null;
-        }
-
-        // Strategy 1: Look for .detailSection inside .detailPagePrimaryContent
-        targetContainer = findVisible('.detailPagePrimaryContent .detailSection');
-
-        // Strategy 2: Look for .detailPagePrimaryContent itself
-        if (!targetContainer) {
-            const primaryContent = findVisible('.detailPagePrimaryContent');
-            if (primaryContent && primaryContent.children.length > 0) {
-                targetContainer = primaryContent;
-            }
-        }
-
-        // Strategy 3: Look for any detail section
-        if (!targetContainer) {
-            targetContainer = findVisible('.detailSection');
-        }
-
-        // Strategy 4: Look for itemDetailPage
-        if (!targetContainer) {
-            targetContainer = findVisible('.itemDetailPage .detailPageContent');
-        }
-        
-        if (!targetContainer) {
+        const miscInfo = findVisibleDetail('.itemMiscInfo-primary');
+        if (!miscInfo) {
             if (injectionAttempts < maxInjectionAttempts) {
                 injectionAttempts++;
                 const retryDelay = Math.min(100 * Math.pow(1.5, injectionAttempts), 3000);
@@ -1682,118 +1790,91 @@ function updateSummaryStars(rating) {
             }
             return;
         }
-        
+
         currentItemId = itemId;
         isInjecting = true;
-        injectionAttempts = 0; // Reset counter on successful injection
-        console.log('[UserRatings] Injecting UI for item:', itemId, 'into container:', targetContainer.className);
-        
-        // Create and inject UI at the end of target container
-        createRatingsUI(itemId).then(ui => {
-            targetContainer.appendChild(ui);
-            
-            // Mark injection complete after a short delay to allow rendering
+        injectionAttempts = 0;
+
+        let itemName = null;
+        try {
+            const nameEl = findVisibleDetail('.nameContainer');
+            if (nameEl) itemName = nameEl.textContent.trim();
+        } catch (e) {}
+
+        Promise.all([
+            injectRatingBadge(itemId, itemName).catch(e => console.error('[UserRatings] Badge inject error:', e)),
+            injectRatingsSection(itemId).catch(e => console.error('[UserRatings] Section inject error:', e))
+        ]).then(() => {
             setTimeout(() => {
                 isInjecting = false;
-                console.log('[UserRatings] ✓ UI injected successfully');
+                console.log('[UserRatings] ✓ Detail-page UI injected');
             }, 200);
-            
-        }).catch(err => {
-            console.error('[UserRatings] Error creating UI:', err);
+        }).catch(() => {
             isInjecting = false;
             injectionAttempts = 0;
         });
     }
-    
-    // Watch for page changes with more aggressive detection
+
+    // Watch for page changes
     let lastUrl = location.href;
     new MutationObserver((mutations) => {
         const url = location.href;
-        
-        // Check if URL changed
         if (url !== lastUrl) {
             lastUrl = url;
-            
-            // Remove old UI when navigating to a new page
-            const oldUI = document.getElementById('user-ratings-ui');
-            if (oldUI) {
-                console.log('[UserRatings] Removing old UI on navigation');
-                oldUI.remove();
-            }
-            
-            // #ratingsTab is now a .tabContent.pageTabContent managed by Jellyfin's
-            // tab system. No manual hide/show needed — Jellyfin deactivates it when
-            // navigating away from home. The hashchange handler below handles restore.
-            
-            // Reset injection state (don't mark as navigating - let normal navigation proceed)
+            removeDetailPageUI();
             isInjecting = false;
             injectionAttempts = 0;
             currentItemId = null;
-            
-            // Try injection with slight delay
             setTimeout(injectRatingsUI, 150);
             return;
         }
-        
-        // Even if URL didn't change, check if detail page content appeared
-        // This handles cases where the page loads but URL was already set.
-        // IMPORTANT: Don't reset isInjecting if injection is already in flight
-        // (createRatingsUI for rated items is slow — extra API calls + render).
-        // Resetting mid-flight causes a duplicate injection race.
+
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
-                if (node.nodeType === 1) { // Element node
-                    // Check if a detail page container was added
-                    if (node.classList && (
-                        node.classList.contains('detailPagePrimaryContent') ||
-                        node.classList.contains('detailSection') ||
-                        node.classList.contains('itemDetailPage')
-                    )) {
-                        if (!isInjecting) {
-                            console.log('[UserRatings] Detail page container detected, triggering injection');
-                            injectionAttempts = 0;
-                            setTimeout(injectRatingsUI, 100);
-                        }
-                        return;
+                if (node.nodeType !== 1) continue;
+                if (node.classList && (
+                    node.classList.contains('detailPagePrimaryContent') ||
+                    node.classList.contains('itemDetailPage') ||
+                    node.classList.contains('itemMiscInfo-primary') ||
+                    node.classList.contains('starRatingContainer')
+                )) {
+                    if (!isInjecting) {
+                        console.log('[UserRatings] Detail page container detected, triggering injection');
+                        injectionAttempts = 0;
+                        setTimeout(injectRatingsUI, 100);
                     }
-                    // Also check children
-                    if (node.querySelector && (
-                        node.querySelector('.detailPagePrimaryContent') ||
-                        node.querySelector('.detailSection') ||
-                        node.querySelector('.itemDetailPage')
-                    )) {
-                        if (!isInjecting) {
-                            console.log('[UserRatings] Detail page content detected in mutation, triggering injection');
-                            injectionAttempts = 0;
-                            setTimeout(injectRatingsUI, 100);
-                        }
-                        return;
+                    return;
+                }
+                if (node.querySelector && (
+                    node.querySelector('.detailPagePrimaryContent') ||
+                    node.querySelector('.itemDetailPage') ||
+                    node.querySelector('.itemMiscInfo-primary')
+                )) {
+                    if (!isInjecting) {
+                        console.log('[UserRatings] Detail page content detected in mutation, triggering injection');
+                        injectionAttempts = 0;
+                        setTimeout(injectRatingsUI, 100);
                     }
+                    return;
                 }
             }
         }
     }).observe(document.body, { subtree: true, childList: true });
 
-    // Initial injection - start with multiple attempts at different intervals
+    // Initial injection
     setTimeout(injectRatingsUI, 100);
     setTimeout(injectRatingsUI, 300);
     setTimeout(injectRatingsUI, 600);
-    
-    // hashchange: handle detail-page UI removal, User Ratings tab restore, tab injection, card decoration
+
+    // hashchange: clean up detail-page UI, restore home tab, re-inject
     window.addEventListener('hashchange', () => {
-        const oldUI = document.getElementById('user-ratings-ui');
-        if (oldUI) {
-            oldUI.remove();
-        }
+        removeDetailPageUI();
 
         const currentHash = window.location.hash;
 
         if (currentHash.includes('home')) {
             const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
-
             if (wasUserRatings) {
-                // Back from details -> programmatically click the User Ratings tab button.
-                // Jellyfin's own tab handler manages .is-active/.emby-tab-button-active.
                 setTimeout(() => {
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
@@ -1804,12 +1885,10 @@ function updateSummaryStars(rating) {
             }
         }
 
-        // Reset injection state
         isInjecting = false;
         injectionAttempts = 0;
         currentItemId = null;
 
-        // Re-inject tab button + detail-page UI + decorate cards
         setTimeout(injectRatingsTab, 100);
         setTimeout(injectRatingsTab, 500);
         setTimeout(injectRatingsUI, 100);

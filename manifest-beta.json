@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.12.5.1",
+        "changelog": "Detail-page UI redesign: compact rating badge next to IMDb rating (community avg + your rating with heart icon), horizontal Ratings section at page bottom mimicking Cast/Similar scrollers, read-only review details popup. Removed the tall inline ratings block. No-reload popup handlers.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.12.5.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-15T00:00:00Z"
+      },
+      {
         "version": "1.12.5.0",
         "changelog": "Fixed: rating UI not loaded on details-to-details navigation for rated items. Container queries now skip hidden cached page copies; isInjecting race fix for rated items.",
         "targetAbi": "10.11.0.0",
