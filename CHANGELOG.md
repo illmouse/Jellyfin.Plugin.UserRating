@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.0
+
+### Fixes
+
+- **RATE button missing on items without public star rating** — Detail-page injection waited for `.starRatingContainer` (IMDb/public rating) to appear before injecting the RATE badge. Items without a public rating (e.g., some series) never rendered it, so injection exhausted all retries and the badge never appeared. Now uses `.itemMiscInfo-primary` or `.mainDetailButtons` as the readiness signal, both present on all detail pages.
+
 ## v1.13.3.0
 
 ### Changes

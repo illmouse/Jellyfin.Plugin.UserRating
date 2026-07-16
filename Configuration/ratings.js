@@ -2032,7 +2032,9 @@ function updateStarDisplay(container, rating) {
         }
 
         const miscInfo = findVisibleDetail('.itemMiscInfo-primary');
-        if (!miscInfo || !miscInfo.querySelector('.starRatingContainer')) {
+        const detailButtons = findVisibleDetail('.mainDetailButtons');
+        const readySignal = miscInfo || detailButtons;
+        if (!readySignal) {
             if (injectionAttempts < maxInjectionAttempts) {
                 injectionAttempts++;
                 const retryDelay = Math.min(100 * Math.pow(1.5, injectionAttempts), 3000);
