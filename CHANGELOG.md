@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.3.0
+
+### Changes
+
+- **Card Overlays description clarified** — Removed inaccurate note that settings don't affect the User Ratings dashboard.
+
 ## v1.13.2.2 (beta)
 
 ### Fixes
