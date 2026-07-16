@@ -220,6 +220,61 @@
                         <input type="number" id="recentlyRatedCount" min="5" max="50" step="1" />
                         <div class="fieldDescription">Number of items to display per page in the Rated Movies, Rated Shows, and Watched sections. Default is 10.</div>
                     </div>
+
+                    <div class="section-divider">
+                        <h3>Card Overlays</h3>
+                        <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                            Control how rating badges appear on item cards across Jellyfin. These settings do not affect the User Ratings dashboard.
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="showAverageRatingBadge">Show Average Rating Badge</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="showAverageRatingBadge" />
+                                <span>Show the community average rating (star) on item cards</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="averageBadgePosition">Average Badge Position</label>
+                            <select is="emby-select" id="averageBadgePosition" class="emby-select-withcolor emby-select" style="width: auto;">
+                                <option value="top-left">Top Left</option>
+                                <option value="top-center">Top Center</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="middle-left">Middle Left</option>
+                                <option value="center">Center</option>
+                                <option value="middle-right">Middle Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-center">Bottom Center</option>
+                                <option value="bottom-right">Bottom Right</option>
+                            </select>
+                            <div class="fieldDescription">Corner or edge of the card where the average rating badge appears.</div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="showPersonalRatingBadge">Show Personal Rating Badge</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="showPersonalRatingBadge" />
+                                <span>Show your personal rating (heart) on item cards</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="personalBadgePosition">Personal Badge Position</label>
+                            <select is="emby-select" id="personalBadgePosition" class="emby-select-withcolor emby-select" style="width: auto;">
+                                <option value="top-left">Top Left</option>
+                                <option value="top-center">Top Center</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="middle-left">Middle Left</option>
+                                <option value="center">Center</option>
+                                <option value="middle-right">Middle Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-center">Bottom Center</option>
+                                <option value="bottom-right">Bottom Right</option>
+                            </select>
+                            <div class="fieldDescription">Corner or edge of the card where your personal rating badge appears. When both badges share the same position, the personal badge stacks below (top) or above (bottom) the average badge.</div>
+                        </div>
+                    </div>
                 </form>
 
                 <div class="section-divider">
@@ -440,6 +495,10 @@
                     document.getElementById('backupIntervalHours').value = config.BackupIntervalHours || 24;
                     document.getElementById('maxBackups').value = config.MaxBackups || 7;
                     document.getElementById('backupPath').value = config.BackupPath || '';
+                    document.getElementById('showAverageRatingBadge').checked = config.ShowAverageRatingBadge !== false;
+                    document.getElementById('averageBadgePosition').value = config.AverageBadgePosition || 'top-left';
+                    document.getElementById('showPersonalRatingBadge').checked = config.ShowPersonalRatingBadge !== false;
+                    document.getElementById('personalBadgePosition').value = config.PersonalBadgePosition || 'top-left';
 
                     if (config.EncryptedPlexToken) {
                         document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
@@ -593,6 +652,10 @@
                     config.BackupIntervalHours = parseInt(document.getElementById('backupIntervalHours').value) || 24;
                     config.MaxBackups = parseInt(document.getElementById('maxBackups').value) || 7;
                     config.BackupPath = document.getElementById('backupPath').value.trim();
+                    config.ShowAverageRatingBadge = document.getElementById('showAverageRatingBadge').checked;
+                    config.AverageBadgePosition = document.getElementById('averageBadgePosition').value;
+                    config.ShowPersonalRatingBadge = document.getElementById('showPersonalRatingBadge').checked;
+                    config.PersonalBadgePosition = document.getElementById('personalBadgePosition').value;
 
                     var tokenField = document.getElementById('plexToken');
                     if (tokenField.value) {

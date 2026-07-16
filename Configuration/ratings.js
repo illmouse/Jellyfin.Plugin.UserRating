@@ -386,7 +386,6 @@
         /* ===== COMPACT RATING BADGE (rated cards) ===== */
         .compact-rating {
             position: absolute;
-            top: 0.4em; left: 0.4em;
             z-index: 3;
             display: inline-flex;
             align-items: center;
@@ -428,8 +427,6 @@
         /* ===== AVERAGE RATING BADGE (shared across all card surfaces) ===== */
         .ur-avg-badge {
             position: absolute;
-            top: 0.4em;
-            left: 0.4em;
             z-index: 3;
             background: rgba(0,0,0,0.85);
             padding: 0.2em 0.5em;
@@ -442,10 +439,6 @@
             font-size: 0.8em;
             line-height: 1.5;
         }
-        /* When avg badge present, stack personal below it */
-        .card[data-ur-has-avg="1"] .compact-rating {
-            top: 2.8em;
-        }
         .ur-avg-badge .ur-avg-star {
             color: #ffd700;
             font-size: 1.1em;
@@ -454,7 +447,29 @@
             font-weight: 600;
         }
 
-        /* ===== MOBILE: shrink badges (already top-left stacked on all screens) ===== */
+        /* ===== BADGE POSITION CLASSES (applied via config) ===== */
+        .ur-pos-top-left { top: 0.4em; left: 0.4em; }
+        .ur-pos-top-center { top: 0.4em; left: 50%; transform: translateX(-50%); }
+        .ur-pos-top-right { top: 0.4em; right: 0.4em; }
+        .ur-pos-middle-left { top: 50%; left: 0.4em; transform: translateY(-50%); }
+        .ur-pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .ur-pos-middle-right { top: 50%; right: 0.4em; transform: translateY(-50%); }
+        .ur-pos-bottom-left { bottom: 0.4em; left: 0.4em; }
+        .ur-pos-bottom-center { bottom: 0.4em; left: 50%; transform: translateX(-50%); }
+        .ur-pos-bottom-right { bottom: 0.4em; right: 0.4em; }
+
+        /* Stacking: when both badges share the same position, personal badge offsets */
+        .compact-rating.ur-stacked.ur-pos-top-left,
+        .compact-rating.ur-stacked.ur-pos-top-center,
+        .compact-rating.ur-stacked.ur-pos-top-right { margin-top: 2.4em; }
+        .compact-rating.ur-stacked.ur-pos-bottom-left,
+        .compact-rating.ur-stacked.ur-pos-bottom-center,
+        .compact-rating.ur-stacked.ur-pos-bottom-right { margin-bottom: 2.4em; }
+        .compact-rating.ur-stacked.ur-pos-middle-left,
+        .compact-rating.ur-stacked.ur-pos-center,
+        .compact-rating.ur-stacked.ur-pos-middle-right { margin-top: 2.4em; }
+
+        /* ===== MOBILE: shrink badges ===== */
         @media (max-width: 480px) {
             .compact-rating {
                 font-size: 0.65em;
@@ -478,9 +493,15 @@
             .ur-avg-badge .ur-avg-star {
                 font-size: 1em;
             }
-            .card[data-ur-has-avg="1"] .compact-rating {
-                top: 2.2em;
-            }
+            .compact-rating.ur-stacked.ur-pos-top-left,
+            .compact-rating.ur-stacked.ur-pos-top-center,
+            .compact-rating.ur-stacked.ur-pos-top-right { margin-top: 1.8em; }
+            .compact-rating.ur-stacked.ur-pos-bottom-left,
+            .compact-rating.ur-stacked.ur-pos-bottom-center,
+            .compact-rating.ur-stacked.ur-pos-bottom-right { margin-bottom: 1.8em; }
+            .compact-rating.ur-stacked.ur-pos-middle-left,
+            .compact-rating.ur-stacked.ur-pos-center,
+            .compact-rating.ur-stacked.ur-pos-middle-right { margin-top: 1.8em; }
         }
 
         /* ===== DETAIL PAGE RATING BADGE (next to IMDb rating) ===== */
@@ -894,6 +915,32 @@
     let _userRatingsPrimed = false;
     let _fetchPromise = null;
 
+    let _cardConfig = null;
+    let _cardConfigPromise = null;
+
+    function ensureCardConfig() {
+        if (_cardConfig) return Promise.resolve(_cardConfig);
+        if (!_cardConfigPromise) {
+            _cardConfigPromise = ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e').then(function(cfg) {
+                _cardConfig = {
+                    showAvg: cfg.ShowAverageRatingBadge !== false,
+                    showPersonal: cfg.ShowPersonalRatingBadge !== false,
+                    avgPos: cfg.AverageBadgePosition || 'top-left',
+                    personalPos: cfg.PersonalBadgePosition || 'top-left'
+                };
+                return _cardConfig;
+            }).catch(function() {
+                _cardConfig = { showAvg: true, showPersonal: true, avgPos: 'top-left', personalPos: 'top-left' };
+                return _cardConfig;
+            }).then(function() { _cardConfigPromise = null; });
+        }
+        return _cardConfigPromise;
+    }
+
+    function getCardConfig() {
+        return _cardConfig || { showAvg: true, showPersonal: true, avgPos: 'top-left', personalPos: 'top-left' };
+    }
+
     function ensureUserRatings() {
         if (!_fetchPromise) {
             _fetchPromise = fetchUserRatings().catch(function() {}).then(function() {
@@ -1148,8 +1195,8 @@ function updateStarDisplay(container, rating) {
         return _batchInFlight;
     }
 
-    function buildAvgBadgeHtml(rating) {
-        return '<div class="ur-avg-badge">' +
+    function buildAvgBadgeHtml(rating, posClass) {
+        return '<div class="ur-avg-badge ur-pos-' + posClass + '">' +
             '<span class="ur-avg-star">\u2605</span>' +
             '<span class="ur-avg-value">' + rating + '</span>' +
         '</div>';
@@ -1161,20 +1208,23 @@ function updateStarDisplay(container, rating) {
         const scalable = card.querySelector('.cardScalable');
         if (!scalable) return;
 
+        const cfg = getCardConfig();
         const hasAvg = info && info.averageRating && info.totalRatings > 0;
-        if (hasAvg) {
+        if (hasAvg && cfg.showAvg) {
             card.setAttribute('data-ur-has-avg', '1');
             const rating = info.averageRating.toFixed(1);
             if (!scalable.querySelector('.ur-avg-badge')) {
-                scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating));
+                scalable.insertAdjacentHTML('beforeend', buildAvgBadgeHtml(rating, cfg.avgPos));
             }
         } else {
             card.removeAttribute('data-ur-has-avg');
+            const existingAvg = scalable.querySelector('.ur-avg-badge');
+            if (existingAvg) existingAvg.remove();
         }
 
         let compact = scalable.querySelector('.compact-rating');
         const userRating = getUserRating(card.getAttribute('data-id'));
-        if (userRating) {
+        if (userRating && cfg.showPersonal) {
             if (!compact) {
                 compact = document.createElement('div');
                 compact.className = 'compact-rating';
@@ -1186,6 +1236,12 @@ function updateStarDisplay(container, rating) {
                 } else {
                     scalable.appendChild(compact);
                 }
+            }
+            compact.className = 'compact-rating ur-pos-' + cfg.personalPos;
+            if (hasAvg && cfg.showAvg && cfg.avgPos === cfg.personalPos) {
+                compact.classList.add('ur-stacked');
+            } else {
+                compact.classList.remove('ur-stacked');
             }
             compact.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
             compact.dataset.empty = 'false';
@@ -1482,6 +1538,7 @@ function updateStarDisplay(container, rating) {
         }
 
         // Show/update the compact rating badge
+        const cfg = getCardConfig();
         let compactBadge = card.querySelector('.compact-rating');
         if (rating === 0) {
             // Deletion: hide the compact badge
@@ -1491,13 +1548,24 @@ function updateStarDisplay(container, rating) {
             }
             return;
         }
+        if (!cfg.showPersonal) {
+            if (compactBadge) { compactBadge.style.display = 'none'; }
+            return;
+        }
         if (compactBadge) {
+            compactBadge.className = 'compact-rating ur-pos-' + cfg.personalPos;
+            if (card.getAttribute('data-ur-has-avg') === '1' && cfg.showAvg && cfg.avgPos === cfg.personalPos) {
+                compactBadge.classList.add('ur-stacked');
+            }
             compactBadge.querySelector('.cr-value').textContent = (rating * 2);
             compactBadge.dataset.empty = 'false';
             compactBadge.style.display = '';
         } else {
             compactBadge = document.createElement('div');
-            compactBadge.className = 'compact-rating';
+            compactBadge.className = 'compact-rating ur-pos-' + cfg.personalPos;
+            if (card.getAttribute('data-ur-has-avg') === '1' && cfg.showAvg && cfg.avgPos === cfg.personalPos) {
+                compactBadge.classList.add('ur-stacked');
+            }
             compactBadge.dataset.empty = 'false';
             compactBadge.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value">' + (rating * 2) + '</span>';
             const imgContainer = card.querySelector('.cardImageContainer');
@@ -2820,8 +2888,10 @@ function updateStarDisplay(container, rating) {
     setTimeout(injectRatingsTab, 3000);
     setInterval(injectRatingsTab, 2000);
 
-    // Prime user ratings cache at boot so global card decoration can fill compact badges
+    // Prime user ratings cache and card config at boot so global card decoration can fill compact badges
+    ensureCardConfig();
     ensureUserRatings().then(function() {
+        const cfg = getCardConfig();
         // Re-pass: add personal badges to cards decorated before userRatingsMap was ready
         document.querySelectorAll('.card[data-ur-decorated="1"]').forEach(function(card) {
             const scalable = card.querySelector('.cardScalable');
@@ -2829,10 +2899,13 @@ function updateStarDisplay(container, rating) {
             const compact = scalable.querySelector('.compact-rating');
             const itemId = card.getAttribute('data-id');
             const userRating = getUserRating(itemId);
-            if (userRating) {
+            if (userRating && cfg.showPersonal) {
                 if (!compact) {
                     const c = document.createElement('div');
-                    c.className = 'compact-rating';
+                    c.className = 'compact-rating ur-pos-' + cfg.personalPos;
+                    if (card.getAttribute('data-ur-has-avg') === '1' && cfg.showAvg && cfg.avgPos === cfg.personalPos) {
+                        c.classList.add('ur-stacked');
+                    }
                     c.dataset.empty = 'false';
                     c.innerHTML = '<span class="cr-heart">\u2665</span><span class="cr-value"></span>';
                     c.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
@@ -2858,7 +2931,11 @@ function updateStarDisplay(container, rating) {
                         });
                     }
                 } else if (compact.dataset.empty === 'true') {
-            compact.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
+                    compact.className = 'compact-rating ur-pos-' + cfg.personalPos;
+                    if (card.getAttribute('data-ur-has-avg') === '1' && cfg.showAvg && cfg.avgPos === cfg.personalPos) {
+                        compact.classList.add('ur-stacked');
+                    }
+                    compact.querySelector('.cr-value').textContent = formatCardRating(userRating.rating / 2);
                     compact.dataset.empty = 'false';
                     compact.style.display = '';
                 }

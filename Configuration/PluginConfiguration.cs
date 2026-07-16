@@ -7,6 +7,14 @@ public class PluginConfiguration : BasePluginConfiguration
 {
     public int RecentlyRatedItemsCount { get; set; } = 10;
 
+    public bool ShowAverageRatingBadge { get; set; } = true;
+
+    public bool ShowPersonalRatingBadge { get; set; } = true;
+
+    public string AverageBadgePosition { get; set; } = "top-left";
+
+    public string PersonalBadgePosition { get; set; } = "top-left";
+
     public string PlexServerUrl { get; set; } = string.Empty;
 
     public string EncryptedPlexToken { get; set; } = string.Empty;

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.2.1",
+        "changelog": "New: configurable card badge visibility (show/hide average and personal badges independently) and configurable badge position (9 positions per badge). Settings in Card Overlays section.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.2.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-16T00:00:00Z"
+      },
+      {
         "version": "1.13.2.0",
         "changelog": "Fixed dashboard sort direction arrow wrapping to its own line on mobile (now wraps as a unit with the sort dropdown). Hidden detail page rating card scroll arrows on touch devices via CSS media query.",
         "targetAbi": "10.11.0.0",

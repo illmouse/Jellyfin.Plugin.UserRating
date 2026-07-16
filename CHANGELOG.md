@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13.2.1 (beta)
+
+### New Features
+
+- **Configurable Card Badge Visibility** — Average rating (★) and personal rating (♥) badges on item cards can now each be hidden or shown independently via plugin settings (Card Overlays section).
+- **Configurable Card Badge Position** — Each badge can be positioned independently in any of 9 positions: top-left, top-center, top-right, middle-left, center, middle-right, bottom-left, bottom-center, bottom-right. When both badges share the same position, the personal badge stacks below (top positions) or above (bottom positions) the average badge.
+
 ## v1.13.2.0
 
 ### Fixes
