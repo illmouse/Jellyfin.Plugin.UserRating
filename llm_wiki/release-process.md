@@ -8,6 +8,7 @@
 - A git tag must be created for every version (including betas) — Jellyfin repository requires a tag to fetch the plugin version
 - In manifests, always add new versions as new entries at the top of the `versions` array — never replace or remove previous entries
 - Changelog: only include bug fixes that existed in a previous stable release. Do not include bugs found and fixed during the same development session — keep CHANGELOG.md clean from noise
+- Stable release changelogs: aggregate all user-facing features and changes from the entire beta cycle since the last stable release, not just the delta from the immediate previous version. A stable release is the culmination of its beta cycle — its changelog should reflect everything a user upgrading from the previous stable version would see. Bug fixes introduced and resolved within the same beta cycle (never affecting stable users) should be omitted per the rule above
 - Stable versions use 0 as the fourth octet (e.g., `1.11.0.0`). Beta versions have a non-zero fourth octet (e.g., `1.11.0.7`).
 - GitHub Releases for beta versions must be marked as **Pre-release** (checkbox in the UI / `--prerelease` flag in `gh release create`)
 
