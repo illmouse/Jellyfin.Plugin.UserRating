@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.2.2 (beta)
+
+### Fixes
+
+- **Card badges not appearing (boot crash)** — `ensureCardConfig()` called `ApiClient.getPluginConfiguration()` synchronously at boot before `ApiClient` was defined, throwing an uncaught `ReferenceError` that crashed the entire script. No rating badges appeared at all. Fixed by deferring the API call to a microtask and retrying via `decorateAllCards()` until `ApiClient` is available. Decorated cards are reset when config first loads so they get the correct visibility/position settings.
+
 ## v1.13.2.1 (beta)
 
 ### New Features

@@ -921,17 +921,29 @@
     function ensureCardConfig() {
         if (_cardConfig) return Promise.resolve(_cardConfig);
         if (!_cardConfigPromise) {
-            _cardConfigPromise = ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e').then(function(cfg) {
+            _cardConfigPromise = Promise.resolve().then(function() {
+                return ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
+            }).then(function(cfg) {
                 _cardConfig = {
                     showAvg: cfg.ShowAverageRatingBadge !== false,
                     showPersonal: cfg.ShowPersonalRatingBadge !== false,
                     avgPos: cfg.AverageBadgePosition || 'top-left',
                     personalPos: cfg.PersonalBadgePosition || 'top-left'
                 };
+                document.querySelectorAll('.card[data-ur-decorated="1"]').forEach(function(card) {
+                    card.removeAttribute('data-ur-decorated');
+                    card.removeAttribute('data-ur-has-avg');
+                    const scalable = card.querySelector('.cardScalable');
+                    if (scalable) {
+                        const avg = scalable.querySelector('.ur-avg-badge');
+                        if (avg) avg.remove();
+                        const cr = scalable.querySelector('.compact-rating');
+                        if (cr) cr.remove();
+                    }
+                });
                 return _cardConfig;
             }).catch(function() {
-                _cardConfig = { showAvg: true, showPersonal: true, avgPos: 'top-left', personalPos: 'top-left' };
-                return _cardConfig;
+                return null;
             }).then(function() { _cardConfigPromise = null; });
         }
         return _cardConfigPromise;
@@ -1308,7 +1320,7 @@ function updateStarDisplay(container, rating) {
     }
 
     function decorateAllCards() {
-        ensureUserRatings().then(function() {
+        Promise.all([ensureUserRatings(), ensureCardConfig()]).then(function() {
             _decorateCardsGlobal();
         });
     }

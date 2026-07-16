@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.2.2",
+        "changelog": "Fixed boot crash: ensureCardConfig() called ApiClient synchronously before it was defined, throwing ReferenceError that prevented all card badges from appearing. Now defers API call and retries until ApiClient is available.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.2.2/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-07-16T00:00:00Z"
+      },
+      {
         "version": "1.13.2.1",
         "changelog": "New: configurable card badge visibility (show/hide average and personal badges independently) and configurable badge position (9 positions per badge). Settings in Card Overlays section.",
         "targetAbi": "10.11.0.0",
