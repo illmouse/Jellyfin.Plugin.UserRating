@@ -568,6 +568,11 @@
             cursor: default;
             opacity: .3;
         }
+        @media (hover: none) and (pointer: coarse) {
+            #urRatingsCollapsible .emby-scrollbuttons {
+                display: none;
+            }
+        }
         #urRatingsCollapsible .ur-rating-card {
             width: 220px;
             background: var(--cardBackground, rgba(20,20,20,0.5));
@@ -2286,15 +2291,17 @@ function updateStarDisplay(container, rating) {
                                     </div>
                                 </div>
                             </div>
-                            <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                <option value="rating" ${movies_sortField === 'rating' ? 'selected' : ''}>Rating</option>
-                                <option value="title" ${movies_sortField === 'title' ? 'selected' : ''}>Title</option>
-                                <option value="recent" ${movies_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                <option value="count" ${movies_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
-                            </select>
-                            <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
-                                <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
-                            </button>
+                            <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
+                                <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
+                                    <option value="rating" ${movies_sortField === 'rating' ? 'selected' : ''}>Rating</option>
+                                    <option value="title" ${movies_sortField === 'title' ? 'selected' : ''}>Title</option>
+                                    <option value="recent" ${movies_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
+                                    <option value="count" ${movies_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                                </select>
+                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                    <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
+                                </button>
+                            </div>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated movies found.</div>'}
@@ -2392,15 +2399,17 @@ function updateStarDisplay(container, rating) {
                                 </div>
                             </div>
                             ${typeTabsHtml}
-                            <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                <option value="rating" ${shows_sortField === 'rating' ? 'selected' : ''}>Rating</option>
-                                <option value="title" ${shows_sortField === 'title' ? 'selected' : ''}>Title</option>
-                                <option value="recent" ${shows_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                <option value="count" ${shows_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
-                            </select>
-                            <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
-                                <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
-                            </button>
+                            <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
+                                <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
+                                    <option value="rating" ${shows_sortField === 'rating' ? 'selected' : ''}>Rating</option>
+                                    <option value="title" ${shows_sortField === 'title' ? 'selected' : ''}>Title</option>
+                                    <option value="recent" ${shows_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
+                                    <option value="count" ${shows_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                                </select>
+                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                    <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
+                                </button>
+                            </div>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                             ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated shows found.</div>'}
@@ -2588,13 +2597,15 @@ function updateStarDisplay(container, rating) {
                                         </div>
                                     </div>
                                 </div>
-                                <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                    <option value="watched" ${unratedSortField === 'watched' ? 'selected' : ''}>Last Watched</option>
-                                    <option value="title" ${unratedSortField === 'title' ? 'selected' : ''}>Title</option>
-                                </select>
-                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
-                                    <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
-                                </button>
+                                <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
+                                    <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
+                                        <option value="watched" ${unratedSortField === 'watched' ? 'selected' : ''}>Last Watched</option>
+                                        <option value="title" ${unratedSortField === 'title' ? 'selected' : ''}>Title</option>
+                                    </select>
+                                    <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                        <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
+                                    </button>
+                                </div>
                             </div>
                             <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
                                 ${buildUnratedGrid(paginatedItems)}

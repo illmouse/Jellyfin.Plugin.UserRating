@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13.2.0
+
+### Fixes
+
+- **Dashboard Sort Arrow Wrapping on Mobile** — The sort direction toggle arrow (arrow_downward/arrow_upward) was wrapping to its own line on narrow mobile screens, separated from the sort dropdown. The sort dropdown and direction arrow are now wrapped together in an inline-flex container so they wrap as a unit.
+- **Detail Page Scroll Arrows on Touch Devices** — The left/right scroll arrows at the bottom of the item detail page rating cards section were visible on touch devices where touch scrolling makes them redundant. Added a CSS media query (`@media (hover: none) and (pointer: coarse)`) to hide the scroll buttons on touch devices while keeping them on desktop.
+
 ## v1.13.1.0
 
 ### Fixes
