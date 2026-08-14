@@ -4,7 +4,7 @@
 
 The plugin config page (`Configuration/configPage.html`) has these sections in order:
 
-1. **Rating Display** — star size, show half stars, etc.
+1. **Rating Display** — star size, show half stars, badge positions, favorite threshold, Mark Existing Favorites button
 2. **Home Dashboard** — recently rated count, dashboard visibility
 3. **Card Overlays** — badge visibility, badge position
 4. **Plex Import** — server URL, token, test connection

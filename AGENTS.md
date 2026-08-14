@@ -36,9 +36,11 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 - `Api/RatingsController.cs` — REST API endpoints for ratings
 - `Api/HealthController.cs` — REST endpoints for health report, heal, and clear stale ratings
 - `Api/PlexImportController.cs` — REST endpoint for Plex rating import
+- `Api/StringsController.cs` — REST endpoint serving localized UI strings (Strings/en.json)
 - `Data/RatingRepository.cs` — JSON-file-based rating storage (fail-safe per-entry deserialization)
 - `Data/BackupService.cs` — Scheduled/manual backup with rotation
 - `Models/UserRating.cs` — Data models (UserRating, RatingStats, RatedItemSummary, HealthReport, StaleItem)
+- `Strings/en.json` — English localization strings for user-facing UI (tab, badges, popup, dashboard)
 - `Configuration/ratings.js` — Client-side JS injected into Jellyfin UI (detail page rating widget + home tab dashboard)
 - `Configuration/configPage.html` — Admin config page (includes Database Health section)
 - `Configuration/PluginConfiguration.cs` — Plugin configuration model
@@ -68,3 +70,6 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 - All repository mutations are lock-protected (`lock _lock`)
 - `LoadRatings` uses per-entry deserialization — one malformed entry is logged and skipped, not fatal. Backs up corrupted files before starting empty
 - `SaveRatings` is guarded by `_loadFailed` flag — won't overwrite data file if load failed and DB is empty
+- Localization: `ratings.js` fetches strings from `api/UserRatings/Strings` at init; all user-facing text uses `t(key, fallback)` with English fallbacks. Config page stays English.
+- Auto-favorite: `FavoriteThreshold` config (default 9). Client calls `ApiClient.updateFavoriteStatus()` after rating save/delete. Backend `MarkExistingFavorites` endpoint for one-time batch marking.
+- Season display: Shows section type filter has 4 tabs (All/Shows/Seasons/Episodes). Season cards show `seriesName` as subtitle.

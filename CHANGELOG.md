@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.13.4.4 (beta)
+
+### New Features
+
+- **Season ratings in dashboard** — The Shows section now has 4 type filter tabs: All, Shows, Seasons, Episodes. Season cards display the parent series name as subtitle.
+- **Auto-favorite high-rated items** — Items rated at or above a configurable threshold (default 9) are automatically marked as Jellyfin favorites. Deleting a rating always removes the favorite. A "Mark Existing Favorites" button batch-marks already-rated items.
+- **Localization infrastructure** — All user-facing strings in the ratings tab and popup are now fetched from `api/UserRatings/Strings` and replaceable via `Strings/en.json`. Plugin settings remain English-only.
+
+### Fixes
+
+- **Badge position dropdown arrows now visible** — `emby-select` dropdowns now show a proper arrow indicator. Bare `<select>` elements (Sync As User, On Conflict, Healing Conflict Mode) upgraded to styled `emby-select` web components.
+- **Save Settings button placement** — Moved to after all setting sections (between Database Health and Danger Zone).
+
 ## v1.13.4.3 (beta)
 
 ### Fixes

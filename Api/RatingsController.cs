@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Enums;
+using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using Jellyfin.Plugin.UserRatings.Services;
@@ -21,6 +22,7 @@ public class RatingsController(
 RatingRepository repository,
 ILibraryManager libraryManager,
 IUserManager userManager,
+IUserDataManager userDataManager,
 RatingResolver resolver,
 BackupService backupService) : ControllerBase
 {
@@ -161,9 +163,16 @@ BackupService backupService) : ControllerBase
                 continue;
 
             string? seriesId = null;
+            string? seriesName = null;
             if (libItem is Episode ep && ep.Series != null)
             {
                 seriesId = ep.Series.Id.ToString("N");
+                seriesName = ep.Series.Name;
+            }
+            else if (libItem is Season season && season.Series != null)
+            {
+                seriesId = season.Series.Id.ToString("N");
+                seriesName = season.Series.Name;
             }
 
             resolved.Add(new RatedItemInfo(
@@ -173,7 +182,8 @@ BackupService backupService) : ControllerBase
                 item.LastRated,
                 libItem.Name,
                 libItem.GetType().Name,
-                seriesId
+                seriesId,
+                seriesName
             ));
         }
 
@@ -372,5 +382,61 @@ BackupService backupService) : ControllerBase
         }
 
         return Ok(new BatchAverageResponse(true, items));
+    }
+
+    [HttpPost("MarkExistingFavorites")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult MarkExistingFavorites([FromQuery] Guid? userId, [FromQuery] int? threshold)
+    {
+        var config = Plugin.Instance?.Configuration;
+        var effectiveThreshold = threshold ?? config?.FavoriteThreshold ?? 9;
+        if (effectiveThreshold < 1) effectiveThreshold = 1;
+        if (effectiveThreshold > 10) effectiveThreshold = 10;
+
+        var allRatings = repository.GetAllRatings();
+        if (allRatings.Count == 0)
+        {
+            return Ok(new MarkFavoritesResponse(true, 0, 0));
+        }
+
+        var qualifying = allRatings.Values
+            .Where(r => r.Rating >= effectiveThreshold)
+            .Where(r => !userId.HasValue || r.UserId == userId.Value)
+            .ToList();
+
+        if (qualifying.Count == 0)
+        {
+            return Ok(new MarkFavoritesResponse(true, 0, 0));
+        }
+
+        var itemIds = qualifying.Select(r => r.ItemId).Distinct().ToArray();
+        var query = new InternalItemsQuery { ItemIds = itemIds };
+        var libItems = libraryManager.GetItemList(query);
+        var libItemMap = libItems
+            .Where(i => i != null)
+            .GroupBy(i => i.Id)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        int marked = 0;
+        int skipped = 0;
+
+        foreach (var rating in qualifying)
+        {
+            if (!libItemMap.TryGetValue(rating.ItemId, out var item) || item == null)
+            {
+                skipped++;
+                continue;
+            }
+
+            var userData = userDataManager.GetUserData(rating.UserId, item);
+            if (!userData.IsFavorite)
+            {
+                userData.IsFavorite = true;
+                userDataManager.SaveUserData(rating.UserId, item, userData, UserDataSaveReason.Update, CancellationToken.None);
+                marked++;
+            }
+        }
+
+        return Ok(new MarkFavoritesResponse(true, marked, skipped));
     }
 }

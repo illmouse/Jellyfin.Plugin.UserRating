@@ -20,7 +20,7 @@ public record ItemRatingsResponse(
 
 public record UserRatingsResponse(bool success, IReadOnlyList<SimpleRatingInfo> ratings);
 
-public record RatedItemInfo(string itemId, double averageRating, int totalRatings, DateTime lastRated, string? name, string? type, string? seriesId);
+public record RatedItemInfo(string itemId, double averageRating, int totalRatings, DateTime lastRated, string? name, string? type, string? seriesId, string? seriesName = null);
 
 public record RatedItemsResponse(bool success, IReadOnlyList<RatedItemInfo> items);
 
@@ -37,6 +37,8 @@ public record StaleItemDto(Guid itemId, Guid userId, int rating, string? note, D
 public record HealedItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating);
 
 public record BackupInfoDto(string fileName, long fileSize, DateTime lastModified, DateTime? parsedTimestamp = null);
+
+public record MarkFavoritesResponse(bool success, int marked, int skipped);
 
 public record HealthReportResponse(
     bool success,

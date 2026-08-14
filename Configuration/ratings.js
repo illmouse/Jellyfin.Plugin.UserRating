@@ -923,6 +923,31 @@
     let _cardConfig = null;
     let _cardConfigPromise = null;
 
+    // Localized strings: fetched from the server once, falls back to English defaults
+    let _strings = {};
+    let _stringsPromise = null;
+
+    async function loadStrings() {
+        if (_stringsPromise) return _stringsPromise;
+        _stringsPromise = (async function() {
+            try {
+                const resp = await fetch(ApiClient.getUrl('api/UserRatings/Strings'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                });
+                if (resp.ok) {
+                    _strings = await resp.json();
+                }
+            } catch (e) {
+                console.warn('[UserRatings] Could not load localized strings, using defaults');
+            }
+        })();
+        return _stringsPromise;
+    }
+
+    function t(key, fallback) {
+        return _strings[key] || fallback;
+    }
+
     function ensureCardConfig() {
         if (_cardConfig) return Promise.resolve(_cardConfig);
         if (!_cardConfigPromise) {
@@ -1095,6 +1120,19 @@ function updateStarDisplay(container, rating) {
         } catch (error) {
             console.error('[UserRatings] Error deleting rating:', error);
             return { success: false, message: error.message };
+        }
+    }
+
+    async function syncFavorite(itemId, rating) {
+        try {
+            const config = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
+            const threshold = config.FavoriteThreshold ?? 9;
+            if (threshold < 1) return;
+            const userId = ApiClient.getCurrentUserId();
+            const isFavorite = rating >= threshold;
+            await ApiClient.updateFavoriteStatus(userId, itemId, isFavorite);
+        } catch (error) {
+            console.error('[UserRatings] Error syncing favorite:', error);
         }
     }
 
@@ -1356,10 +1394,10 @@ function updateStarDisplay(container, rating) {
         overlay.innerHTML = `
             <div class="rate-popup">
                 <div class="rate-popup-header">
-                    <span class="rate-popup-title" id="rpTitle">Rate</span>
+                    <span class="rate-popup-title" id="rpTitle">${t('rate', 'Rate')}</span>
                     <button class="rate-popup-close" id="rpClose">&#xD7;</button>
                 </div>
-                <div class="rate-popup-subtitle" id="rpSubtitle">Select your rating</div>
+                <div class="rate-popup-subtitle" id="rpSubtitle">${t('selectYourRating', 'Select your rating')}</div>
                 <div class="rate-popup-stars" id="rpStars">
                     <span class="rp-star" data-n="1">&#x2605;</span>
                     <span class="rp-star" data-n="2">&#x2605;</span>
@@ -1367,12 +1405,12 @@ function updateStarDisplay(container, rating) {
                     <span class="rp-star" data-n="4">&#x2605;</span>
                     <span class="rp-star" data-n="5">&#x2605;</span>
                 </div>
-                <textarea id="rpNote" placeholder="Optional note&#x2026;"></textarea>
+                <textarea id="rpNote" placeholder="${t('optionalNote', 'Optional note…')}"></textarea>
                 <div class="rate-popup-actions">
-                    <button class="rate-popup-btn-delete" id="rpDelete" style="display:none;">Delete</button>
+                    <button class="rate-popup-btn-delete" id="rpDelete" style="display:none;">${t('delete', 'Delete')}</button>
                     <div style="display:flex;gap:0.6em;margin-left:auto;">
-                        <button class="rate-popup-btn-cancel" id="rpCancel">Cancel</button>
-                        <button class="rate-popup-btn-submit" id="rpSubmit">Post Rating</button>
+                        <button class="rate-popup-btn-cancel" id="rpCancel">${t('cancel', 'Cancel')}</button>
+                        <button class="rate-popup-btn-submit" id="rpSubmit">${t('postRating', 'Post Rating')}</button>
                     </div>
                 </div>
             </div>
@@ -1392,7 +1430,7 @@ function updateStarDisplay(container, rating) {
                     var isLeft = e.clientX < rect.left + rect.width / 2;
                     var val = isLeft ? n - 0.5 : n;
                     setPopupStarFill(popupStars, val);
-                    document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
+                    document.getElementById('rpSubtitle').textContent = t('yourRating', 'Your rating: ') + formatStarRating(val);
                     popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
                     star.classList.add('hover-highlight');
                     popupRafId = null;
@@ -1405,7 +1443,7 @@ function updateStarDisplay(container, rating) {
                 var val = isLeft ? n - 0.5 : n;
                 setPopupStarFill(popupStars, val);
                 overlay.dataset.selectedRating = String(val);
-                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
+                document.getElementById('rpSubtitle').textContent = t('yourRating', 'Your rating: ') + formatStarRating(val);
                 popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
             });
         });
@@ -1431,13 +1469,13 @@ function updateStarDisplay(container, rating) {
 
             const btn = this;
             btn.disabled = true;
-            btn.textContent = 'Posting\u2026';
+            btn.textContent = t('posting', 'Posting…');
 
             const note = overlay.querySelector('#rpNote').value;
             const result = await saveRating(itemId, selected * 2, note);
 
             btn.disabled = false;
-            btn.textContent = 'Post Rating';
+            btn.textContent = t('postRating', 'Post Rating');
 
             if (result.success) {
                 const cardToAnimate = _popupCardElement;
@@ -1446,34 +1484,38 @@ function updateStarDisplay(container, rating) {
                 closeRatePopup();
                 userRatingsMap[itemId] = { rating: selected * 2, note: note };
 
+                syncFavorite(itemId, selected * 2);
+
                 if (cardToAnimate) {
                     animateRatingSuccess(cardToAnimate, selected);
                 } else {
                     onDetailPageRatingChanged(itemId, true);
                 }
             } else {
-                alert('Error saving rating: ' + result.message);
+                alert(t('errorSavingRating', 'Error saving rating: ') + result.message);
             }
         });
 
         // Delete handler
         overlay.querySelector('#rpDelete').addEventListener('click', async function() {
             const itemId = popupActiveItemId;
-            if (!confirm('Delete your rating?')) return;
+            if (!confirm(t('deleteYourRating', 'Delete your rating?'))) return;
 
             const btn = this;
             btn.disabled = true;
-            btn.textContent = 'Deleting\u2026';
+            btn.textContent = t('deleting', 'Deleting…');
 
             const result = await deleteRating(itemId);
 
             btn.disabled = false;
-            btn.textContent = 'Delete';
+            btn.textContent = t('delete', 'Delete');
 
             if (result.success) {
                 const cardToAnimate = _popupCardElement;
                 closeRatePopup();
                 if (userRatingsMap) delete userRatingsMap[itemId];
+
+                syncFavorite(itemId, 0);
 
                 if (cardToAnimate) {
                     animateRatingSuccess(cardToAnimate, 0);
@@ -1481,7 +1523,7 @@ function updateStarDisplay(container, rating) {
                     onDetailPageRatingChanged(itemId, false);
                 }
             } else {
-                alert('Error deleting rating: ' + result.message);
+                alert(t('errorDeletingRating', 'Error deleting rating: ') + result.message);
             }
         });
 
@@ -1492,9 +1534,9 @@ function updateStarDisplay(container, rating) {
         if (!popupModal) createRatePopupModal();
         popupActiveItemId = itemId;
 
-        document.getElementById('rpTitle').textContent = 'Rate "' + (itemName || 'this item') + '"';
-        document.getElementById('rpTitle').title = itemName ? 'Rate "' + itemName + '"' : '';
-        document.getElementById('rpSubtitle').textContent = preselected > 0 ? 'Your rating: ' + formatStarRating(preselected) : 'Select your rating';
+        document.getElementById('rpTitle').textContent = t('rate', 'Rate') + ' "' + (itemName || 'this item') + '"';
+        document.getElementById('rpTitle').title = itemName ? t('rate', 'Rate') + ' "' + itemName + '"' : '';
+        document.getElementById('rpSubtitle').textContent = preselected > 0 ? t('yourRating', 'Your rating: ') + formatStarRating(preselected) : t('selectYourRating', 'Select your rating');
         document.getElementById('rpNote').value = existingNote || '';
 
         const popupStars = popupModal.querySelectorAll('.rp-star');
@@ -1506,7 +1548,7 @@ function updateStarDisplay(container, rating) {
         const submitBtn = popupModal.querySelector('#rpSubmit');
         const isEditing = preselected > 0;
         deleteBtn.style.display = isEditing ? 'inline-block' : 'none';
-        submitBtn.textContent = isEditing ? 'Update' : 'Post Rating';
+        submitBtn.textContent = isEditing ? t('updateRating', 'Update') : t('postRating', 'Post Rating');
 
         popupModal.classList.add('open');
     }
@@ -1652,10 +1694,10 @@ function updateStarDisplay(container, rating) {
                 '<span class="ur-db-avg">' + avgStr + '</span>' +
                 '<span class="ur-db-sep">\u00B7</span>' +
                 heart +
-                '<span class="ur-db-rate">RATE</span>';
+                '<span class="ur-db-rate">' + t('rate', 'Rate').toUpperCase() + '</span>';
         }
         return heart +
-            '<span class="ur-db-rate">RATE</span>';
+            '<span class="ur-db-rate">' + t('rate', 'Rate').toUpperCase() + '</span>';
     }
 
     function buildDetailBadgeTitle(avg, totalRatings, myRating) {
@@ -1663,14 +1705,14 @@ function updateStarDisplay(container, rating) {
         const avgStr = avg > 0 ? avg.toFixed(1) : null;
         const parts = [];
         if (avgStr) {
-            parts.push('Community: ' + avgStr + ' (' + totalRatings + (totalRatings === 1 ? ' rating' : ' ratings') + ')');
+            parts.push(t('community', 'Community: ') + avgStr + ' (' + totalRatings + (totalRatings === 1 ? t('singleRating', ' rating') : t('ratings', ' ratings')) + ')');
         } else {
-            parts.push('No community ratings');
+            parts.push(t('noCommunityRatings', 'No community ratings'));
         }
         if (myRating && myVal > 0) {
-            parts.push('Your rating: ' + formatStarRating(myVal));
+            parts.push(t('yourRating', 'Your rating: ') + formatStarRating(myVal));
         } else {
-            parts.push('Click to rate');
+            parts.push(t('clickToRate', 'Click to rate'));
         }
         return parts.join(' \u00B7 ');
     }
@@ -1741,7 +1783,7 @@ function updateStarDisplay(container, rating) {
     }
 
     function buildRatingCard(rating, currentUserId) {
-        const userName = rating.userName || rating.UserName || 'Unknown User';
+        const userName = rating.userName || rating.UserName || t('unknownUser', 'Unknown User');
         const ratingValue = rating.rating || rating.Rating || 0;
         const noteText = rating.note || rating.Note || '';
         const timestamp = rating.timestamp || rating.Timestamp;
@@ -1819,7 +1861,7 @@ function updateStarDisplay(container, rating) {
 
         const h2 = document.createElement('h2');
         h2.className = 'sectionTitle sectionTitle-cards padded-right';
-        h2.textContent = 'Ratings';
+        h2.textContent = t('ratingsSection', 'Ratings');
         section.appendChild(h2);
 
         // Native-faithful scroll buttons (flat sibling after h2, not a nested row)
@@ -1829,13 +1871,13 @@ function updateStarDisplay(container, rating) {
         leftBtn.type = 'button';
         leftBtn.className = 'ur-scroll-btn emby-scrollbuttons-button paper-icon-button-light';
         leftBtn.setAttribute('data-direction', 'left');
-        leftBtn.title = 'Previous';
+        leftBtn.title = t('previous', 'Previous');
         leftBtn.innerHTML = '<span class="material-icons chevron_left" aria-hidden="true"></span>';
         const rightBtn = document.createElement('button');
         rightBtn.type = 'button';
         rightBtn.className = 'ur-scroll-btn emby-scrollbuttons-button paper-icon-button-light';
         rightBtn.setAttribute('data-direction', 'right');
-        rightBtn.title = 'Next';
+        rightBtn.title = t('next', 'Next');
         rightBtn.innerHTML = '<span class="material-icons chevron_right" aria-hidden="true"></span>';
         btnContainer.appendChild(leftBtn);
         btnContainer.appendChild(rightBtn);
@@ -1890,7 +1932,7 @@ function updateStarDisplay(container, rating) {
 
     function openRatingDetailsPopup(rating) {
         if (!_detailsPopup) createRatingDetailsPopup();
-        const userName = rating.userName || rating.UserName || 'Unknown User';
+        const userName = rating.userName || rating.UserName || t('unknownUser', 'Unknown User');
         const ratingValue = rating.rating || rating.Rating || 0;
         const noteText = rating.note || rating.Note || '';
         const timestamp = rating.timestamp || rating.Timestamp;
@@ -2005,7 +2047,9 @@ function updateStarDisplay(container, rating) {
     let injectionAttempts = 0;
     const maxInjectionAttempts = 30;
 
-    function injectRatingsUI() {
+    async function injectRatingsUI() {
+        await loadStrings();
+
         if (isInjecting) {
             console.log('[UserRatings] Already injecting, skipping');
             return;
@@ -2171,6 +2215,8 @@ function updateStarDisplay(container, rating) {
 
     // Function to display ratings list in the home page content area
     async function displayRatingsList() {
+        await loadStrings();
+
         // Find the visible #indexPage — Jellyfin may have multiple cached copies,
         // only one is visible (no .hide class). Always create #ratingsTab fresh
         // inside the visible copy to avoid orphaning in a hidden cached page.
@@ -2192,7 +2238,7 @@ function updateStarDisplay(container, rating) {
         indexPage.appendChild(ratingsTabContent);
 
         // Show loading (content population — visibility is managed by Jellyfin's .is-active)
-        ratingsTabContent.innerHTML = '<div style="padding: 3em 2em; text-align: center; color: rgba(255,255,255,0.6);">Loading ratings...</div>';
+        ratingsTabContent.innerHTML = '<div style="padding: 3em 2em; text-align: center; color: rgba(255,255,255,0.6);">' + t('loadingRatings', 'Loading ratings...') + '</div>';
 
         try {
             // Fetch user's ratings for compact badge display
@@ -2243,7 +2289,10 @@ function updateStarDisplay(container, rating) {
                 const itemType = details.Type || details.type;
                 const urls = getItemCardImage(itemId, seriesId, itemType);
                 const title = details.Name || details.name || 'Unknown';
+                const seriesName = details.seriesName || details.SeriesName || null;
                 const serverId = ApiClient.serverId();
+
+                const subtitleHtml = seriesName ? `<div class="cardText cardTextCentered" style="font-size: 0.85em; color: rgba(255,255,255,0.6);"><bdi>${seriesName}</bdi></div>` : '<div class="cardText cardTextCentered">&nbsp;</div>';
 
                 return `
                     <div data-index="0" data-isfolder="false" data-serverid="${serverId}" data-id="${itemId}" data-type="${itemType}" data-mediatype="Video" class="card backdropCard card-hoverable card-withuserdata">
@@ -2258,7 +2307,7 @@ function updateStarDisplay(container, rating) {
                                     <a href="#/details?id=${itemId}&serverId=${serverId}" data-id="${itemId}" data-serverid="${serverId}" data-type="${itemType}" data-action="link" class="itemAction textActionButton" title="${title}">${title}</a>
                                 </bdi>
                             </div>
-                            <div class="cardText cardTextCentered">&nbsp;</div>
+                            ${subtitleHtml}
                         </div>
                     </div>
                 `;
@@ -2279,7 +2328,7 @@ function updateStarDisplay(container, rating) {
                                 <div class="cardIndicators cardIndicators-bottomright">
                                     <div class="rate-badge" data-item-id="${item.itemId}">
                                         <span class="material-icons" style="font-size: 0.9em;">star_border</span>
-                                        <span>Rate</span>
+                                        <span>${t('rate', 'Rate')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2316,6 +2365,7 @@ function updateStarDisplay(container, rating) {
                         Name: item.name,
                         Type: item.type,
                         SeriesId: item.seriesId,
+                        SeriesName: item.seriesName,
                         Id: item.itemId
                     }
                 };
@@ -2331,16 +2381,16 @@ function updateStarDisplay(container, rating) {
             let shows_currentPage = 1;
             let shows_sortField = 'recent';
             let shows_sortDir = 'desc';
-            let shows_typeFilter = 'Series,Episode';
+            let shows_typeFilter = 'Series,Season,Episode';
             let shows_total = 0;
 
             // Build sections HTML — Movies + Shows placeholders, then unrated placeholders
             let sectionsHTML = '<div>';
-            sectionsHTML += '<div id="moviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated movies...</div></div>';
-            sectionsHTML += '<div id="showsSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading rated shows...</div></div>';
+            sectionsHTML += '<div id="moviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>' + t('loadingRatedMovies', 'Loading rated movies...') + '</div></div>';
+            sectionsHTML += '<div id="showsSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>' + t('loadingRatedShows', 'Loading rated shows...') + '</div></div>';
             sectionsHTML += '</div>';
-            sectionsHTML += '<div id="unratedMoviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Loading watched movies...</div></div>';
-            sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>Loading watched shows...<br><span style="font-size: 0.85em; opacity: 0.7;">This may take a few seconds</span></div></div>';
+            sectionsHTML += '<div id="unratedMoviesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">' + t('loadingWatchedMovies', 'Loading watched movies...') + '</div></div>';
+            sectionsHTML += '<div id="unratedSeriesSection"><div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);"><span class="material-icons" style="vertical-align: middle; margin-right: 0.3em;">hourglass_empty</span>' + t('loadingWatchedShows', 'Loading watched shows...') + '<br><span style="font-size: 0.85em; opacity: 0.7;">' + t('thisMayTakeSeconds', 'This may take a few seconds') + '</span></div></div>';
 
             // Display the page immediately
             ratingsTabContent.innerHTML = sectionsHTML;
@@ -2367,12 +2417,12 @@ function updateStarDisplay(container, rating) {
                 moviesSection.innerHTML = `
                     <div class="verticalSection">
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Rated Movies</h2>
+                            <h2 class="sectionTitle sectionTitle-cards">${t('ratedMovies', 'Rated Movies')}</h2>
                         </div>
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
                                 <div class="listPaging">
-                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0} of ${total}</span>
+                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0}${t('of', ' of ')}${total}</span>
                                     <div style="display:inline-block;">
                                         <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                             <span class="material-icons arrow_back" aria-hidden="true"></span>
@@ -2385,18 +2435,18 @@ function updateStarDisplay(container, rating) {
                             </div>
                             <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
                                 <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                    <option value="rating" ${movies_sortField === 'rating' ? 'selected' : ''}>Rating</option>
-                                    <option value="title" ${movies_sortField === 'title' ? 'selected' : ''}>Title</option>
-                                    <option value="recent" ${movies_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                    <option value="count" ${movies_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                                    <option value="rating" ${movies_sortField === 'rating' ? 'selected' : ''}>${t('sortRating', 'Rating')}</option>
+                                    <option value="title" ${movies_sortField === 'title' ? 'selected' : ''}>${t('sortTitle', 'Title')}</option>
+                                    <option value="recent" ${movies_sortField === 'recent' ? 'selected' : ''}>${t('sortRecent', 'Recently Rated')}</option>
+                                    <option value="count" ${movies_sortField === 'count' ? 'selected' : ''}>${t('sortMostRatings', 'Most Ratings')}</option>
                                 </select>
-                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="${t('toggleSortDirection', 'Toggle sort direction')}">
                                     <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
                                 </button>
                             </div>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated movies found.</div>'}
+                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">' + t('noRatedMovies', 'No rated movies found.') + '</div>'}
                         </div>
                     </div>
                 `;
@@ -2460,26 +2510,28 @@ function updateStarDisplay(container, rating) {
                 const dirArrow = shows_sortDir === 'desc' ? 'arrow_downward' : 'arrow_upward';
 
                 // Tab sub-filter: All (Series+Episode) / Shows (Series) / Episodes (Episode)
-                const tabAll = shows_typeFilter === 'Series,Episode';
+                const tabAll = shows_typeFilter === 'Series,Season,Episode';
                 const tabShows = shows_typeFilter === 'Series';
+                const tabSeasons = shows_typeFilter === 'Season';
                 const tabEpisodes = shows_typeFilter === 'Episode';
 
                 const typeTabsHtml = `
                     <div class="showsTypeTabs" style="display:inline-flex;gap:0;">
-                        <button is="emby-button" class="typeTabBtn emby-button ${tabAll ? 'typeTabActive' : ''}" data-type="all" style="padding:0.5em 1em;font-size:0.85em;border-radius:4px 0 0 4px;background:${tabAll ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabAll ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;cursor:pointer;">All</button>
-                        <button is="emby-button" class="typeTabBtn emby-button ${tabShows ? 'typeTabActive' : ''}" data-type="Series" style="padding:0.5em 1em;font-size:0.85em;border-radius:0;background:${tabShows ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabShows ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">Shows</button>
-                        <button is="emby-button" class="typeTabBtn emby-button ${tabEpisodes ? 'typeTabActive' : ''}" data-type="Episode" style="padding:0.5em 1em;font-size:0.85em;border-radius:0 4px 4px 0;background:${tabEpisodes ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabEpisodes ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">Episodes</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabAll ? 'typeTabActive' : ''}" data-type="all" style="padding:0.5em 1em;font-size:0.85em;border-radius:4px 0 0 4px;background:${tabAll ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabAll ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;cursor:pointer;">${t('typeAll', 'All')}</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabShows ? 'typeTabActive' : ''}" data-type="Series" style="padding:0.5em 1em;font-size:0.85em;border-radius:0;background:${tabShows ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabShows ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">${t('typeShows', 'Shows')}</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabSeasons ? 'typeTabActive' : ''}" data-type="Season" style="padding:0.5em 1em;font-size:0.85em;border-radius:0;background:${tabSeasons ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabSeasons ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">${t('typeSeasons', 'Seasons')}</button>
+                        <button is="emby-button" class="typeTabBtn emby-button ${tabEpisodes ? 'typeTabActive' : ''}" data-type="Episode" style="padding:0.5em 1em;font-size:0.85em;border-radius:0 4px 4px 0;background:${tabEpisodes ? 'rgba(255,255,255,0.15)' : 'transparent'};color:${tabEpisodes ? '#fff' : 'rgba(255,255,255,0.5)'};border:none;border-left:1px solid rgba(255,255,255,0.1);cursor:pointer;">${t('typeEpisodes', 'Episodes')}</button>
                     </div>`;
 
                 showsSection.innerHTML = `
                     <div class="verticalSection">
                         <div class="sectionTitleContainer sectionTitleContainer-cards padded-left">
-                            <h2 class="sectionTitle sectionTitle-cards">Rated Shows</h2>
+                            <h2 class="sectionTitle sectionTitle-cards">${t('ratedShows', 'Rated Shows')}</h2>
                         </div>
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
                                 <div class="listPaging">
-                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0} of ${total}</span>
+                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0}${t('of', ' of ')}${total}</span>
                                     <div style="display:inline-block;">
                                         <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                             <span class="material-icons arrow_back" aria-hidden="true"></span>
@@ -2493,18 +2545,18 @@ function updateStarDisplay(container, rating) {
                             ${typeTabsHtml}
                             <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
                                 <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                    <option value="rating" ${shows_sortField === 'rating' ? 'selected' : ''}>Rating</option>
-                                    <option value="title" ${shows_sortField === 'title' ? 'selected' : ''}>Title</option>
-                                    <option value="recent" ${shows_sortField === 'recent' ? 'selected' : ''}>Recently Rated</option>
-                                    <option value="count" ${shows_sortField === 'count' ? 'selected' : ''}>Most Ratings</option>
+                                    <option value="rating" ${shows_sortField === 'rating' ? 'selected' : ''}>${t('sortRating', 'Rating')}</option>
+                                    <option value="title" ${shows_sortField === 'title' ? 'selected' : ''}>${t('sortTitle', 'Title')}</option>
+                                    <option value="recent" ${shows_sortField === 'recent' ? 'selected' : ''}>${t('sortRecent', 'Recently Rated')}</option>
+                                    <option value="count" ${shows_sortField === 'count' ? 'selected' : ''}>${t('sortMostRatings', 'Most Ratings')}</option>
                                 </select>
-                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="${t('toggleSortDirection', 'Toggle sort direction')}">
                                     <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
                                 </button>
                             </div>
                         </div>
                         <div is="emby-itemscontainer" class="itemsContainer padded-left padded-right vertical-wrap focuscontainer-x">
-                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">No rated shows found.</div>'}
+                            ${pageItems.length > 0 ? buildCategoryGrid(pageItems) : '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">' + t('noRatedShows', 'No rated shows found.') + '</div>'}
                         </div>
                     </div>
                 `;
@@ -2539,8 +2591,9 @@ function updateStarDisplay(container, rating) {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
                         const t = this.getAttribute('data-type');
-                        if (t === 'all') shows_typeFilter = 'Series,Episode';
+                        if (t === 'all') shows_typeFilter = 'Series,Season,Episode';
                         else if (t === 'Series') shows_typeFilter = 'Series';
+                        else if (t === 'Season') shows_typeFilter = 'Season';
                         else if (t === 'Episode') shows_typeFilter = 'Episode';
                         shows_currentPage = 1;
                         renderShowsSection(shows_currentPage);
@@ -2567,11 +2620,11 @@ function updateStarDisplay(container, rating) {
             // Render Movies + Shows sections (async, non-blocking)
             renderMoviesSection(movies_currentPage).catch(e => {
                 console.error('[UserRatings] Error loading movies section:', e);
-                if (moviesSection) moviesSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Error loading rated movies.</div>';
+                if (moviesSection) moviesSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">' + t('errorRatedMovies', 'Error loading rated movies.') + '</div>';
             });
             renderShowsSection(shows_currentPage).catch(e => {
                 console.error('[UserRatings] Error loading shows section:', e);
-                if (showsSection) showsSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">Error loading rated shows.</div>';
+                if (showsSection) showsSection.innerHTML = '<div style="padding: 2em; text-align: center; color: rgba(255,255,255,0.5);">' + t('errorRatedShows', 'Error loading rated shows.') + '</div>';
             });
 
             // Fetch unrated items via server-side endpoint
@@ -2608,7 +2661,7 @@ function updateStarDisplay(container, rating) {
                             lastPlayedDate: item.lastPlayedDate || null,
                             _sortOrder: idx
                         }));
-                        renderUnratedSection(unratedMoviesSection, mapped, 'Watched Movies — Not Yet Rated');
+                        renderUnratedSection(unratedMoviesSection, mapped, t('watchedMoviesNotRated', 'Watched Movies — Not Yet Rated'));
                     } else {
                         unratedMoviesSection.innerHTML = '';
                     }
@@ -2626,7 +2679,7 @@ function updateStarDisplay(container, rating) {
                             lastPlayedDate: item.lastPlayedDate || null,
                             _sortOrder: idx
                         }));
-                        renderUnratedSection(unratedSeriesSection, mapped, 'Watched Shows — Not Yet Rated');
+                        renderUnratedSection(unratedSeriesSection, mapped, t('watchedShowsNotRated', 'Watched Shows — Not Yet Rated'));
                     } else {
                         unratedSeriesSection.innerHTML = '';
                     }
@@ -2678,7 +2731,7 @@ function updateStarDisplay(container, rating) {
                             <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                                 <div class="paging">
                                     <div class="listPaging">
-                                        <span style="vertical-align:middle;">${items.length > 0 ? (startIndex + 1) + '-' + endIndex : 0} of ${items.length}</span>
+                                        <span style="vertical-align:middle;">${items.length > 0 ? (startIndex + 1) + '-' + endIndex : 0}${t('of', ' of ')}${items.length}</span>
                                         <div style="display:inline-block;">
                                             <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                                 <span class="material-icons arrow_back" aria-hidden="true"></span>
@@ -2691,10 +2744,10 @@ function updateStarDisplay(container, rating) {
                                 </div>
                                 <div style="display: inline-flex; white-space: nowrap; gap: 0.5em;">
                                     <select is="emby-select" class="sortSelect emby-select-withcolor emby-select" style="width: auto;">
-                                        <option value="watched" ${unratedSortField === 'watched' ? 'selected' : ''}>Last Watched</option>
-                                        <option value="title" ${unratedSortField === 'title' ? 'selected' : ''}>Title</option>
+                                        <option value="watched" ${unratedSortField === 'watched' ? 'selected' : ''}>${t('sortLastWatched', 'Last Watched')}</option>
+                                        <option value="title" ${unratedSortField === 'title' ? 'selected' : ''}>${t('sortTitle', 'Title')}</option>
                                     </select>
-                                    <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="Toggle sort direction">
+                                    <button is="paper-icon-button-light" class="sortDirBtn autoSize paper-icon-button-light" title="${t('toggleSortDirection', 'Toggle sort direction')}">
                                         <span class="material-icons ${dirArrow}" aria-hidden="true"></span>
                                     </button>
                                 </div>
@@ -2754,7 +2807,7 @@ function updateStarDisplay(container, rating) {
             console.error('[UserRatings] Error displaying ratings list:', error);
             ratingsTabContent.innerHTML = `
                 <div style="padding: 2em; background: rgba(229, 57, 53, 0.2); border: 1px solid rgba(229, 57, 53, 0.5); border-radius: 8px; color: #ff6b6b; margin: 2em;">
-                    <strong>Error:</strong> ${error.message}
+                    <strong>${t('errorPrefix', 'Error:')}</strong> ${error.message}
                 </div>
             `;
         }
@@ -2805,7 +2858,7 @@ function updateStarDisplay(container, rating) {
             ratingsTab.className = 'emby-tab-button emby-button';
             ratingsTab.setAttribute('data-index', nextIndex);
             ratingsTab.setAttribute('data-ratings-tab', 'true');
-            ratingsTab.innerHTML = '<div class="emby-button-foreground">User Ratings</div>';
+            ratingsTab.innerHTML = '<div class="emby-button-foreground">' + t('tabName', 'User Ratings') + '</div>';
 
             // Add click handler — DON'T call e.preventDefault().
             // Let Jellyfin's own tab handler manage .is-active on .pageTabContent and
@@ -2902,6 +2955,9 @@ function updateStarDisplay(container, rating) {
             console.log('[UserRatings] Fresh page load — cleared userRatingsActive, Home tab wins');
         }
     } catch (err) { /* ignore */ }
+
+    // Fetch localized strings early so UI renders with translations when available
+    loadStrings();
 
     // Try immediately and repeatedly
     injectRatingsTab();

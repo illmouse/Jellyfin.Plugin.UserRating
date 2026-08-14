@@ -49,6 +49,8 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public bool EnableAutoHealthCheck { get; set; } = true;
 
+    public int FavoriteThreshold { get; set; } = 9;
+
     [System.Xml.Serialization.XmlIgnore]
     public string PlexToken
     {
