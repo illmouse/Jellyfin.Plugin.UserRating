@@ -438,10 +438,10 @@ BackupService backupService) : ControllerBase
             }
 
             var userData = userDataManager.GetUserData(user, item);
-            if (!userData.IsFavorite)
+            if (userData != null && !userData.IsFavorite)
             {
                 userData.IsFavorite = true;
-                userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.Update, CancellationToken.None);
+                userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.UpdateUserData, CancellationToken.None);
                 marked++;
             }
         }
