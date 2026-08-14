@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.3 (beta)
+
+### Fixes
+
+- **Save Settings button moved** — Relocated from between Plex Sync and Database Health to between Database Health and Danger Zone, so it always appears after all settings sections.
+
 ## v1.13.4.2 (beta)
 
 ### Fixes

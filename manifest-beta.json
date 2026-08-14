@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.3",
+        "changelog": "Fixed: Save Settings button now appears after all setting sections instead of between Plex Sync and Database Health.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.3/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-14T00:00:00Z"
+      },
+      {
         "version": "1.13.4.2",
         "changelog": "Fixed: backup date now shows filename timestamp instead of file mtime, popup title truncation with ellipsis, popup star hover glitch. New: toggle to enable/disable automatic health check, removed redundant Import checkboxes from sync section.",
         "targetAbi": "10.11.0.0",

@@ -436,10 +436,6 @@
                 </div>
 
                 <div class="section-divider">
-                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm" style="min-width: 200px; background: #2196F3; color: #fff;">Save Settings</button>
-                </div>
-
-                <div class="section-divider">
                     <h3>Database Health</h3>
                     <div class="fieldDescription" style="margin-bottom: 1em;">
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
@@ -489,6 +485,10 @@
                         <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
                         <div id="staleItems" class="item-list"></div>
                     </div>
+                </div>
+
+                <div class="section-divider">
+                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm" style="min-width: 200px; background: #2196F3; color: #fff;">Save Settings</button>
                 </div>
 
                  <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">

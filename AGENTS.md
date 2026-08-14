@@ -23,6 +23,7 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 | Client-side navigation/tab/injection changes — anti-patterns and gotchas | [`llm_wiki/client-side-pitfalls.md`](llm_wiki/client-side-pitfalls.md) |
 | `Data/` or `Services/` — rating storage, provider resolution, health checks, backups | [`llm_wiki/rating-database.md`](llm_wiki/rating-database.md) |
 | `Services/PlexImportService.cs`, token encryption, progress tracking, scheduled sync | [`llm_wiki/plex-import.md`](llm_wiki/plex-import.md) |
+| `Configuration/configPage.html` — section order, Save Settings button placement | [`llm_wiki/config-page-layout.md`](llm_wiki/config-page-layout.md) |
 
 ## Build & Test
 
