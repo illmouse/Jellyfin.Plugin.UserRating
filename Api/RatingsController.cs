@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
+using System.Threading;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Plugin.UserRatings.Configuration;
@@ -11,6 +12,7 @@ using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
 using Microsoft.AspNetCore.Mvc;
 
@@ -192,7 +194,7 @@ BackupService backupService) : ControllerBase
         {
             var types = typeFilter.Split(',', StringSplitOptions.RemoveEmptyEntries);
             var typeSet = new HashSet<string>(types, StringComparer.OrdinalIgnoreCase);
-            resolved = resolved.Where(r => typeSet.Contains(r.type)).ToList();
+            resolved = resolved.Where(r => r.type != null && typeSet.Contains(r.type)).ToList();
         }
 
         // Sort
@@ -428,11 +430,18 @@ BackupService backupService) : ControllerBase
                 continue;
             }
 
-            var userData = userDataManager.GetUserData(rating.UserId, item);
+            var user = userManager.GetUserById(rating.UserId);
+            if (user == null)
+            {
+                skipped++;
+                continue;
+            }
+
+            var userData = userDataManager.GetUserData(user, item);
             if (!userData.IsFavorite)
             {
                 userData.IsFavorite = true;
-                userDataManager.SaveUserData(rating.UserId, item, userData, UserDataSaveReason.Update, CancellationToken.None);
+                userDataManager.SaveUserData(user, item, userData, UserDataSaveReason.Update, CancellationToken.None);
                 marked++;
             }
         }
