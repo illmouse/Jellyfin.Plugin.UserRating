@@ -13,8 +13,8 @@
         "changelog": "Fixed: Save Settings button now appears after all setting sections instead of between Plex Sync and Database Health.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.3/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-08-14T00:00:00Z"
+        "checksum": "705a58cb45844bb3116c4773caba783b",
+        "timestamp": "2026-08-14T14:29:07Z"
       },
       {
         "version": "1.13.4.2",
