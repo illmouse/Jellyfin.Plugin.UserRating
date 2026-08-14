@@ -31,13 +31,14 @@ IUserDataManager userDataManager)
         return Plugin.Instance?.Configuration ?? new PluginConfiguration();
     }
 
-    public async Task<ImportResult> ImportFromPlexAsync(Guid jellyfinUserId, string operationId, CancellationToken cancellationToken, string? conflictMode = null)
+    public async Task<ImportResult> ImportFromPlexAsync(Guid jellyfinUserId, string operationId, CancellationToken cancellationToken, string? conflictMode = null, bool? importRatings = null, bool? importWatchHistory = null)
     {
         var config = GetConfig();
         var plexUrl = config.PlexServerUrl?.TrimEnd('/') ?? string.Empty;
         var plexToken = config.PlexToken;
         var effectiveConflictMode = conflictMode ?? config.PlexImportConflictMode ?? "skip";
-        var syncWatchHistory = config.EnablePlexWatchHistorySync;
+        var syncRatings = importRatings ?? config.EnablePlexRatingSync;
+        var syncWatchHistory = importWatchHistory ?? config.EnablePlexWatchHistorySync;
 
         if (string.IsNullOrEmpty(plexUrl) || string.IsNullOrEmpty(plexToken))
         {
@@ -46,6 +47,16 @@ IUserDataManager userDataManager)
                 Success = false,
                 OperationId = operationId,
                 Message = "Plex server URL and token must be configured"
+            };
+        }
+
+        if (!syncRatings && !syncWatchHistory)
+        {
+            return new ImportResult
+            {
+                Success = true,
+                OperationId = operationId,
+                Message = "Nothing to sync — both ratings and watch history sync are disabled"
             };
         }
 
@@ -82,85 +93,89 @@ IUserDataManager userDataManager)
             }
 
             // === RATINGS PASS ===
-            var ratedPlexItems = allPlexItems.Where(i => i.UserRating > 0 && i.Type != "episode").ToList();
-            var totalRatedItems = ratedPlexItems.Count;
-
-            progressTracker.UpdateProgress(operationId, p =>
+            if (syncRatings)
             {
-                p.TotalItems = totalRatedItems;
-                p.Status = "matching";
-            });
+                var ratedPlexItems = allPlexItems.Where(i => i.UserRating > 0 && i.Type != "episode").ToList();
+                var totalRatedItems = ratedPlexItems.Count;
 
-            logger.LogInformation("Found {Count} rated items in Plex to import", totalRatedItems);
-
-            for (var i = 0; i < ratedPlexItems.Count; i++)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    progressTracker.UpdateProgress(operationId, p => p.Status = "cancelled");
-                    return new ImportResult
-                    {
-                        Success = false,
-                        OperationId = operationId,
-                        Message = "Import was cancelled",
-                        Imported = importedCount,
-                        Skipped = skippedCount,
-                        Watched = watchedCount,
-                        Unmatched = unmatchedItems.Count
-                    };
-                }
-
-                var plexItem = ratedPlexItems[i];
                 progressTracker.UpdateProgress(operationId, p =>
                 {
-                    p.ProcessedItems = i + 1;
-                    p.CurrentItem = plexItem.Title;
-                    p.PercentComplete = (double)(i + 1) / (totalRatedItems + (syncWatchHistory ? 1 : 0)) * 80;
+                    p.TotalItems = totalRatedItems;
+                    p.Status = "matching";
                 });
 
-                var jellyfinItem = ResolvePlexItemToJellyfin(plexItem);
+                logger.LogInformation("Found {Count} rated items in Plex to import", totalRatedItems);
 
-                if (jellyfinItem == null)
+                for (var i = 0; i < ratedPlexItems.Count; i++)
                 {
-                    unmatchedItems.Add(new UnmatchedItem
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        Title = plexItem.Title,
-                        PlexRating = plexItem.UserRating,
-                        PlexType = plexItem.Type,
-                        Guids = plexItem.Guids.Select(g => g.Id).ToList()
+                        progressTracker.UpdateProgress(operationId, p => p.Status = "cancelled");
+                        return new ImportResult
+                        {
+                            Success = false,
+                            OperationId = operationId,
+                            Message = "Import was cancelled",
+                            Imported = importedCount,
+                            Skipped = skippedCount,
+                            Watched = watchedCount,
+                            Unmatched = unmatchedItems.Count
+                        };
+                    }
+
+                    var plexItem = ratedPlexItems[i];
+                    progressTracker.UpdateProgress(operationId, p =>
+                    {
+                        p.ProcessedItems = i + 1;
+                        p.CurrentItem = plexItem.Title;
+                        p.PercentComplete = (double)(i + 1) / (totalRatedItems + (syncWatchHistory ? 1 : 0)) * 80;
                     });
-                    continue;
+
+                    var jellyfinItem = ResolvePlexItemToJellyfin(plexItem);
+
+                    if (jellyfinItem == null)
+                    {
+                        unmatchedItems.Add(new UnmatchedItem
+                        {
+                            Title = plexItem.Title,
+                            PlexRating = plexItem.UserRating,
+                            PlexType = plexItem.Type,
+                            Guids = plexItem.Guids.Select(g => g.Id).ToList()
+                        });
+                        continue;
+                    }
+
+                    var convertedRating = ConvertRating(plexItem.UserRating);
+                    ratedItems.Add((plexItem, jellyfinItem.Value, convertedRating));
                 }
 
-                var convertedRating = ConvertRating(plexItem.UserRating);
-                ratedItems.Add((plexItem, jellyfinItem.Value, convertedRating));
+                var ratings = ratedItems.Select(r => new UserRating
+                {
+                    ItemId = r.jellyfinItemId,
+                    UserId = jellyfinUserId,
+                    Rating = r.convertedRating,
+                    Note = $"Imported from Plex (original: {r.plexItem.UserRating}/10)",
+                    Timestamp = DateTime.UtcNow,
+                    UserName = userName,
+                    Source = "plex",
+                    ProviderIds = r.plexItem.Guids
+                        .Where(g => !string.IsNullOrEmpty(g.JellyfinProviderKey) && !string.IsNullOrEmpty(g.ExternalId))
+                        .GroupBy(g => g.JellyfinProviderKey)
+                        .ToDictionary(g => g.Key, g => g.First().ExternalId)
+                }).ToList();
+
+                progressTracker.UpdateProgress(operationId, p =>
+                {
+                    p.Status = "saving";
+                    p.PercentComplete = 95;
+                    p.CurrentItem = "Saving ratings...";
+                });
+
+                var (imported, skipped, _) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
+
+                importedCount = imported;
+                skippedCount = skipped;
             }
-
-            var ratings = ratedItems.Select(r => new UserRating
-            {
-                ItemId = r.jellyfinItemId,
-                UserId = jellyfinUserId,
-                Rating = r.convertedRating,
-                Note = $"Imported from Plex (original: {r.plexItem.UserRating}/10)",
-                Timestamp = DateTime.UtcNow,
-                UserName = userName,
-                ProviderIds = r.plexItem.Guids
-                    .Where(g => !string.IsNullOrEmpty(g.JellyfinProviderKey) && !string.IsNullOrEmpty(g.ExternalId))
-                    .GroupBy(g => g.JellyfinProviderKey)
-                    .ToDictionary(g => g.Key, g => g.First().ExternalId)
-            }).ToList();
-
-            progressTracker.UpdateProgress(operationId, p =>
-            {
-                p.Status = "saving";
-                p.PercentComplete = 95;
-                p.CurrentItem = "Saving ratings...";
-            });
-
-            var (imported, skipped, _) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
-
-            importedCount = imported;
-            skippedCount = skipped;
 
             // === WATCH HISTORY PASS ===
             if (syncWatchHistory)

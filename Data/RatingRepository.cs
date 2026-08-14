@@ -11,6 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.UserRatings.Data;
 
+public enum HealConflictResult
+{
+    Replaced,
+    Merged,
+    Skipped
+}
+
 public class RatingRepository
 {
     private readonly string _dataPath;
@@ -73,6 +80,29 @@ public class RatingRepository
         {
             try
             {
+                var tmpPath = _dataPath + ".tmp";
+                if (File.Exists(tmpPath))
+                {
+                    _logger.LogWarning("Found stale temporary file {TmpPath}, attempting recovery", tmpPath);
+                    try
+                    {
+                        if (!File.Exists(_dataPath))
+                        {
+                            File.Move(tmpPath, _dataPath);
+                            _logger.LogInformation("Recovered ratings from temporary file");
+                        }
+                        else
+                        {
+                            File.Delete(tmpPath);
+                            _logger.LogInformation("Deleted stale temporary file (data file exists)");
+                        }
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to clean up temporary file {TmpPath}", tmpPath);
+                    }
+                }
+
                 if (!File.Exists(_dataPath))
                 {
                     _ratings = new Dictionary<string, UserRating>();
@@ -285,7 +315,9 @@ public class RatingRepository
                 writer.WriteEndObject();
                 writer.Flush();
 
-                File.WriteAllBytes(_dataPath, ms.ToArray());
+                var tmpPath = _dataPath + ".tmp";
+                File.WriteAllBytes(tmpPath, ms.ToArray());
+                File.Move(tmpPath, _dataPath, overwrite: true);
             }
             catch (Exception ex)
             {
@@ -610,23 +642,128 @@ public class RatingRepository
         }
     }
 
-    public void RepairRatingKey(Guid oldItemId, Guid newItemId, Guid userId)
+    public HealConflictResult RepairRatingKey(Guid oldItemId, Guid newItemId, Guid userId, string conflictMode = "skip")
     {
         lock (_lock)
         {
             var oldKey = GetKey(oldItemId, userId);
-            if (_ratings.TryGetValue(oldKey, out var rating))
+            if (!_ratings.TryGetValue(oldKey, out var incomingRating))
             {
-                var updated = rating with { ItemId = newItemId };
-                var newKey = GetKey(newItemId, userId);
-                UnindexProviderIds(rating);
-                IndexRemove(oldItemId, rating.Rating);
-                _ratings.Remove(oldKey);
-                _ratings[newKey] = updated;
-                IndexProviderIds(newKey, updated);
-                IndexAdd(newItemId, rating.Rating);
-                SaveRatings();
+                return HealConflictResult.Skipped;
             }
+
+            var newKey = GetKey(newItemId, userId);
+            var incomingSource = string.IsNullOrEmpty(incomingRating.Source) ? "jellyfin" : incomingRating.Source;
+
+            if (_ratings.TryGetValue(newKey, out var existingRating))
+            {
+                // Conflict: existing rating at newKey — resolve based on conflictMode
+                var existingSource = string.IsNullOrEmpty(existingRating.Source) ? "jellyfin" : existingRating.Source;
+
+                switch (conflictMode)
+                {
+                    case "overwrite":
+                        // Incoming always wins
+                        UnindexProviderIds(existingRating);
+                        IndexRemove(existingRating.ItemId, existingRating.Rating);
+                        break;
+
+                    case "keepHigher":
+                        if (incomingRating.Rating > existingRating.Rating)
+                        {
+                            // Incoming wins (higher rating)
+                            UnindexProviderIds(existingRating);
+                            IndexRemove(existingRating.ItemId, existingRating.Rating);
+                        }
+                        else if (incomingRating.Rating < existingRating.Rating)
+                        {
+                            // Existing wins (higher rating) — just remove old entry
+                            UnindexProviderIds(incomingRating);
+                            IndexRemove(incomingRating.ItemId, incomingRating.Rating);
+                            _ratings.Remove(oldKey);
+                            SaveRatings();
+                            _logger.LogInformation(
+                                "Heal conflict at {NewKey}: kept existing rating {ExistingRating} over incoming {IncomingRating} (keepHigher)",
+                                newKey, existingRating.Rating, incomingRating.Rating);
+                            return HealConflictResult.Skipped;
+                        }
+                        // Equal ratings: fall through to keep newer (by Timestamp)
+                        if (incomingRating.Timestamp > existingRating.Timestamp)
+                        {
+                            UnindexProviderIds(existingRating);
+                            IndexRemove(existingRating.ItemId, existingRating.Rating);
+                        }
+                        else
+                        {
+                            UnindexProviderIds(incomingRating);
+                            IndexRemove(incomingRating.ItemId, incomingRating.Rating);
+                            _ratings.Remove(oldKey);
+                            SaveRatings();
+                            _logger.LogInformation(
+                                "Heal conflict at {NewKey}: kept existing rating (keepHigher, equal ratings, existing is newer)",
+                                newKey);
+                            return HealConflictResult.Skipped;
+                        }
+                        break;
+
+                    case "skip":
+                    default:
+                        // Skip: prefer jellyfin source; same source → newer Timestamp wins
+                        if (existingSource == "jellyfin" && incomingSource == "plex")
+                        {
+                            // Jellyfin wins — just remove the old orphaned entry
+                            UnindexProviderIds(incomingRating);
+                            IndexRemove(incomingRating.ItemId, incomingRating.Rating);
+                            _ratings.Remove(oldKey);
+                            SaveRatings();
+                            _logger.LogInformation(
+                                "Heal conflict at {NewKey}: kept existing JF rating {ExistingRating} over Plex rating {IncomingRating} (skip)",
+                                newKey, existingRating.Rating, incomingRating.Rating);
+                            return HealConflictResult.Skipped;
+                        }
+                        else if (existingSource == "plex" && incomingSource == "jellyfin")
+                        {
+                            // Jellyfin wins — replace the Plex rating
+                            UnindexProviderIds(existingRating);
+                            IndexRemove(existingRating.ItemId, existingRating.Rating);
+                        }
+                        else
+                        {
+                            // Same source — newer Timestamp wins
+                            if (incomingRating.Timestamp > existingRating.Timestamp)
+                            {
+                                UnindexProviderIds(existingRating);
+                                IndexRemove(existingRating.ItemId, existingRating.Rating);
+                            }
+                            else
+                            {
+                                UnindexProviderIds(incomingRating);
+                                IndexRemove(incomingRating.ItemId, incomingRating.Rating);
+                                _ratings.Remove(oldKey);
+                                SaveRatings();
+                                _logger.LogInformation(
+                                    "Heal conflict at {NewKey}: kept existing rating (skip, same source, existing is newer)",
+                                    newKey);
+                                return HealConflictResult.Skipped;
+                            }
+                        }
+                        break;
+                }
+
+                _logger.LogInformation(
+                    "Heal conflict at {NewKey}: resolved via {Mode} (incoming source={IncomingSource}, existing source={ExistingSource})",
+                    newKey, conflictMode, incomingSource, existingSource);
+            }
+
+            var updated = incomingRating with { ItemId = newItemId };
+            UnindexProviderIds(incomingRating);
+            IndexRemove(oldItemId, incomingRating.Rating);
+            _ratings.Remove(oldKey);
+            _ratings[newKey] = updated;
+            IndexProviderIds(newKey, updated);
+            IndexAdd(newItemId, incomingRating.Rating);
+            SaveRatings();
+            return HealConflictResult.Replaced;
         }
     }
 

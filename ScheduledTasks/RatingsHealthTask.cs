@@ -47,12 +47,16 @@ public async Task ExecuteAsync(IProgress<double> progress, CancellationToken can
 
 public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()
 {
+    var config = Plugin.Instance?.Configuration as Configuration.PluginConfiguration;
+    var intervalMinutes = config?.HealthCheckIntervalMinutes ?? 30;
+    if (intervalMinutes < 1) intervalMinutes = 30;
+
     return new[]
     {
         new TaskTriggerInfo
         {
             Type = TaskTriggerInfoType.IntervalTrigger,
-            IntervalTicks = TimeSpan.FromMinutes(30).Ticks
+            IntervalTicks = TimeSpan.FromMinutes(intervalMinutes).Ticks
         }
     };
 }

@@ -23,7 +23,11 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public string SyncConflictMode { get; set; } = "skip";
 
+    public string HealingConflictMode { get; set; } = "skip";
+
     public bool EnablePlexWatchHistorySync { get; set; }
+
+    public bool EnablePlexRatingSync { get; set; } = true;
 
     public string NewPlexToken { get; set; } = string.Empty;
 
@@ -40,6 +44,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public int MaxBackups { get; set; } = 7;
 
     public string BackupPath { get; set; } = string.Empty;
+
+    public int HealthCheckIntervalMinutes { get; set; } = 30;
 
     [System.Xml.Serialization.XmlIgnore]
     public string PlexToken

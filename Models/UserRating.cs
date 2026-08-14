@@ -12,6 +12,7 @@ public record UserRating
     public DateTime Timestamp { get; init; }
     public string? UserName { get; init; } // Cached for display
     public Dictionary<string, string> ProviderIds { get; init; } = new(); // Imdb, Tmdb, Tvdb, etc.
+    public string? Source { get; init; }  // "jellyfin" or "plex", null defaults to "jellyfin"
 }
 
 public record RatingStats

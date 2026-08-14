@@ -43,7 +43,8 @@ BackupService backupService) : ControllerBase
             Note = note,
             Timestamp = DateTime.UtcNow,
             UserName = userName ?? "Unknown",
-            ProviderIds = providerIds ?? new Dictionary<string, string>()
+            ProviderIds = providerIds ?? new Dictionary<string, string>(),
+            Source = "jellyfin"
         };
 
         repository.SaveRating(userRating);

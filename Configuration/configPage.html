@@ -373,6 +373,14 @@
                         </div>
 
                         <div class="inputContainer">
+                            <label class="inputLabel" for="enablePlexRatingSync">Sync Ratings</label>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="enablePlexRatingSync" />
+                                <span>Import ratings from Plex into Jellyfin.</span>
+                            </div>
+                        </div>
+
+                        <div class="inputContainer">
                             <label class="inputLabel" for="enablePlexWatchHistorySync">Sync Watch History</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enablePlexWatchHistorySync" />
@@ -391,11 +399,11 @@
                         <div class="inputContainer">
                             <label class="inputLabel" for="syncConflictMode">On Conflict</label>
                             <select id="syncConflictMode">
-                                <option value="skip">Skip existing ratings</option>
-                                <option value="overwrite">Overwrite existing ratings</option>
-                                <option value="keepHigher">Keep higher rating</option>
+                                <option value="skip">Skip — Keep existing Jellyfin rating unchanged</option>
+                                <option value="overwrite">Overwrite — Plex/imported rating always replaces existing</option>
+                                <option value="keepHigher">Keep Higher — Higher rating wins; equal ratings keep existing</option>
                             </select>
-                            <div class="fieldDescription">What to do when a rating already exists in Jellyfin for the same item.</div>
+                            <div class="fieldDescription">How to resolve conflicts when importing from Plex encounters an existing Jellyfin rating. Affects both manual import and scheduled sync.</div>
                         </div>
 
                         <div class="inputContainer">
@@ -421,6 +429,17 @@
                             <div id="unmatchedList" class="item-list"></div>
                         </div>
 
+                        <div style="margin-top: 1em; display: flex; gap: 1.5em; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="importRatings" checked />
+                                <label for="importRatings">Import Ratings</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5em;">
+                                <input type="checkbox" id="importWatchHistory" checked />
+                                <label for="importWatchHistory">Import Watch History</label>
+                            </div>
+                        </div>
+
                         <div style="margin-top: 1.5em;">
                             <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
                         </div>
@@ -436,6 +455,23 @@
                     <div class="fieldDescription" style="margin-bottom: 1em;">
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
                     </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="healthCheckIntervalMinutes">Health Check Interval (minutes)</label>
+                        <input type="number" id="healthCheckIntervalMinutes" min="5" max="1440" step="5" value="30" />
+                        <div class="fieldDescription">How often the scheduled task checks and heals stale ratings. Default is 30 minutes.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="healingConflictMode">Healing Conflict Mode</label>
+                        <select id="healingConflictMode" class="emby-select">
+                            <option value="skip">Skip — Prefer Jellyfin ratings; same source keeps newer</option>
+                            <option value="overwrite">Overwrite — Plex/imported ratings always win; same source keeps newer</option>
+                            <option value="keepHigher">Keep Higher — Higher rating wins; equal ratings keep newer</option>
+                        </select>
+                        <div class="fieldDescription">How to resolve conflicts when healing re-links an orphaned rating to an item that already has a rating. This setting is independent from the Plex import conflict mode.</div>
+                    </div>
+
                     <div style="display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
                         <button type="button" id="btnHealthCheck" is="emby-button" class="raised" style="min-width: 200px;">Check Database Health</button>
                         <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Heal Database</button>
@@ -487,6 +523,9 @@
                     document.getElementById('recentlyRatedCount').value = config.RecentlyRatedItemsCount || 10;
                     document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
                     document.getElementById('enablePlexWatchHistorySync').checked = config.EnablePlexWatchHistorySync || false;
+                    document.getElementById('enablePlexRatingSync').checked = config.EnablePlexRatingSync !== false;
+                    document.getElementById('importRatings').checked = config.EnablePlexRatingSync !== false;
+                    document.getElementById('importWatchHistory').checked = config.EnablePlexWatchHistorySync || false;
                     document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
                     document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
                     document.getElementById('syncUserId').value = config.SyncUserId || '';
@@ -499,6 +538,8 @@
                     document.getElementById('averageBadgePosition').value = config.AverageBadgePosition || 'top-left';
                     document.getElementById('showPersonalRatingBadge').checked = config.ShowPersonalRatingBadge !== false;
                     document.getElementById('personalBadgePosition').value = config.PersonalBadgePosition || 'top-left';
+                    document.getElementById('healthCheckIntervalMinutes').value = config.HealthCheckIntervalMinutes || 30;
+                    document.getElementById('healingConflictMode').value = config.HealingConflictMode || 'skip';
 
                     if (config.EncryptedPlexToken) {
                         document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
@@ -644,6 +685,7 @@
                     config.RecentlyRatedItemsCount = parseInt(document.getElementById('recentlyRatedCount').value) || 10;
                     config.PlexServerUrl = document.getElementById('plexServerUrl').value.trim();
                     config.EnablePlexWatchHistorySync = document.getElementById('enablePlexWatchHistorySync').checked;
+                    config.EnablePlexRatingSync = document.getElementById('enablePlexRatingSync').checked;
                     config.EnableAutoSync = document.getElementById('enableAutoSync').checked;
                     config.SyncIntervalHours = parseInt(document.getElementById('syncIntervalHours').value) || 24;
                     config.SyncUserId = document.getElementById('syncUserId').value;
@@ -656,6 +698,8 @@
                     config.AverageBadgePosition = document.getElementById('averageBadgePosition').value;
                     config.ShowPersonalRatingBadge = document.getElementById('showPersonalRatingBadge').checked;
                     config.PersonalBadgePosition = document.getElementById('personalBadgePosition').value;
+                    config.HealthCheckIntervalMinutes = parseInt(document.getElementById('healthCheckIntervalMinutes').value) || 30;
+                    config.HealingConflictMode = document.getElementById('healingConflictMode').value;
 
                     var tokenField = document.getElementById('plexToken');
                     if (tokenField.value) {
@@ -735,6 +779,13 @@
                 }
 
                 var conflictMode = document.getElementById('syncConflictMode').value;
+                var importRatings = document.getElementById('importRatings').checked;
+                var importWatchHistory = document.getElementById('importWatchHistory').checked;
+
+                if (!importRatings && !importWatchHistory) {
+                    alert('Please select at least one: Import Ratings or Import Watch History.');
+                    return;
+                }
 
                 var progressDiv = document.getElementById('importProgress');
                 var progressBar = document.getElementById('progressBar');
@@ -752,7 +803,7 @@
 
                 document.getElementById('btnSyncNow').disabled = true;
 
-                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(conflictMode)), {
+                fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(conflictMode) + '&importRatings=' + importRatings + '&importWatchHistory=' + importWatchHistory), {
                     method: 'POST',
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {

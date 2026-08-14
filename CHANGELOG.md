@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.13.4.1 (beta)
+
+### Fixes
+
+- **Healing no longer silently overwrites existing ratings** — `RepairRatingKey` now checks for conflicts when re-keying a rating and resolves them using the configurable `HealingConflictMode` (skip/overwrite/keepHigher). Previously, healing would unconditionally overwrite any existing rating at the new key, causing data loss.
+- **Removed unnecessary Reload() from health check** — `RunHealthCheck` no longer reloads ratings from disk before scanning. The reload was risky: it could drop malformed entries from the singleton's in-memory state, which would then be permanently lost on the next save. The singleton already persists every mutation immediately.
+- **Atomic file writes** — `SaveRatings` now writes to a `.tmp` file and renames it into place, preventing data corruption from interrupted writes. Stale `.tmp` files are cleaned up on load.
+
+### New Features
+
+- **Source-aware rating conflict resolution** — Ratings now carry a `Source` field ("jellyfin" or "plex"). The new `HealingConflictMode` setting (Database Health section) controls how healing resolves conflicts: Skip (prefer Jellyfin), Overwrite (incoming always wins), or Keep Higher. All conflict resolutions are logged.
+- **Configurable health check interval** — The scheduled health check interval can now be set in minutes from the Database Health section of the plugin settings (default: 30 minutes).
+- **Separate ratings and watch history sync** — Ratings sync and watch history sync can now be enabled/disabled independently. New "Sync Ratings" toggle in Plex settings. Manual import has separate checkboxes for ratings and watch history.
+
 ## v1.13.4.0
 
 ### Fixes

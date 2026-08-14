@@ -25,7 +25,7 @@ ILogger<PlexImportController> logger) : ControllerBase
 
     [HttpPost("ImportFromPlex")]
     [Produces("application/json")]
-    public ActionResult StartImport([FromQuery] Guid userId, [FromQuery] string? conflictMode = null)
+    public ActionResult StartImport([FromQuery] Guid userId, [FromQuery] string? conflictMode = null, [FromQuery] bool? importRatings = null, [FromQuery] bool? importWatchHistory = null)
     {
         if (userId == Guid.Empty)
         {
@@ -44,7 +44,7 @@ ILogger<PlexImportController> logger) : ControllerBase
         {
             try
             {
-                await importService.ImportFromPlexAsync(userId, operationId, CancellationToken.None, conflictMode).ConfigureAwait(false);
+                await importService.ImportFromPlexAsync(userId, operationId, CancellationToken.None, conflictMode, importRatings, importWatchHistory).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

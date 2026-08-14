@@ -32,6 +32,13 @@ public async Task ExecuteAsync(IProgress<double> progress, CancellationToken can
         return;
     }
 
+    if (!config.EnablePlexRatingSync && !config.EnablePlexWatchHistorySync)
+    {
+        logger.LogInformation("Both ratings and watch history sync are disabled, skipping");
+        progress.Report(100);
+        return;
+    }
+
     if (string.IsNullOrEmpty(config.PlexServerUrl) || string.IsNullOrEmpty(config.PlexToken))
     {
         logger.LogWarning("Plex server URL or token not configured, skipping auto-sync");
@@ -55,7 +62,7 @@ public async Task ExecuteAsync(IProgress<double> progress, CancellationToken can
     {
         progress.Report(5);
 
-        var result = await importService.ImportFromPlexAsync(userId, operationId, cancellationToken, config.SyncConflictMode).ConfigureAwait(false);
+        var result = await importService.ImportFromPlexAsync(userId, operationId, cancellationToken, config.SyncConflictMode, config.EnablePlexRatingSync, config.EnablePlexWatchHistorySync).ConfigureAwait(false);
 
         progress.Report(100);
 

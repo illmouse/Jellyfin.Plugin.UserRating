@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Controller.Entities;
@@ -17,7 +18,6 @@ ILogger<HealthCheckService> logger)
 
     public HealthReport RunHealthCheck(bool heal = false)
     {
-        repository.Reload();
         var report = new HealthReport();
         var allRatings = repository.GetAllRatings();
 
@@ -85,7 +85,8 @@ ILogger<HealthCheckService> logger)
                             "Healed rating: {OldItemId} → {NewItemId} for user {UserId}",
                             rating.ItemId, matched.Id, rating.UserId);
 
-                        repository.RepairRatingKey(rating.ItemId, matched.Id, rating.UserId);
+                        var healConflictMode = (Plugin.Instance?.Configuration as Configuration.PluginConfiguration)?.HealingConflictMode ?? "skip";
+                        repository.RepairRatingKey(rating.ItemId, matched.Id, rating.UserId, healConflictMode);
 
                         var healedRating = repository.GetRating(matched.Id, rating.UserId);
                         if (healedRating != null)

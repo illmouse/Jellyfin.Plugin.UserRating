@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.1",
+        "changelog": "Fixed: healing no longer silently overwrites existing ratings (new HealingConflictMode setting), removed risky Reload() from health check, atomic file writes. New: source-aware conflict resolution, configurable health check interval, separate ratings/watch history sync toggles.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-14T00:00:00Z"
+      },
+      {
         "version": "1.13.4.0",
         "changelog": "Fixed: RATE button missing on detail pages for items without a public/IMDb star rating (injection waited for star rating container that never appeared).",
         "targetAbi": "10.11.0.0",
