@@ -20,9 +20,18 @@ public string Description => "Scans the ratings database for stale entries and h
 
 public string Category => "User Ratings";
 
-public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
-{
-    logger.LogInformation("Starting scheduled ratings database health check");
+    public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
+    {
+        var config = Plugin.Instance?.Configuration as Configuration.PluginConfiguration;
+        if (config == null || !config.EnableAutoHealthCheck)
+        {
+            logger.LogInformation("Ratings health check is disabled, skipping");
+            progress.Report(100);
+            await Task.CompletedTask.ConfigureAwait(false);
+            return;
+        }
+
+        logger.LogInformation("Starting scheduled ratings database health check");
 
     try
     {

@@ -90,7 +90,7 @@ BackupService backupService) : ControllerBase
         var backups = backupService.ListBackups();
         return Ok(new BackupListResponse(
             true,
-            backups.Select(b => new BackupInfoDto(b.FileName, b.FileSize, b.LastModified)).ToList()
+            backups.Select(b => new BackupInfoDto(b.FileName, b.FileSize, b.LastModified, b.ParsedTimestamp)).ToList()
         ));
     }
 

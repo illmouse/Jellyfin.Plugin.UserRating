@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.13.4.2 (beta)
+
+### Fixes
+
+- **Backup date display now correct** — Backups list now shows the timestamp from the filename (when parsed successfully) instead of the file's last-modified time, which was the original ratings.json mtime rather than the backup creation time.
+- **Popup title no longer overflows** — Long item names in the rating popup are now truncated with ellipsis and a tooltip.
+- **Popup star hover no longer glitches** — Replaced `mouseenter` with `mousemove` + `requestAnimationFrame` throttling for popup stars, matching the smooth inline star behavior.
+
+### New Features
+
+- **Configurable automatic health check** — A new "Enable Automatic Health Check" toggle in Database Health settings controls whether the scheduled health check task runs. Previously the task always ran every 30 minutes with no way to disable it.
+- **Removed misleading Import checkboxes** — The "Import Ratings" and "Import Watch History" checkboxes below the Sync Now button were redundant with the Sync toggles. The Sync Now button now uses the Sync Ratings and Sync Watch History toggles directly.
+
 ## v1.13.4.1 (beta)
 
 ### Fixes

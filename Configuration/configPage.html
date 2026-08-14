@@ -429,17 +429,6 @@
                             <div id="unmatchedList" class="item-list"></div>
                         </div>
 
-                        <div style="margin-top: 1em; display: flex; gap: 1.5em; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 0.5em;">
-                                <input type="checkbox" id="importRatings" checked />
-                                <label for="importRatings">Import Ratings</label>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.5em;">
-                                <input type="checkbox" id="importWatchHistory" checked />
-                                <label for="importWatchHistory">Import Watch History</label>
-                            </div>
-                        </div>
-
                         <div style="margin-top: 1.5em;">
                             <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
                         </div>
@@ -454,6 +443,14 @@
                     <h3>Database Health</h3>
                     <div class="fieldDescription" style="margin-bottom: 1em;">
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="enableAutoHealthCheck">Enable Automatic Health Check</label>
+                        <div style="display: flex; align-items: center; gap: 0.5em;">
+                            <input type="checkbox" id="enableAutoHealthCheck" />
+                            <span>Run health check and healing on schedule</span>
+                        </div>
                     </div>
 
                     <div class="inputContainer">
@@ -524,8 +521,7 @@
                     document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
                     document.getElementById('enablePlexWatchHistorySync').checked = config.EnablePlexWatchHistorySync || false;
                     document.getElementById('enablePlexRatingSync').checked = config.EnablePlexRatingSync !== false;
-                    document.getElementById('importRatings').checked = config.EnablePlexRatingSync !== false;
-                    document.getElementById('importWatchHistory').checked = config.EnablePlexWatchHistorySync || false;
+
                     document.getElementById('enableAutoSync').checked = config.EnableAutoSync || false;
                     document.getElementById('syncIntervalHours').value = config.SyncIntervalHours || 24;
                     document.getElementById('syncUserId').value = config.SyncUserId || '';
@@ -539,6 +535,7 @@
                     document.getElementById('showPersonalRatingBadge').checked = config.ShowPersonalRatingBadge !== false;
                     document.getElementById('personalBadgePosition').value = config.PersonalBadgePosition || 'top-left';
                     document.getElementById('healthCheckIntervalMinutes').value = config.HealthCheckIntervalMinutes || 30;
+                    document.getElementById('enableAutoHealthCheck').checked = config.EnableAutoHealthCheck !== false;
                     document.getElementById('healingConflictMode').value = config.HealingConflictMode || 'skip';
 
                     if (config.EncryptedPlexToken) {
@@ -592,7 +589,7 @@
                     html += '<thead><tr><th>File</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>';
                     html += '<tbody>';
                     result.backups.forEach(function (b) {
-                        var dateStr = new Date(b.lastModified).toLocaleString();
+                        var dateStr = b.parsedTimestamp ? new Date(b.parsedTimestamp).toLocaleString() : new Date(b.lastModified).toLocaleString();
                         var sizeStr = b.fileSize < 1024 ? b.fileSize + ' B'
                             : b.fileSize < 1048576 ? (b.fileSize / 1024).toFixed(1) + ' KB'
                             : (b.fileSize / 1048576).toFixed(1) + ' MB';
@@ -699,6 +696,7 @@
                     config.ShowPersonalRatingBadge = document.getElementById('showPersonalRatingBadge').checked;
                     config.PersonalBadgePosition = document.getElementById('personalBadgePosition').value;
                     config.HealthCheckIntervalMinutes = parseInt(document.getElementById('healthCheckIntervalMinutes').value) || 30;
+                    config.EnableAutoHealthCheck = document.getElementById('enableAutoHealthCheck').checked;
                     config.HealingConflictMode = document.getElementById('healingConflictMode').value;
 
                     var tokenField = document.getElementById('plexToken');
@@ -779,11 +777,11 @@
                 }
 
                 var conflictMode = document.getElementById('syncConflictMode').value;
-                var importRatings = document.getElementById('importRatings').checked;
-                var importWatchHistory = document.getElementById('importWatchHistory').checked;
+                var importRatings = document.getElementById('enablePlexRatingSync').checked;
+                var importWatchHistory = document.getElementById('enablePlexWatchHistorySync').checked;
 
                 if (!importRatings && !importWatchHistory) {
-                    alert('Please select at least one: Import Ratings or Import Watch History.');
+                    alert('Please enable at least one: Sync Ratings or Sync Watch History.');
                     return;
                 }
 

@@ -79,4 +79,5 @@ public record BackupFileInfo
     public string FileName { get; init; } = string.Empty;
     public long FileSize { get; init; }
     public DateTime LastModified { get; init; }
+    public DateTime? ParsedTimestamp { get; init; }
 }

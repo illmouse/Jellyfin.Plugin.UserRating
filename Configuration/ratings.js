@@ -789,6 +789,11 @@
             font-size: 1.1em;
             font-weight: 600;
             color: var(--textColor, #fff);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
         }
         .rate-popup-close {
             background: none;
@@ -1377,17 +1382,21 @@ function updateStarDisplay(container, rating) {
 
         // Star hover/click in popup
         const popupStars = overlay.querySelectorAll('.rp-star');
+        var popupRafId = null;
         popupStars.forEach(function(star) {
-            star.addEventListener('mouseenter', function(e) {
-                var n = parseFloat(this.dataset.n);
-                var rect = this.getBoundingClientRect();
-                var isLeft = e.clientX < rect.left + rect.width / 2;
-                var val = isLeft ? n - 0.5 : n;
-                setPopupStarFill(popupStars, val);
-                document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
-                // Highlight hovered star
-                popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
-                this.classList.add('hover-highlight');
+            star.addEventListener('mousemove', function(e) {
+                if (popupRafId) return;
+                popupRafId = requestAnimationFrame(function() {
+                    var n = parseFloat(star.dataset.n);
+                    var rect = star.getBoundingClientRect();
+                    var isLeft = e.clientX < rect.left + rect.width / 2;
+                    var val = isLeft ? n - 0.5 : n;
+                    setPopupStarFill(popupStars, val);
+                    document.getElementById('rpSubtitle').textContent = 'Your rating: ' + formatStarRating(val);
+                    popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
+                    star.classList.add('hover-highlight');
+                    popupRafId = null;
+                });
             });
             star.addEventListener('click', function(e) {
                 var n = parseFloat(this.dataset.n);
@@ -1484,6 +1493,7 @@ function updateStarDisplay(container, rating) {
         popupActiveItemId = itemId;
 
         document.getElementById('rpTitle').textContent = 'Rate "' + (itemName || 'this item') + '"';
+        document.getElementById('rpTitle').title = itemName ? 'Rate "' + itemName + '"' : '';
         document.getElementById('rpSubtitle').textContent = preselected > 0 ? 'Your rating: ' + formatStarRating(preselected) : 'Select your rating';
         document.getElementById('rpNote').value = existingNote || '';
 

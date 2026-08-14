@@ -47,6 +47,8 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public int HealthCheckIntervalMinutes { get; set; } = 30;
 
+    public bool EnableAutoHealthCheck { get; set; } = true;
+
     [System.Xml.Serialization.XmlIgnore]
     public string PlexToken
     {

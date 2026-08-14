@@ -36,7 +36,7 @@ public record StaleItemDto(Guid itemId, Guid userId, int rating, string? note, D
 
 public record HealedItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating);
 
-public record BackupInfoDto(string fileName, long fileSize, DateTime lastModified);
+public record BackupInfoDto(string fileName, long fileSize, DateTime lastModified, DateTime? parsedTimestamp = null);
 
 public record HealthReportResponse(
     bool success,

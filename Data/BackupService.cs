@@ -82,11 +82,21 @@ ILogger<BackupService> logger)
             foreach (var file in files)
             {
                 var fi = new FileInfo(file);
+                var fileName = Path.GetFileName(file);
+                DateTime? parsedTimestamp = null;
+
+                var match = System.Text.RegularExpressions.Regex.Match(fileName, @"ratings_(\d{8}_\d{6})\.json$");
+                if (match.Success && DateTime.TryParseExact(match.Groups[1].Value, "yyyyMMdd_HHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal, out var ts))
+                {
+                    parsedTimestamp = DateTime.SpecifyKind(ts, DateTimeKind.Utc);
+                }
+
                 result.Add(new BackupFileInfo
                 {
-                    FileName = Path.GetFileName(file),
+                    FileName = fileName,
                     FileSize = fi.Length,
-                    LastModified = fi.LastWriteTimeUtc
+                    LastModified = fi.LastWriteTimeUtc,
+                    ParsedTimestamp = parsedTimestamp
                 });
             }
         }
