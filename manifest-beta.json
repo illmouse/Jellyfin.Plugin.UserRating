@@ -13,8 +13,8 @@
         "changelog": "Fixed: healing no longer deletes ratings on conflict, provider ID matching prioritizes specific IDs over collection IDs. New: conflict reporting in health check, HealSingleItem API endpoint, collection-only match warnings.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.5/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-08-17T00:00:00Z"
+        "checksum": "f4ef9a79ea91937ac8f09013e2f2fe5c",
+        "timestamp": "2026-08-17T13:02:34Z"
       },
       {
         "version": "1.13.4.4",
