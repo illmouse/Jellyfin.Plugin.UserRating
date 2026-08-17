@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Services;
+using MediaBrowser.Common.Api;
+using MediaBrowser.Controller.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,10 +15,12 @@ namespace Jellyfin.Plugin.UserRatings.Api;
 
 [ApiController]
 [Route("api/UserRatings")]
+[Authorize]
 public class PlexImportController(
-PlexImportService importService,
-ProgressTracker progressTracker,
-ILogger<PlexImportController> logger) : ControllerBase
+    PlexImportService importService,
+    ProgressTracker progressTracker,
+    IAuthorizationContext authContext,
+    ILogger<PlexImportController> logger) : ControllerBase
 {
 
     private PluginConfiguration GetConfig()
@@ -25,11 +30,22 @@ ILogger<PlexImportController> logger) : ControllerBase
 
     [HttpPost("ImportFromPlex")]
     [Produces("application/json")]
-    public ActionResult StartImport([FromQuery] Guid userId, [FromQuery] string? conflictMode = null, [FromQuery] bool? importRatings = null, [FromQuery] bool? importWatchHistory = null)
+    [Authorize(Policy = Policies.RequiresElevation)]
+    public async Task<ActionResult> StartImport([FromQuery] Guid? userId = null, [FromQuery] string? conflictMode = null, [FromQuery] bool? importRatings = null, [FromQuery] bool? importWatchHistory = null)
     {
-        if (userId == Guid.Empty)
+        Guid effectiveUserId;
+        if (userId.HasValue && userId.Value != Guid.Empty)
         {
-            return BadRequest(new ApiResponse(false, "userId is required"));
+            effectiveUserId = userId.Value;
+        }
+        else
+        {
+            effectiveUserId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
+        }
+
+        if (effectiveUserId == Guid.Empty)
+        {
+            return BadRequest(new ApiResponse(false, "Authenticated user ID not found"));
         }
 
         var config = GetConfig();
@@ -44,7 +60,7 @@ ILogger<PlexImportController> logger) : ControllerBase
         {
             try
             {
-                await importService.ImportFromPlexAsync(userId, operationId, CancellationToken.None, conflictMode, importRatings, importWatchHistory).ConfigureAwait(false);
+                await importService.ImportFromPlexAsync(effectiveUserId, operationId, CancellationToken.None, conflictMode, importRatings, importWatchHistory).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -57,6 +73,7 @@ ILogger<PlexImportController> logger) : ControllerBase
     }
 
     [HttpGet("ImportProgress/{operationId}")]
+    [AllowAnonymous]
     public async Task StreamProgress(string operationId, CancellationToken cancellationToken)
     {
         Response.ContentType = "text/event-stream";
@@ -96,6 +113,7 @@ ILogger<PlexImportController> logger) : ControllerBase
 
     [HttpGet("PlexStatus")]
     [Produces("application/json")]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public async Task<ActionResult> CheckPlexStatus()
     {
         var config = GetConfig();

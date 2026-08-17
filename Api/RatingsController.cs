@@ -3,40 +3,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
+using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
-using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Models;
 using Jellyfin.Plugin.UserRatings.Services;
+using MediaBrowser.Common.Api;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api;
 
 [ApiController]
 [Route("api/UserRatings")]
+[Authorize]
 public class RatingsController(
-RatingRepository repository,
-ILibraryManager libraryManager,
-IUserManager userManager,
-IUserDataManager userDataManager,
-RatingResolver resolver,
-BackupService backupService) : ControllerBase
+    RatingRepository repository,
+    ILibraryManager libraryManager,
+    IUserManager userManager,
+    IUserDataManager userDataManager,
+    RatingResolver resolver,
+    BackupService backupService,
+    IAuthorizationContext authContext) : ControllerBase
 {
 
     [HttpPost("Rate")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult RateItem([FromQuery] Guid itemId, [FromQuery] Guid userId, [FromQuery] int rating, [FromQuery] string? note, [FromQuery] string? userName)
+    public async Task<ActionResult> RateItem([FromQuery] Guid itemId, [FromQuery] int rating, [FromQuery] string? note)
     {
         if (rating < 1 || rating > 10)
         {
             return BadRequest(new ApiResponse(false, "Rating must be between 1 and 10"));
         }
+
+        var userId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
+        var userName = await HttpContext.GetAuthenticatedUserNameAsync(authContext).ConfigureAwait(false);
 
         var providerIds = resolver.GetProviderIdsForItem(itemId);
         var userRating = new UserRating
@@ -46,7 +54,7 @@ BackupService backupService) : ControllerBase
             Rating = rating,
             Note = note,
             Timestamp = DateTime.UtcNow,
-            UserName = userName ?? "Unknown",
+            UserName = userName,
             ProviderIds = providerIds ?? new Dictionary<string, string>(),
             Source = "jellyfin"
         };
@@ -79,8 +87,16 @@ BackupService backupService) : ControllerBase
 
     [HttpGet("User/{userId}")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult GetUserRatings(Guid userId)
+    public async Task<ActionResult> GetUserRatings(Guid userId)
     {
+        var authenticatedUserId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
+        var isAdmin = await HttpContext.IsAdminAsync(authContext).ConfigureAwait(false);
+
+        if (userId != authenticatedUserId && !isAdmin)
+        {
+            return Forbid();
+        }
+
         var ratings = repository.GetRatingsForUser(userId);
 
         return Ok(new UserRatingsResponse(
@@ -96,16 +112,18 @@ BackupService backupService) : ControllerBase
 
     [HttpDelete("Rating")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult DeleteRating([FromQuery] Guid itemId, [FromQuery] Guid userId)
+    public async Task<ActionResult> DeleteRating([FromQuery] Guid itemId)
     {
+        var userId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
         repository.DeleteRating(itemId, userId);
         return Ok(new ApiResponse(true, "Rating deleted successfully"));
     }
 
     [HttpGet("MyRating/{itemId}")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult GetMyRating(Guid itemId, [FromQuery] Guid userId)
+    public async Task<ActionResult> GetMyRating(Guid itemId)
     {
+        var userId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
         var rating = resolver.ResolveRating(itemId, userId);
 
         if (rating == null)
@@ -118,6 +136,7 @@ BackupService backupService) : ControllerBase
 
     [HttpDelete("DeleteAll")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult DeleteAllRatings()
     {
         repository.DeleteAllRatings();
@@ -227,8 +246,9 @@ BackupService backupService) : ControllerBase
 
     [HttpGet("UnratedWatchedItems")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult GetUnratedWatchedItems([FromQuery] Guid userId, [FromQuery] string? itemType = null)
+    public async Task<ActionResult> GetUnratedWatchedItems([FromQuery] string? itemType = null)
     {
+        var userId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
         var watchedUnrated = new List<WatchedItemInfo>();
 
         var user = userManager.GetUserById(userId);
@@ -309,6 +329,7 @@ BackupService backupService) : ControllerBase
 
     [HttpGet("MigrationStatus")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult GetMigrationStatus()
     {
         var metadata = repository.Metadata;
@@ -342,6 +363,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("MigrateTo10Star")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult MigrateTo10Star()
     {
         var (backupSuccess, backupPath, _) = backupService.CreateBackup();
@@ -388,8 +410,11 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("MarkExistingFavorites")]
     [Produces(MediaTypeNames.Application.Json)]
-    public ActionResult MarkExistingFavorites([FromQuery] Guid? userId, [FromQuery] int? threshold)
+    public async Task<ActionResult> MarkExistingFavorites([FromQuery] int? threshold)
     {
+        var authenticatedUserId = await HttpContext.GetAuthenticatedUserIdAsync(authContext).ConfigureAwait(false);
+        var isAdmin = await HttpContext.IsAdminAsync(authContext).ConfigureAwait(false);
+
         var config = Plugin.Instance?.Configuration;
         var effectiveThreshold = threshold ?? config?.FavoriteThreshold ?? 9;
         if (effectiveThreshold < 1) effectiveThreshold = 1;
@@ -401,9 +426,10 @@ BackupService backupService) : ControllerBase
             return Ok(new MarkFavoritesResponse(true, 0, 0));
         }
 
+        // Non-admin users can only mark their own favorites
         var qualifying = allRatings.Values
             .Where(r => r.Rating >= effectiveThreshold)
-            .Where(r => !userId.HasValue || r.UserId == userId.Value)
+            .Where(r => isAdmin || r.UserId == authenticatedUserId)
             .ToList();
 
         if (qualifying.Count == 0)

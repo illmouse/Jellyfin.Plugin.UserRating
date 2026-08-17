@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.13.4.6 (beta)
+
+### Security
+
+- **Authorization enforced on all API endpoints** — All controllers now require authenticated users via `[Authorize]`. Previously, any request with a valid server token could act as any user by changing the `userId` query parameter.
+- **User identity derived from auth token** — `RateItem`, `DeleteRating`, `GetMyRating`, `GetUnratedWatchedItems`, and `MarkExistingFavorites` no longer accept `userId`/`userName` as query parameters. The server extracts the authenticated user's identity from the authorization context, preventing impersonation.
+- **Admin-only access for sensitive endpoints** — Health check, heal, backup (create/restore/download/upload/delete), clear stale, delete all ratings, migration, and Plex import/status endpoints now require `[Authorize(Policy = RequiresElevation)]`. Only admins can access these operations.
+- **Ownership verification on user ratings** — `GetUserRatings` now verifies the requesting user owns the requested userId, or is an admin. Non-owners receive `403 Forbid`.
+- **AllowAnonymous where appropriate** — StringsController (localization data) and SSE progress stream remain publicly accessible.
+
+### Fixes
+
+- **OperationCanceledException handled properly** — The GlobalExceptionFilter now returns HTTP 499 and marks the exception as handled, instead of leaving connections hanging.
+- **No more exception message disclosure** — Error responses now return a generic message instead of `context.Exception.Message`, preventing information leakage.
+
 ## v1.13.4.5 (beta)
 
 ### Fixes

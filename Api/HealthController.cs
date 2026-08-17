@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Mime;
 using Jellyfin.Plugin.UserRatings.Data;
 using Jellyfin.Plugin.UserRatings.Services;
+using MediaBrowser.Common.Api;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,13 +13,15 @@ namespace Jellyfin.Plugin.UserRatings.Api;
 
 [ApiController]
 [Route("api/UserRatings")]
+[Authorize]
 public class HealthController(
-HealthCheckService healthCheckService,
-BackupService backupService) : ControllerBase
+    HealthCheckService healthCheckService,
+    BackupService backupService) : ControllerBase
 {
 
     [HttpGet("HealthReport")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult GetHealthReport([FromQuery] bool heal = false)
     {
         var report = healthCheckService.RunHealthCheck(heal);
@@ -48,6 +52,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("HealRatings")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult HealRatings()
     {
         var report = healthCheckService.RunHealthCheck(heal: true);
@@ -76,6 +81,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("HealSingleItem")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult HealSingleItem([FromQuery] Guid oldItemId, [FromQuery] Guid newItemId, [FromQuery] Guid userId)
     {
         if (oldItemId == Guid.Empty || newItemId == Guid.Empty || userId == Guid.Empty)
@@ -94,6 +100,7 @@ BackupService backupService) : ControllerBase
 
     [HttpDelete("ClearStale")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult ClearStale()
     {
         var removed = healthCheckService.ClearStale();
@@ -102,6 +109,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("Backup")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult CreateBackup()
     {
         var (success, backupPath, totalBackups) = backupService.CreateBackup();
@@ -115,6 +123,7 @@ BackupService backupService) : ControllerBase
 
     [HttpGet("Backups")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult ListBackups()
     {
         var backups = backupService.ListBackups();
@@ -126,6 +135,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("RestoreBackup")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult RestoreBackup([FromQuery] string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -138,6 +148,7 @@ BackupService backupService) : ControllerBase
     }
 
     [HttpGet("DownloadBackup")]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public IActionResult DownloadBackup([FromQuery] string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -157,6 +168,7 @@ BackupService backupService) : ControllerBase
 
     [HttpPost("UploadBackup")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult UploadBackup(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -188,6 +200,7 @@ BackupService backupService) : ControllerBase
 
     [HttpDelete("DeleteBackup")]
     [Produces(MediaTypeNames.Application.Json)]
+    [Authorize(Policy = Policies.RequiresElevation)]
     public ActionResult DeleteBackup([FromQuery] string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))

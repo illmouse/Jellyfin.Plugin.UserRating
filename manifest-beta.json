@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.6",
+        "changelog": "Security: Added authorization to all API endpoints. User identity derived from auth token instead of query params. Admin-only access for health, backup, import, and destructive endpoints. Fixed: OperationCanceledException no longer leaves connections hanging. Error responses no longer leak exception details.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.6/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-17T12:00:00Z"
+      },
+      {
         "version": "1.13.4.5",
         "changelog": "Fixed: healing no longer deletes ratings on conflict, provider ID matching prioritizes specific IDs over collection IDs. New: conflict reporting in health check, HealSingleItem API endpoint, collection-only match warnings.",
         "targetAbi": "10.11.0.0",

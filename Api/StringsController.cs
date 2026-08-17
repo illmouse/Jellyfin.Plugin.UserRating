@@ -1,11 +1,13 @@
 using System.IO;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api;
 
 [ApiController]
 [Route("api/UserRatings")]
+[AllowAnonymous]
 public class StringsController : ControllerBase
 {
     [HttpGet("Strings")]
