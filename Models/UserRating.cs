@@ -40,9 +40,11 @@ public record HealthReport
     public int Healed { get; set; }
     public int Updated { get; set; }
     public int Stale { get; set; }
+    public int Conflicts { get; set; }
     public List<StaleItem> StaleItems { get; init; } = new();
     public List<RecoverableItem> RecoverableItems { get; init; } = new();
     public List<HealedItem> HealedItems { get; init; } = new();
+    public List<ConflictItem> ConflictItems { get; init; } = new();
 }
 
 public record StaleItem
@@ -62,7 +64,11 @@ public record RecoverableItem
     public string? ItemName { get; init; }
     public Guid UserId { get; init; }
     public int Rating { get; init; }
+    public string? Note { get; init; }
+    public DateTime Timestamp { get; init; }
     public Dictionary<string, string> ProviderIds { get; init; } = new();
+    public string MatchType { get; init; } = "specific"; // "specific" or "collection"
+    public Dictionary<string, string> MatchedProviderIds { get; init; } = new();
 }
 
 public record HealedItem
@@ -72,6 +78,25 @@ public record HealedItem
     public string? ItemName { get; init; }
     public Guid UserId { get; init; }
     public int Rating { get; init; }
+    public string? Note { get; init; }
+    public DateTime Timestamp { get; init; }
+    public Dictionary<string, string> ProviderIds { get; init; } = new();
+}
+
+public record ConflictItem
+{
+    public Guid OldItemId { get; init; }
+    public Guid NewItemId { get; init; }
+    public string? ItemName { get; init; }
+    public Guid UserId { get; init; }
+    public int IncomingRating { get; init; }
+    public int ExistingRating { get; init; }
+    public string? IncomingNote { get; init; }
+    public string? ExistingNote { get; init; }
+    public DateTime IncomingTimestamp { get; init; }
+    public DateTime ExistingTimestamp { get; init; }
+    public string? ConflictReason { get; init; }
+    public Dictionary<string, string> ProviderIds { get; init; } = new();
 }
 
 public record BackupFileInfo

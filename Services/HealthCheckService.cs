@@ -15,13 +15,16 @@ RatingRepository repository,
 ILibraryManager libraryManager,
 ILogger<HealthCheckService> logger)
 {
+    private static readonly HashSet<string> SpecificProviderKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Imdb", "Tmdb", "Tvdb", "Tvb", "MusicBrainzAlbum", "MusicBrainzArtist", "MusicBrainzReleaseGroup"
+    };
 
     public HealthReport RunHealthCheck(bool heal = false)
     {
         var report = new HealthReport();
         var allRatings = repository.GetAllRatings();
 
-        // Batch-resolve all rated item IDs in one library query
         var allItemIds = allRatings.Values.Select(r => r.ItemId).Distinct().ToArray();
         var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
         {
@@ -74,35 +77,64 @@ ILogger<HealthCheckService> logger)
 
             if (rating.ProviderIds != null && rating.ProviderIds.Count > 0)
             {
-                var matched = TryResolveByProviderIds(rating.ProviderIds);
+                var (matched, matchType, matchedProviderIds) = TryResolveByProviderIds(rating.ProviderIds);
                 if (matched != null)
                 {
                     if (heal)
                     {
-                        report.Healed++;
-
-                        logger.LogInformation(
-                            "Healed rating: {OldItemId} → {NewItemId} for user {UserId}",
-                            rating.ItemId, matched.Id, rating.UserId);
-
                         var healConflictMode = (Plugin.Instance?.Configuration as Configuration.PluginConfiguration)?.HealingConflictMode ?? "skip";
-                        repository.RepairRatingKey(rating.ItemId, matched.Id, rating.UserId, healConflictMode);
+                        var result = repository.RepairRatingKey(rating.ItemId, matched.Id, rating.UserId, healConflictMode);
 
-                        var healedRating = repository.GetRating(matched.Id, rating.UserId);
-                        if (healedRating != null)
+                        if (result == HealConflictResult.ConflictSkipped)
                         {
-                            healedRating = healedRating with { ProviderIds = new Dictionary<string, string>(matched.ProviderIds) };
-                            repository.SaveRating(healedRating);
+                            report.Conflicts++;
+                            var existingRating = repository.GetRating(matched.Id, rating.UserId);
+                            report.ConflictItems.Add(new ConflictItem
+                            {
+                                OldItemId = rating.ItemId,
+                                NewItemId = matched.Id,
+                                ItemName = matched.Name,
+                                UserId = rating.UserId,
+                                IncomingRating = rating.Rating,
+                                ExistingRating = existingRating?.Rating ?? 0,
+                                IncomingNote = rating.Note,
+                                ExistingNote = existingRating?.Note,
+                                IncomingTimestamp = rating.Timestamp,
+                                ExistingTimestamp = existingRating?.Timestamp ?? DateTime.MinValue,
+                                ConflictReason = DetermineConflictReason(healConflictMode, rating, existingRating),
+                                ProviderIds = rating.ProviderIds ?? new Dictionary<string, string>()
+                            });
+
+                            logger.LogInformation(
+                                "Heal conflict at {NewItemId}: kept existing rating, incoming rating preserved at old key {OldItemId}",
+                                matched.Id, rating.ItemId);
                         }
-
-                        report.HealedItems.Add(new HealedItem
+                        else
                         {
-                            OldItemId = rating.ItemId,
-                            NewItemId = matched.Id,
-                            ItemName = matched.Name,
-                            UserId = rating.UserId,
-                            Rating = rating.Rating
-                        });
+                            report.Healed++;
+                            logger.LogInformation(
+                                "Healed rating: {OldItemId} → {NewItemId} for user {UserId}",
+                                rating.ItemId, matched.Id, rating.UserId);
+
+                            var healedRating = repository.GetRating(matched.Id, rating.UserId);
+                            if (healedRating != null)
+                            {
+                                healedRating = healedRating with { ProviderIds = new Dictionary<string, string>(matched.ProviderIds) };
+                                repository.SaveRating(healedRating);
+                            }
+
+                            report.HealedItems.Add(new HealedItem
+                            {
+                                OldItemId = rating.ItemId,
+                                NewItemId = matched.Id,
+                                ItemName = matched.Name,
+                                UserId = rating.UserId,
+                                Rating = rating.Rating,
+                                Note = rating.Note,
+                                Timestamp = rating.Timestamp,
+                                ProviderIds = matched.ProviderIds != null ? new Dictionary<string, string>(matched.ProviderIds) : new Dictionary<string, string>()
+                            });
+                        }
                     }
                     else
                     {
@@ -114,7 +146,11 @@ ILogger<HealthCheckService> logger)
                             ItemName = matched.Name,
                             UserId = rating.UserId,
                             Rating = rating.Rating,
-                            ProviderIds = rating.ProviderIds
+                            Note = rating.Note,
+                            Timestamp = rating.Timestamp,
+                            ProviderIds = rating.ProviderIds,
+                            MatchType = matchType,
+                            MatchedProviderIds = matchedProviderIds
                         });
                     }
 
@@ -135,8 +171,8 @@ ILogger<HealthCheckService> logger)
         }
 
         logger.LogInformation(
-            "Health check complete: {Ok} ok, {Recoverable} recoverable, {Healed} healed, {Updated} updated, {Stale} stale (heal={Heal})",
-            report.Ok, report.Recoverable, report.Healed, report.Updated, report.Stale, heal);
+            "Health check complete: {Ok} ok, {Recoverable} recoverable, {Healed} healed, {Updated} updated, {Stale} stale, {Conflicts} conflicts (heal={Heal})",
+            report.Ok, report.Recoverable, report.Healed, report.Updated, report.Stale, report.Conflicts, heal);
 
         return report;
     }
@@ -156,26 +192,106 @@ ILogger<HealthCheckService> logger)
         return removed;
     }
 
-    private BaseItem? TryResolveByProviderIds(Dictionary<string, string> providerIds)
+    public HealConflictResult HealSingleItem(Guid oldItemId, Guid newItemId, Guid userId)
+    {
+        var healConflictMode = (Plugin.Instance?.Configuration as Configuration.PluginConfiguration)?.HealingConflictMode ?? "skip";
+        var result = repository.RepairRatingKey(oldItemId, newItemId, userId, healConflictMode);
+
+        if (result == HealConflictResult.Replaced)
+        {
+            var healedRating = repository.GetRating(newItemId, userId);
+            if (healedRating != null)
+            {
+                var libItem = libraryManager.GetItemById(newItemId);
+                if (libItem?.ProviderIds != null)
+                {
+                    healedRating = healedRating with { ProviderIds = new Dictionary<string, string>(libItem.ProviderIds) };
+                    repository.SaveRating(healedRating);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private (BaseItem? item, string matchType, Dictionary<string, string> matchedProviderIds) TryResolveByProviderIds(Dictionary<string, string> providerIds)
     {
         if (providerIds == null || providerIds.Count == 0)
         {
-            return null;
+            return (null, "none", new Dictionary<string, string>());
         }
 
-        var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
-        {
-            HasAnyProviderId = providerIds
-                .Where(kv => !string.IsNullOrEmpty(kv.Value))
-                .ToDictionary(kv => kv.Key, kv => kv.Value)
-        };
+        var specificIds = providerIds
+            .Where(kv => SpecificProviderKeys.Contains(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+            .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
 
-        if (query.HasAnyProviderId == null || query.HasAnyProviderId.Count == 0)
+        if (specificIds.Count > 0)
         {
-            return null;
+            var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
+            {
+                HasAnyProviderId = specificIds
+            };
+            var results = libraryManager.GetItemList(query);
+            if (results.Count > 0)
+            {
+                var match = results[0];
+                var matchedIds = specificIds
+                    .Where(kv => match.ProviderIds != null &&
+                                 match.ProviderIds.TryGetValue(kv.Key, out var v) &&
+                                 string.Equals(v, kv.Value, StringComparison.OrdinalIgnoreCase))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
+                return (match, "specific", matchedIds);
+            }
         }
 
-        var results = libraryManager.GetItemList(query);
-        return results.FirstOrDefault();
+        var collectionIds = providerIds
+            .Where(kv => !SpecificProviderKeys.Contains(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+            .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
+
+        if (collectionIds.Count > 0)
+        {
+            var query = new MediaBrowser.Controller.Entities.InternalItemsQuery
+            {
+                HasAnyProviderId = collectionIds
+            };
+            var results = libraryManager.GetItemList(query);
+            if (results.Count > 0)
+            {
+                var match = results[0];
+                var matchedIds = collectionIds
+                    .Where(kv => match.ProviderIds != null &&
+                                 match.ProviderIds.TryGetValue(kv.Key, out var v) &&
+                                 string.Equals(v, kv.Value, StringComparison.OrdinalIgnoreCase))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
+                return (match, "collection", matchedIds);
+            }
+        }
+
+        return (null, "none", new Dictionary<string, string>());
+    }
+
+    private string DetermineConflictReason(string conflictMode, UserRating incoming, UserRating? existing)
+    {
+        var incomingSource = string.IsNullOrEmpty(incoming?.Source) ? "jellyfin" : incoming.Source;
+        var existingSource = string.IsNullOrEmpty(existing?.Source) ? "jellyfin" : existing.Source;
+
+        // Note: This method is only called when ConflictSkipped is returned.
+        // "overwrite" mode never returns ConflictSkipped (incoming always wins).
+
+        if (conflictMode == "keepHigher")
+        {
+            if (incoming?.Rating < existing?.Rating)
+                return "keepHigher-existing-higher";
+            if (incoming?.Rating == existing?.Rating && incoming?.Timestamp <= existing?.Timestamp)
+                return "keepHigher-equal-existing-newer";
+            return "keepHigher";
+        }
+
+        // skip (default)
+        if (existingSource == "jellyfin" && incomingSource == "plex")
+            return "skip-jellyfin-over-plex";
+        if (incoming?.Timestamp <= existing?.Timestamp)
+            return "skip-same-source-existing-newer";
+        return "skip";
     }
 }

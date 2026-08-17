@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.5",
+        "changelog": "Fixed: healing no longer deletes ratings on conflict, provider ID matching prioritizes specific IDs over collection IDs. New: conflict reporting in health check, HealSingleItem API endpoint, collection-only match warnings.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.5/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-17T00:00:00Z"
+      },
+      {
         "version": "1.13.4.4",
         "changelog": "New: Season ratings tab, auto-favorite high-rated items, localization infrastructure. Fixed: badge position dropdown arrows, Save Settings button placement.",
         "targetAbi": "10.11.0.0",

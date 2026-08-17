@@ -502,6 +502,11 @@
                         <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings were successfully re-linked to items in your library.</div>
                         <div id="healedItems" class="item-list"></div>
                     </div>
+                    <div id="conflictList" style="display: none; margin-top: 1em;">
+                        <h4 style="color: #FF9800;">Conflicts</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be healed because the target item already has a rating. The incoming rating is preserved at its old key and will appear as recoverable in future health checks.</div>
+                        <div id="conflictItems" class="item-list"></div>
+                    </div>
                     <div id="staleList" style="display: none; margin-top: 1em;">
                         <h4>Stale Items</h4>
                         <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
@@ -1031,12 +1036,14 @@
                 var recoverableSection = document.getElementById('recoverableList');
                 var staleSection = document.getElementById('staleList');
                 var healedSection = document.getElementById('healedList');
+                var conflictSection = document.getElementById('conflictList');
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = 'Checking database health...';
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
                 recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
                 healedSection.style.display = 'none';
+                conflictSection.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealthReport'), {
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
@@ -1047,8 +1054,11 @@
                             'Recoverable: ' + result.recoverable + '<br>' +
                             'Updated: ' + result.updated + '<br>' +
                             'Stale: ' + result.stale;
+                        if (result.conflicts && result.conflicts > 0) {
+                            html += '<br>Conflicts: ' + result.conflicts;
+                        }
                         resultDiv.innerHTML = html;
-                        resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.recoverable > 0 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(76, 175, 80, 0.2)');
+                        resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.conflicts > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.recoverable > 0 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(76, 175, 80, 0.2)'));
 
                         if (result.recoverableItems && result.recoverableItems.length > 0) {
                             recoverableSection.style.display = 'block';
@@ -1057,11 +1067,41 @@
                             result.recoverableItems.forEach(function (item) {
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
+                                var collectionWarning = '';
+                                if (item.matchType === 'collection') {
+                                    collectionWarning = '<br><span style="color: #FF9800; font-weight: bold;">&#9888; Collection match only — verify before healing</span>';
+                                }
+                                var matchInfo = '';
+                                if (item.matchedProviderIds && Object.keys(item.matchedProviderIds).length > 0) {
+                                    matchInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Matched by: ' + Object.entries(item.matchedProviderIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                }
+                                var noteInfo = item.note ? ' &mdash; <em>' + item.note + '</em>' : '';
                                 div.innerHTML = '<strong style="color: #FFC107;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10)</span>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10' + noteInfo + ')</span>' +
+                                    collectionWarning +
                                     '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Can be re-linked to: ' + item.newItemId.substring(0, 8) + '...' +
-                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>' +
+                                    matchInfo;
                                 recDiv.appendChild(div);
+                            });
+                        }
+
+                        if (result.conflictItems && result.conflictItems.length > 0) {
+                            conflictSection.style.display = 'block';
+                            var confDiv = document.getElementById('conflictItems');
+                            confDiv.innerHTML = '';
+                            result.conflictItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.className = 'item-entry';
+                                div.style.borderLeft = '3px solid #FF9800';
+                                var reasonText = item.conflictReason || 'unknown';
+                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || 'Unknown') + '</strong>' +
+                                    '<br><span style="font-size: 0.85em;">Incoming: ' + item.incomingRating + '/10' + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
+                                    ' | Existing: ' + item.existingRating + '/10' + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Reason: ' + reasonText +
+                                    ' | Target: ' + item.newItemId.substring(0, 8) + '...' +
+                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                confDiv.appendChild(div);
                             });
                         }
 
@@ -1099,25 +1139,31 @@
                 var recoverableSection = document.getElementById('recoverableList');
                 var staleSection = document.getElementById('staleList');
                 var healedSection = document.getElementById('healedList');
+                var conflictSection = document.getElementById('conflictList');
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = 'Healing database...';
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
                 recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
                 healedSection.style.display = 'none';
+                conflictSection.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealRatings'), {
                     method: 'POST',
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
-                        resultDiv.innerHTML = '<strong>Heal Complete</strong><br>' +
+                        var html = '<strong>Heal Complete</strong><br>' +
                             'OK: ' + result.ok + '<br>' +
                             'Healed: ' + result.healed + '<br>' +
                             'Updated: ' + result.updated + '<br>' +
-                            'Stale: ' + result.stale + '<br>' +
-                            result.message;
-                        resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                            'Stale: ' + result.stale + '<br>';
+                        if (result.conflicts && result.conflicts > 0) {
+                            html += 'Conflicts: ' + result.conflicts + '<br>';
+                        }
+                        html += result.message;
+                        resultDiv.innerHTML = html;
+                        resultDiv.style.backgroundColor = result.conflicts > 0 ? 'rgba(255, 152, 0, 0.2)' : 'rgba(76, 175, 80, 0.2)';
 
                         if (result.healedItems && result.healedItems.length > 0) {
                             healedSection.style.display = 'block';
@@ -1126,10 +1172,30 @@
                             result.healedItems.forEach(function (item) {
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
+                                var noteInfo = item.note ? ' &mdash; <em>' + item.note + '</em>' : '';
                                 div.innerHTML = '<strong style="color: #4CAF50;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10)</span>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10' + noteInfo + ')</span>' +
                                     '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Re-linked: ' + item.oldItemId.substring(0, 8) + '... → ' + item.newItemId.substring(0, 8) + '...</span>';
                                 healedDiv.appendChild(div);
+                            });
+                        }
+
+                        if (result.conflictItems && result.conflictItems.length > 0) {
+                            conflictSection.style.display = 'block';
+                            var confDiv = document.getElementById('conflictItems');
+                            confDiv.innerHTML = '';
+                            result.conflictItems.forEach(function (item) {
+                                var div = document.createElement('div');
+                                div.className = 'item-entry';
+                                div.style.borderLeft = '3px solid #FF9800';
+                                var reasonText = item.conflictReason || 'unknown';
+                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || 'Unknown') + '</strong>' +
+                                    '<br><span style="font-size: 0.85em;">Incoming: ' + item.incomingRating + '/10' + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
+                                    ' | Existing: ' + item.existingRating + '/10' + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Reason: ' + reasonText +
+                                    ' | Target: ' + item.newItemId.substring(0, 8) + '...' +
+                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                confDiv.appendChild(div);
                             });
                         }
 

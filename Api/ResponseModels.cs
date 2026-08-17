@@ -30,11 +30,13 @@ public record WatchedItemInfo(string itemId, string? name, string? type, string?
 
 public record UnratedWatchedItemsResponse(bool success, IReadOnlyList<WatchedItemInfo> items);
 
-public record RecoverableItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating, Dictionary<string, string> providerIds);
+public record RecoverableItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating, string? note, DateTime timestamp, Dictionary<string, string> providerIds, string matchType, Dictionary<string, string> matchedProviderIds);
 
 public record StaleItemDto(Guid itemId, Guid userId, int rating, string? note, Dictionary<string, string> providerIds, DateTime timestamp);
 
-public record HealedItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating);
+public record HealedItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int rating, string? note, DateTime timestamp, Dictionary<string, string> providerIds);
+
+public record ConflictItemDto(Guid oldItemId, Guid newItemId, string? itemName, Guid userId, int incomingRating, int existingRating, string? incomingNote, string? existingNote, DateTime incomingTimestamp, DateTime existingTimestamp, string? conflictReason, Dictionary<string, string> providerIds);
 
 public record BackupInfoDto(string fileName, long fileSize, DateTime lastModified, DateTime? parsedTimestamp = null);
 
@@ -47,9 +49,11 @@ public record HealthReportResponse(
     int healed,
     int updated,
     int stale,
+    int conflicts,
     IReadOnlyList<RecoverableItemDto> recoverableItems,
     IReadOnlyList<StaleItemDto> staleItems,
-    IReadOnlyList<HealedItemDto> healedItems
+    IReadOnlyList<HealedItemDto> healedItems,
+    IReadOnlyList<ConflictItemDto> conflictItems
 );
 
 public record HealResponse(
@@ -59,12 +63,16 @@ public record HealResponse(
     int healed,
     int updated,
     int stale,
+    int conflicts,
     IReadOnlyList<HealedItemDto> healedItems,
     IReadOnlyList<StaleItemDto> staleItems,
+    IReadOnlyList<ConflictItemDto> conflictItems,
     string? message
 );
 
 public record ClearStaleResponse(bool success, string message, int removed);
+
+public record HealSingleItemResponse(bool success, string? message, string? result, string? conflictReason = null);
 
 public record CreateBackupResponse(bool success, string? message, string? backupPath, int? totalBackups);
 

@@ -28,14 +28,20 @@ BackupService backupService) : ControllerBase
             report.Healed,
             report.Updated,
             report.Stale,
+            report.Conflicts,
             report.RecoverableItems.Select(r => new RecoverableItemDto(
-                r.OldItemId, r.NewItemId, r.ItemName, r.UserId, r.Rating, r.ProviderIds
+                r.OldItemId, r.NewItemId, r.ItemName, r.UserId, r.Rating, r.Note, r.Timestamp, r.ProviderIds, r.MatchType, r.MatchedProviderIds
             )).ToList(),
             report.StaleItems.Select(s => new StaleItemDto(
                 s.ItemId, s.UserId, s.Rating, s.Note, s.ProviderIds, s.Timestamp
             )).ToList(),
             report.HealedItems.Select(h => new HealedItemDto(
-                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating
+                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating, h.Note, h.Timestamp, h.ProviderIds
+            )).ToList(),
+            report.ConflictItems.Select(c => new ConflictItemDto(
+                c.OldItemId, c.NewItemId, c.ItemName, c.UserId,
+                c.IncomingRating, c.ExistingRating, c.IncomingNote, c.ExistingNote,
+                c.IncomingTimestamp, c.ExistingTimestamp, c.ConflictReason, c.ProviderIds
             )).ToList()
         ));
     }
@@ -52,14 +58,38 @@ BackupService backupService) : ControllerBase
             report.Healed,
             report.Updated,
             report.Stale,
+            report.Conflicts,
             report.HealedItems.Select(h => new HealedItemDto(
-                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating
+                h.OldItemId, h.NewItemId, h.ItemName, h.UserId, h.Rating, h.Note, h.Timestamp, h.ProviderIds
             )).ToList(),
             report.StaleItems.Select(s => new StaleItemDto(
                 s.ItemId, s.UserId, s.Rating, s.Note, s.ProviderIds, s.Timestamp
             )).ToList(),
-            $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Stale} stale entries remain."
+            report.ConflictItems.Select(c => new ConflictItemDto(
+                c.OldItemId, c.NewItemId, c.ItemName, c.UserId,
+                c.IncomingRating, c.ExistingRating, c.IncomingNote, c.ExistingNote,
+                c.IncomingTimestamp, c.ExistingTimestamp, c.ConflictReason, c.ProviderIds
+            )).ToList(),
+            $"Healed {report.Healed} ratings, updated {report.Updated} provider IDs. {report.Conflicts} conflicts, {report.Stale} stale entries remain."
         ));
+    }
+
+    [HttpPost("HealSingleItem")]
+    [Produces(MediaTypeNames.Application.Json)]
+    public ActionResult HealSingleItem([FromQuery] Guid oldItemId, [FromQuery] Guid newItemId, [FromQuery] Guid userId)
+    {
+        if (oldItemId == Guid.Empty || newItemId == Guid.Empty || userId == Guid.Empty)
+        {
+            return BadRequest(new ApiResponse(false, "oldItemId, newItemId, and userId are required"));
+        }
+
+        var result = healthCheckService.HealSingleItem(oldItemId, newItemId, userId);
+        return result switch
+        {
+            HealConflictResult.Replaced => Ok(new HealSingleItemResponse(true, "Rating healed successfully", "replaced")),
+            HealConflictResult.ConflictSkipped => Ok(new HealSingleItemResponse(true, "Heal skipped: conflict with existing rating", "conflict", "existing-rating-kept")),
+            _ => Ok(new HealSingleItemResponse(false, "Rating not found or could not be healed", "not-found"))
+        };
     }
 
     [HttpDelete("ClearStale")]

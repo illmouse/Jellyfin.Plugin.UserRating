@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.13.4.5 (beta)
+
+### Fixes
+
+- **Healing no longer deletes ratings on conflict** — When healing re-links an orphaned rating to an item that already has a rating, the incoming rating is now preserved at its old key instead of being permanently deleted. Conflicts are reported with full details (incoming vs existing rating, notes, reason) so users can make informed decisions.
+- **Provider ID matching prioritizes specific IDs over collection IDs** — IMDB, TMDB, and TVDB matches are now preferred over TmdbCollection matches, preventing different movies in the same franchise (e.g., Glass Onion vs Knives Out) from incorrectly resolving to the same library item.
+
+### New Features
+
+- **Conflict reporting in health check** — Healing results now show a Conflicts section with details about each conflict: incoming and existing ratings, notes, timestamps, and the reason the conflict was skipped.
+- **HealSingleItem API endpoint** — New `POST api/UserRatings/HealSingleItem` endpoint for healing individual items, enabling per-item interactive healing from the UI.
+- **Collection-only match warnings** — Recoverable items matched only by TmdbCollection (not by specific provider IDs) now display a warning in the health check UI, prompting users to verify the match before healing.
+- **Richer recoverable and healed item info** — Health check and heal results now include notes, timestamps, and matched provider IDs for better decision-making.
+
 ## v1.13.4.4 (beta)
 
 ### New Features

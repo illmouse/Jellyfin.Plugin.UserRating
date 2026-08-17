@@ -42,8 +42,8 @@ public string Category => "User Ratings";
         progress.Report(100);
 
         logger.LogInformation(
-            "Ratings health check complete: {Ok} ok, {Healed} healed, {Stale} stale",
-            report.Ok, report.Healed, report.Stale);
+            "Ratings health check complete: {Ok} ok, {Healed} healed, {Conflicts} conflicts, {Stale} stale",
+            report.Ok, report.Healed, report.Conflicts, report.Stale);
     }
     catch (Exception ex)
     {
