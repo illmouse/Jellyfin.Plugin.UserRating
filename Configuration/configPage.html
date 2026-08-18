@@ -747,6 +747,8 @@
                             saveBtn.textContent = 'Save Settings';
                             saveBtn.style.background = '';
                         }, 2000);
+
+                        window.dispatchEvent(new CustomEvent('userratings-config-changed'));
                     });
                 });
 
@@ -764,6 +766,7 @@
                         tokenField.value = '';
                         tokenField.placeholder = 'Enter your Plex token';
                         showStatus('plexStatus', 'Plex token cleared.', true);
+                        window.dispatchEvent(new CustomEvent('userratings-config-changed'));
                     });
                 });
             });

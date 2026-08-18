@@ -951,8 +951,11 @@
     function ensureCardConfig() {
         if (_cardConfig) return Promise.resolve(_cardConfig);
         if (!_cardConfigPromise) {
-            _cardConfigPromise = Promise.resolve().then(function() {
-                return ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
+            _cardConfigPromise = fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
+                headers: { 'X-Emby-Token': ApiClient.accessToken() }
+            }).then(function(resp) {
+                if (!resp.ok) throw new Error('DisplayConfig request failed: ' + resp.status);
+                return resp.json();
             }).then(function(cfg) {
                 _cardConfig = {
                     showAvg: cfg.ShowAverageRatingBadge !== false,
@@ -982,6 +985,20 @@
     function getCardConfig() {
         return _cardConfig || { showAvg: true, showPersonal: true, avgPos: 'top-left', personalPos: 'top-left' };
     }
+
+    function invalidateCardConfig() {
+        _cardConfig = null;
+        _cardConfigPromise = null;
+    }
+
+    window.addEventListener('userratings-config-changed', function() {
+        invalidateCardConfig();
+        ensureCardConfig().then(function() {
+            return ensureUserRatings();
+        }).then(function() {
+            decorateAllCards();
+        });
+    });
 
     function ensureUserRatings() {
         if (!_fetchPromise) {
@@ -1120,8 +1137,18 @@ function updateStarDisplay(container, rating) {
 
     async function syncFavorite(itemId, rating) {
         try {
-            const config = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
-            const threshold = config.FavoriteThreshold ?? 9;
+            let threshold = 9;
+            try {
+                const resp = await fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                });
+                if (resp.ok) {
+                    const cfg = await resp.json();
+                    threshold = cfg.FavoriteThreshold ?? 9;
+                }
+            } catch (e) {
+                // Fall back to default threshold
+            }
             if (threshold < 1) return;
             const userId = ApiClient.getCurrentUserId();
             const isFavorite = rating >= threshold;
@@ -2242,8 +2269,13 @@ function updateStarDisplay(container, rating) {
             // Get config for page size (items per page in Rated Movies/Shows + Watched sections)
             let perPage = 24;
             try {
-                const pluginConfig = await ApiClient.getPluginConfiguration('b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e');
-                perPage = pluginConfig.RecentlyRatedItemsCount || 10;
+                const configResp = await fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                });
+                if (configResp.ok) {
+                    const pluginConfig = await configResp.json();
+                    perPage = pluginConfig.RecentlyRatedItemsCount || 10;
+                }
             } catch (error) {}
 
             function getItemCardImage(itemId, seriesId, itemType) {

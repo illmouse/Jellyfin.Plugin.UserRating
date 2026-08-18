@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.7 (beta)
+
+### Fixes
+
+- **Card overlay settings now apply to all users** — Card overlay settings (badge visibility, position, favorite threshold, page size) were previously fetched via an admin-only API endpoint. Non-admin users silently received hardcoded defaults instead of the configured values. A new public `DisplayConfig` endpoint now serves display settings to any authenticated user.
+
 ## v1.13.4.6 (beta)
 
 ### Security
