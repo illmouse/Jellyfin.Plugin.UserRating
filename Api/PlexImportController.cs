@@ -54,22 +54,50 @@ public class PlexImportController(
             return BadRequest(new ApiResponse(false, "Plex server URL and token must be configured in plugin settings"));
         }
 
-        var operationId = progressTracker.StartOperation();
+        var cts = new CancellationTokenSource();
+        var operationId = progressTracker.StartOperation(cts);
 
         _ = Task.Run(async () =>
         {
             try
             {
-                await importService.ImportFromPlexAsync(effectiveUserId, operationId, CancellationToken.None, conflictMode, importRatings, importWatchHistory).ConfigureAwait(false);
+                await importService.ImportFromPlexAsync(effectiveUserId, operationId, cts.Token, conflictMode, importRatings, importWatchHistory).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                progressTracker.FailOperation(operationId, "Import cancelled");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unhandled error in Plex import task");
                 progressTracker.FailOperation(operationId, $"Unhandled error: {ex.Message}");
             }
+            finally
+            {
+                cts.Dispose();
+            }
         });
 
         return Ok(new StartImportResponse(true, operationId));
+    }
+
+    [HttpPost("PlexImport/Cancel")]
+    [Produces("application/json")]
+    [Authorize(Policy = Policies.RequiresElevation)]
+    public ActionResult CancelImport([FromQuery] string operationId)
+    {
+        if (string.IsNullOrWhiteSpace(operationId))
+        {
+            return BadRequest(new ApiResponse(false, "operationId is required"));
+        }
+
+        var cancelled = progressTracker.CancelOperation(operationId);
+        if (!cancelled)
+        {
+            return Ok(new ApiResponse(false, "Operation not found or already completed"));
+        }
+
+        return Ok(new ApiResponse(true, "Import cancelled"));
     }
 
     [HttpGet("ImportProgress/{operationId}")]
@@ -106,6 +134,8 @@ public class PlexImportController(
                 progressTracker.RemoveOperation(operationId);
                 break;
             }
+
+            progressTracker.EvictStaleOperations(TimeSpan.FromHours(1));
 
             await Task.Delay(500, cancellationToken).ConfigureAwait(false);
         }

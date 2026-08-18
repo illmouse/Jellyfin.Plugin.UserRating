@@ -9,6 +9,13 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.10",
+        "changelog": "Security: Cancel running Plex imports. Fix: backup restore validates JSON before overwriting live data. Fix: ProgressTracker memory leak (TTL eviction). Fix: ProgressTracker race condition (atomic snapshots). Fix: backup upload size limit (10 MB).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.10/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-08-18T00:00:00Z"
+      },
         "version": "1.13.4.0",
         "changelog": "Fixed: RATE button missing on detail pages for items without a public/IMDb star rating (injection waited for star rating container that never appeared).",
         "targetAbi": "10.11.0.0",

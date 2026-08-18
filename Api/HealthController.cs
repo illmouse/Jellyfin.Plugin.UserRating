@@ -176,6 +176,11 @@ public class HealthController(
             return BadRequest(new ApiResponse(false, "No file uploaded."));
         }
 
+        if (file.Length > BackupService.MaxUploadSizeBytes)
+        {
+            return BadRequest(new ApiResponse(false, $"File too large. Maximum size is {BackupService.MaxUploadSizeBytes / (1024 * 1024)} MB."));
+        }
+
         if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
             return BadRequest(new ApiResponse(false, "Only JSON files are accepted."));
