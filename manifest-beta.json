@@ -9,6 +9,13 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.10",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.10/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "e0a706eef47d1c90314ff67e69b38d98",
+        "timestamp": "2026-08-18T09:48:53Z"
+      },
+      {
         "version": "1.13.4.9",
         "changelog": "Fixed: Boot-time 401 errors — waitForApiClient() now waits for authenticated user session, not just ApiClient existence. Previously, API calls fired with stale stored tokens before sign-in completed.",
         "targetAbi": "10.11.0.0",
