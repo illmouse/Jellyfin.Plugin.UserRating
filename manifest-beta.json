@@ -13,8 +13,8 @@
         "changelog": "Fixed: Boot-time crash where ApiClient was undefined for non-admin users. waitForApiClient() helper polls until Jellyfin's SPA initializes ApiClient before making API calls.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.8/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-08-18T18:00:00Z"
+        "checksum": "0cf1a029cbbd7cea44d2271efb724abe",
+        "timestamp": "2026-08-18T09:16:17Z"
       },
       {
         "version": "1.13.4.7",
