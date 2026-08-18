@@ -81,3 +81,12 @@ Only after user confirmation:
 2. `git tag vX.Y.Z.W`
 3. `git push` (pushes commits)
 4. `git push origin vX.Y.Z.W` (pushes the tag explicitly — `--follow-tags` does not reliably push lightweight tags)
+
+## 7. Handle build failures
+
+If the CI/CD build fails after pushing:
+- **Do NOT bump the version number.** The version/tag was never successfully deployed.
+- Fix the build errors in the same commit (amend or new commit).
+- Force-push the fixed commit: `git push --force`
+- Delete and recreate the same tag pointing to the fixed commit: `git tag -d vX.Y.Z.W && git push origin :refs/tags/vX.Y.Z.W && git tag vX.Y.Z.W && git push origin vX.Y.Z.W`
+- Only bump the version if the build completed successfully and you need a new release.

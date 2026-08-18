@@ -18,7 +18,7 @@ public static class AuthHelper
     public static async Task<string> GetAuthenticatedUserNameAsync(this HttpContext httpContext, IAuthorizationContext authContext)
     {
         var authInfo = await authContext.GetAuthorizationInfo(httpContext.Request).ConfigureAwait(false);
-        return authInfo.User?.Name ?? "Unknown";
+        return authInfo.User?.Username ?? "Unknown";
     }
 
     public static async Task<bool> IsAdminAsync(this HttpContext httpContext, IAuthorizationContext authContext)
