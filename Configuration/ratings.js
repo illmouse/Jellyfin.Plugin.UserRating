@@ -931,7 +931,7 @@
         return new Promise(function(resolve, reject) {
             var start = Date.now();
             (function check() {
-                if (typeof ApiClient !== 'undefined' && ApiClient.accessToken) {
+                if (typeof ApiClient !== 'undefined' && ApiClient.accessToken && ApiClient.getCurrentUserId()) {
                     resolve(ApiClient);
                 } else if (Date.now() - start > (timeout || 10000)) {
                     reject(new Error('[UserRatings] ApiClient not available after ' + (timeout || 10000) + 'ms'));

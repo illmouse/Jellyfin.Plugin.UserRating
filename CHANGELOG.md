@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.9 (beta)
+
+### Fixes
+
+- **Boot-time 401 errors fixed** — `waitForApiClient()` now waits for the user session to be fully authenticated (checks `ApiClient.getCurrentUserId()` returns a truthy value), not just for the `ApiClient` object to exist. Previously, API calls were made with a stale stored token before sign-in completed, causing 401 Unauthorized responses for DisplayConfig and user ratings endpoints.
+
 ## v1.13.4.8 (beta)
 
 ### Fixes
