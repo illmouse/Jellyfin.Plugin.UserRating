@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.13.4.10 (beta)
+
+### Security
+
+- **Plex import cancellation** — Long-running Plex imports can now be cancelled via `POST api/UserRatings/PlexImport/Cancel?operationId=xxx` (admin-only). Previously, imports were fire-and-forget with `CancellationToken.None` — no way to stop them. `ProgressTracker` now stores a `CancellationTokenSource` per operation and exposes `CancelOperation()`. Cancelled imports cleanly report status and dispose resources.
+
+### Fixes
+
+- **Backup restore validates JSON before overwriting** — `RestoreBackup()` now calls `ValidateBackup()` before copying the backup file over live data. If the backup contains invalid JSON or has no parseable rating entries, the restore is rejected. Previously, a corrupted backup would brick the database (`_loadFailed` flag prevents saving, empty in-memory state).
+- **Backup upload size limit** — `UploadBackup` now rejects files over 10 MB. Previously, there was no size limit beyond the platform default.
+- **ProgressTracker memory leak** — Completed/failed/cancelled operations were only removed when an SSE client read them. Operations now have a `CreatedAt` timestamp, and `EvictStaleOperations()` removes terminal entries older than 1 hour. Called on every `StartOperation()` and in the SSE loop.
+- **ProgressTracker race condition** — `ImportProgress` is now an immutable `record` with `init` properties. All mutations use atomic `with` expressions via `Func<ImportProgress, ImportProgress>`, eliminating torn reads when SSE clients poll progress concurrently.
+
 ## v1.13.4.9 (beta)
 
 ### Fixes

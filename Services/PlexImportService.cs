@@ -69,7 +69,7 @@ IUserDataManager userDataManager)
             var skippedCount = 0;
             var watchedCount = 0;
 
-            progressTracker.UpdateProgress(operationId, p => p.Status = "fetching");
+            progressTracker.UpdateProgress(operationId, p => p with { Status = "fetching" });
 
             var libraries = await GetPlexLibrariesAsync(plexUrl, plexToken, cancellationToken).ConfigureAwait(false);
 
@@ -99,10 +99,7 @@ IUserDataManager userDataManager)
                 var totalRatedItems = ratedPlexItems.Count;
 
                 progressTracker.UpdateProgress(operationId, p =>
-                {
-                    p.TotalItems = totalRatedItems;
-                    p.Status = "matching";
-                });
+                    p with { TotalItems = totalRatedItems, Status = "matching" });
 
                 logger.LogInformation("Found {Count} rated items in Plex to import", totalRatedItems);
 
@@ -110,7 +107,7 @@ IUserDataManager userDataManager)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        progressTracker.UpdateProgress(operationId, p => p.Status = "cancelled");
+                        progressTracker.UpdateProgress(operationId, p => p with { Status = "cancelled" });
                         return new ImportResult
                         {
                             Success = false,
@@ -125,11 +122,12 @@ IUserDataManager userDataManager)
 
                     var plexItem = ratedPlexItems[i];
                     progressTracker.UpdateProgress(operationId, p =>
-                    {
-                        p.ProcessedItems = i + 1;
-                        p.CurrentItem = plexItem.Title;
-                        p.PercentComplete = (double)(i + 1) / (totalRatedItems + (syncWatchHistory ? 1 : 0)) * 80;
-                    });
+                        p with
+                        {
+                            ProcessedItems = i + 1,
+                            CurrentItem = plexItem.Title,
+                            PercentComplete = (double)(i + 1) / (totalRatedItems + (syncWatchHistory ? 1 : 0)) * 80
+                        });
 
                     var jellyfinItem = ResolvePlexItemToJellyfin(plexItem);
 
@@ -165,11 +163,7 @@ IUserDataManager userDataManager)
                 }).ToList();
 
                 progressTracker.UpdateProgress(operationId, p =>
-                {
-                    p.Status = "saving";
-                    p.PercentComplete = 95;
-                    p.CurrentItem = "Saving ratings...";
-                });
+                    p with { Status = "saving", PercentComplete = 95, CurrentItem = "Saving ratings..." });
 
                 var (imported, skipped, _) = repository.BulkSaveRatings(ratings, effectiveConflictMode);
 
@@ -184,12 +178,7 @@ IUserDataManager userDataManager)
                 var totalWatchedItems = watchedPlexItems.Count;
 
                 progressTracker.UpdateProgress(operationId, p =>
-                {
-                    p.Status = "watch_history";
-                    p.TotalItems = totalWatchedItems;
-                    p.ProcessedItems = 0;
-                    p.PercentComplete = 0;
-                });
+                    p with { Status = "watch_history", TotalItems = totalWatchedItems, ProcessedItems = 0, PercentComplete = 0 });
 
                 logger.LogInformation("Syncing watch history for {Count} items from Plex", totalWatchedItems);
 
@@ -197,7 +186,7 @@ IUserDataManager userDataManager)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        progressTracker.UpdateProgress(operationId, p => p.Status = "cancelled");
+                        progressTracker.UpdateProgress(operationId, p => p with { Status = "cancelled" });
                         return new ImportResult
                         {
                             Success = false,
@@ -212,11 +201,12 @@ IUserDataManager userDataManager)
 
                     var plexItem = watchedPlexItems[i];
                     progressTracker.UpdateProgress(operationId, p =>
-                    {
-                        p.ProcessedItems = i + 1;
-                        p.CurrentItem = plexItem.Title;
-                        p.PercentComplete = (double)(i + 1) / totalWatchedItems * 100;
-                    });
+                        p with
+                        {
+                            ProcessedItems = i + 1,
+                            CurrentItem = plexItem.Title,
+                            PercentComplete = (double)(i + 1) / totalWatchedItems * 100
+                        });
 
                     var jellyfinItemId = ResolvePlexItemToJellyfin(plexItem);
                     if (jellyfinItemId == null)

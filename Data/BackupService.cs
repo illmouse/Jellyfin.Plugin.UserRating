@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Models;
 using MediaBrowser.Common.Configuration;
@@ -10,10 +11,11 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.UserRatings.Data;
 
 public class BackupService(
-RatingRepository repository,
-IApplicationPaths appPaths,
-ILogger<BackupService> logger)
+    RatingRepository repository,
+    IApplicationPaths appPaths,
+    ILogger<BackupService> logger)
 {
+    public const long MaxUploadSizeBytes = 10 * 1024 * 1024;
 
     private string GetDefaultBackupPath()
     {
@@ -133,12 +135,97 @@ ILogger<BackupService> logger)
         return fullPath;
     }
 
+    public (bool valid, string message, int entryCount) ValidateBackup(string fileName)
+    {
+        var fullPath = GetBackupFilePath(fileName);
+        if (fullPath == null)
+        {
+            return (false, $"Backup file '{fileName}' not found.", 0);
+        }
+
+        try
+        {
+            var json = File.ReadAllText(fullPath);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return (false, "Backup file is empty.", 0);
+            }
+
+            Dictionary<string, JsonElement>? raw;
+            try
+            {
+                raw = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+            }
+            catch (JsonException ex)
+            {
+                return (false, $"Backup file contains invalid JSON: {ex.Message}", 0);
+            }
+
+            if (raw == null || raw.Count == 0)
+            {
+                return (false, "Backup file contains no data.", 0);
+            }
+
+            var ratingEntries = 0;
+            var skipped = 0;
+            foreach (var kvp in raw)
+            {
+                if (kvp.Key == "_metadata")
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var rating = kvp.Value.Deserialize<UserRating>();
+                    if (rating == null)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    if (rating.ItemId == Guid.Empty || rating.UserId == Guid.Empty)
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    ratingEntries++;
+                }
+                catch (JsonException)
+                {
+                    skipped++;
+                }
+            }
+
+            if (ratingEntries == 0 && skipped > 0)
+            {
+                return (false, $"Backup file contains {skipped} entries but none could be parsed as valid ratings.", 0);
+            }
+
+            logger.LogInformation("Backup validation passed: {Valid} rating entries, {Skipped} skipped", ratingEntries, skipped);
+            return (true, $"Backup contains {ratingEntries} rating entries.", ratingEntries);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to validate backup {FileName}", fileName);
+            return (false, $"Validation failed: {ex.Message}", 0);
+        }
+    }
+
     public (bool success, string message) RestoreBackup(string fileName)
     {
         var fullPath = GetBackupFilePath(fileName);
         if (fullPath == null)
         {
             return (false, $"Backup file '{fileName}' not found.");
+        }
+
+        var (valid, validationMessage, _) = ValidateBackup(fileName);
+        if (!valid)
+        {
+            return (false, $"Backup validation failed: {validationMessage}");
         }
 
         try

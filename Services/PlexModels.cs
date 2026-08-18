@@ -39,20 +39,21 @@ public record PlexGuid
     };
 }
 
-public class ImportProgress
+public record ImportProgress
 {
-    public string OperationId { get; set; } = string.Empty;
-    public string Status { get; set; } = "pending";
-    public double PercentComplete { get; set; }
-    public int TotalItems { get; set; }
-    public int ProcessedItems { get; set; }
-    public int ImportedItems { get; set; }
-    public int SkippedItems { get; set; }
-    public int WatchedItems { get; set; }
-    public int UnmatchedItems { get; set; }
-    public string CurrentItem { get; set; } = string.Empty;
-    public string ErrorMessage { get; set; } = string.Empty;
-    public List<UnmatchedItem> Unmatched { get; set; } = new();
+    public string OperationId { get; init; } = string.Empty;
+    public string Status { get; init; } = "pending";
+    public double PercentComplete { get; init; }
+    public int TotalItems { get; init; }
+    public int ProcessedItems { get; init; }
+    public int ImportedItems { get; init; }
+    public int SkippedItems { get; init; }
+    public int WatchedItems { get; init; }
+    public int UnmatchedItems { get; init; }
+    public string CurrentItem { get; init; } = string.Empty;
+    public string ErrorMessage { get; init; } = string.Empty;
+    public List<UnmatchedItem> Unmatched { get; init; } = [];
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }
 
 public record ImportResult
