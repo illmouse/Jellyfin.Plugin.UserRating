@@ -927,10 +927,26 @@
     let _strings = {};
     let _stringsPromise = null;
 
+    function waitForApiClient(timeout, interval) {
+        return new Promise(function(resolve, reject) {
+            var start = Date.now();
+            (function check() {
+                if (typeof ApiClient !== 'undefined' && ApiClient.accessToken) {
+                    resolve(ApiClient);
+                } else if (Date.now() - start > (timeout || 10000)) {
+                    reject(new Error('[UserRatings] ApiClient not available after ' + (timeout || 10000) + 'ms'));
+                } else {
+                    setTimeout(check, interval || 50);
+                }
+            })();
+        });
+    }
+
     async function loadStrings() {
         if (_stringsPromise) return _stringsPromise;
         _stringsPromise = (async function() {
             try {
+                await waitForApiClient();
                 const resp = await fetch(ApiClient.getUrl('api/UserRatings/Strings'), {
                     headers: { 'X-Emby-Token': ApiClient.accessToken() }
                 });
@@ -951,8 +967,10 @@
     function ensureCardConfig() {
         if (_cardConfig) return Promise.resolve(_cardConfig);
         if (!_cardConfigPromise) {
-            _cardConfigPromise = fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
-                headers: { 'X-Emby-Token': ApiClient.accessToken() }
+            _cardConfigPromise = waitForApiClient().then(function() {
+                return fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
+                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                });
             }).then(function(resp) {
                 if (!resp.ok) throw new Error('DisplayConfig request failed: ' + resp.status);
                 return resp.json();
@@ -1164,6 +1182,7 @@ function updateStarDisplay(container, rating) {
 
     async function fetchUserRatings() {
         try {
+            await waitForApiClient();
             const userId = ApiClient.getCurrentUserId();
             const resp = await fetch(ApiClient.getUrl(`api/UserRatings/User/${userId}`), {
                 headers: { 'X-Emby-Token': ApiClient.accessToken() }

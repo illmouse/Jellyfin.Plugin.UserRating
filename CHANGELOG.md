@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.8 (beta)
+
+### Fixes
+
+- **Boot-time crash fixed for all users** — The v1.13.4.7 fix introduced `ApiClient.getUrl()` calls that executed synchronously at script initialization time, before Jellyfin's SPA bundle defined `ApiClient`. This caused `ReferenceError: ApiClient is not defined` that prevented overlays from appearing for any user. A new `waitForApiClient()` helper polls until `ApiClient` is available before making any API calls.
+
 ## v1.13.4.7 (beta)
 
 ### Fixes
