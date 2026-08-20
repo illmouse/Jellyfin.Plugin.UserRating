@@ -641,9 +641,25 @@
 
             function downloadBackup(fileName) {
                 var url = ApiClient.getUrl('api/UserRatings/DownloadBackup?fileName=' + encodeURIComponent(fileName));
-                var token = ApiClient.accessToken();
-                var separator = url.indexOf('?') >= 0 ? '&' : '?';
-                window.open(url + separator + 'X-Emby-Token=' + encodeURIComponent(token), '_blank');
+                fetch(url, { headers: { 'X-Emby-Token': ApiClient.accessToken() } })
+                    .then(function (r) {
+                        if (!r.ok) throw new Error('Download failed: ' + r.status);
+                        var disposition = r.headers.get('Content-Disposition');
+                        var downloadName = disposition ? disposition.split('filename=')[1]?.replace(/"/g, '') : fileName;
+                        return r.blob().then(function (blob) { return { blob: blob, name: downloadName }; });
+                    })
+                    .then(function (result) {
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(result.blob);
+                        a.download = result.name || fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);
+                    })
+                    .catch(function (err) {
+                        alert('Error downloading backup: ' + err.message);
+                    });
             }
 
             function restoreBackup(fileName) {

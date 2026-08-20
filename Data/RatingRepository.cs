@@ -547,13 +547,30 @@ public class RatingRepository
             {
                 var key = GetKey(rating.ItemId, rating.UserId);
 
+                var existingByKey = _ratings.TryGetValue(key, out var byKey) ? byKey : null;
+                var existingByProvider = existingByKey == null ? FindByProviderIdsInternal(rating.UserId, rating.ProviderIds) : null;
+
                 switch (conflictMode)
                 {
                     case "skip":
-                        if (_ratings.ContainsKey(key))
+                        if (existingByKey != null)
                         {
                             skipped++;
                             continue;
+                        }
+                        if (existingByProvider != null)
+                        {
+                            var rekeyed = existingByProvider with { ItemId = rating.ItemId, ProviderIds = rating.ProviderIds };
+                            var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                            UnindexProviderIds(existingByProvider);
+                            IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                            _ratings.Remove(oldKey);
+                            _ratings[key] = rekeyed;
+                            IndexProviderIds(key, rekeyed);
+                            IndexAdd(rekeyed.ItemId, rekeyed.Rating);
+                            _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (skip mode, provider match)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
+                            imported++;
+                            break;
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
@@ -562,11 +579,20 @@ public class RatingRepository
                         break;
 
                     case "overwrite":
-                        if (_ratings.TryGetValue(key, out var existingOv))
+                        if (existingByKey != null)
                         {
-                            UnindexProviderIds(existingOv);
-                            IndexRemove(existingOv.ItemId, existingOv.Rating);
+                            UnindexProviderIds(existingByKey);
+                            IndexRemove(existingByKey.ItemId, existingByKey.Rating);
                             overwritten++;
+                        }
+                        else if (existingByProvider != null)
+                        {
+                            var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                            UnindexProviderIds(existingByProvider);
+                            IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                            _ratings.Remove(oldKey);
+                            overwritten++;
+                            _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (overwrite mode, provider match)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
@@ -575,12 +601,12 @@ public class RatingRepository
                         break;
 
                     case "keepHigher":
-                        if (_ratings.TryGetValue(key, out var existing))
+                        if (existingByKey != null)
                         {
-                            if (rating.Rating > existing.Rating)
+                            if (rating.Rating > existingByKey.Rating)
                             {
-                                UnindexProviderIds(existing);
-                                IndexRemove(existing.ItemId, existing.Rating);
+                                UnindexProviderIds(existingByKey);
+                                IndexRemove(existingByKey.ItemId, existingByKey.Rating);
                                 _ratings[key] = rating;
                                 IndexProviderIds(key, rating);
                                 IndexAdd(rating.ItemId, rating.Rating);
@@ -589,6 +615,35 @@ public class RatingRepository
                             }
                             else
                             {
+                                skipped++;
+                            }
+                        }
+                        else if (existingByProvider != null)
+                        {
+                            if (rating.Rating > existingByProvider.Rating)
+                            {
+                                var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                                UnindexProviderIds(existingByProvider);
+                                IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                                _ratings.Remove(oldKey);
+                                _ratings[key] = rating;
+                                IndexProviderIds(key, rating);
+                                IndexAdd(rating.ItemId, rating.Rating);
+                                overwritten++;
+                                imported++;
+                                _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (keepHigher mode, provider match)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
+                            }
+                            else
+                            {
+                                var rekeyed = existingByProvider with { ItemId = rating.ItemId, ProviderIds = rating.ProviderIds };
+                                var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                                UnindexProviderIds(existingByProvider);
+                                IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                                _ratings.Remove(oldKey);
+                                _ratings[key] = rekeyed;
+                                IndexProviderIds(key, rekeyed);
+                                IndexAdd(rekeyed.ItemId, rekeyed.Rating);
+                                _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (keepHigher mode, existing rating kept)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
                                 skipped++;
                             }
                         }
@@ -602,10 +657,24 @@ public class RatingRepository
                         break;
 
                     default:
-                        if (_ratings.ContainsKey(key))
+                        if (existingByKey != null)
                         {
                             skipped++;
                             continue;
+                        }
+                        if (existingByProvider != null)
+                        {
+                            var rekeyed = existingByProvider with { ItemId = rating.ItemId, ProviderIds = rating.ProviderIds };
+                            var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                            UnindexProviderIds(existingByProvider);
+                            IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                            _ratings.Remove(oldKey);
+                            _ratings[key] = rekeyed;
+                            IndexProviderIds(key, rekeyed);
+                            IndexAdd(rekeyed.ItemId, rekeyed.Rating);
+                            _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (default mode, provider match)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
+                            imported++;
+                            break;
                         }
                         _ratings[key] = rating;
                         IndexProviderIds(key, rating);
@@ -621,25 +690,30 @@ public class RatingRepository
         return (imported, skipped, overwritten);
     }
 
+    private UserRating? FindByProviderIdsInternal(Guid userId, Dictionary<string, string>? providerIds)
+    {
+        if (providerIds == null || providerIds.Count == 0) return null;
+
+        foreach (var kvp in providerIds)
+        {
+            if (string.IsNullOrEmpty(kvp.Value)) continue;
+            if (_providerIndex.TryGetValue(NormalizeProviderKey(kvp.Key, kvp.Value, userId), out var key))
+            {
+                if (_ratings.TryGetValue(key, out var rating))
+                {
+                    return rating;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public UserRating? FindByProviderIds(Guid userId, Dictionary<string, string> providerIds)
     {
         lock (_lock)
         {
-            if (providerIds == null || providerIds.Count == 0) return null;
-
-            foreach (var kvp in providerIds)
-            {
-                if (string.IsNullOrEmpty(kvp.Value)) continue;
-                if (_providerIndex.TryGetValue(NormalizeProviderKey(kvp.Key, kvp.Value, userId), out var key))
-                {
-                    if (_ratings.TryGetValue(key, out var rating))
-                    {
-                        return rating;
-                    }
-                }
-            }
-
-            return null;
+            return FindByProviderIdsInternal(userId, providerIds);
         }
     }
 

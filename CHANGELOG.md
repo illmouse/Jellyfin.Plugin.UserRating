@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13.4.11 (beta)
+
+### Fixes
+
+- **Plex import skip-on-conflict now detects ratings under stale ItemIds** — Previously, if an item's Jellyfin ItemId changed (library rescan, metadata refresh), skip mode couldn't find the existing rating by `{itemId}_{userId}` key and silently created a duplicate with a new timestamp. `BulkSaveRatings` now falls back to provider-ID lookup via the existing `_providerIndex`, re-keying the old rating to the current ItemId while preserving all original fields (timestamp, note, source, rating). Applies to all conflict modes (skip, overwrite, keepHigher, default).
+- **Backup download no longer returns 401** — `downloadBackup()` used `window.open()` with the auth token as a query parameter, which Jellyfin's elevated-policy auth doesn't reliably accept. Replaced with `fetch()` + blob download so the token is sent as an `X-Emby-Token` header, matching all other backup API calls.
+
 ## v1.13.4.10 (beta)
 
 ### Security

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.11",
+        "changelog": "Fixed: Plex import skip-on-conflict now detects ratings under stale ItemIds (re-keys to current ItemId instead of creating duplicates). Fixed: Backup download no longer returns 401 (uses fetch with auth header instead of window.open with query param).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.11/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-20T00:00:00Z"
+      },
+      {
         "version": "1.13.4.10",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.10/Jellyfin.Plugin.UserRatings.zip",
