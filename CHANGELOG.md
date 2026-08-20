@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.13.4.15 (beta)
+
+### Fixes
+
+- **"Cannot find module './'" console error on User Ratings tab click** — Jellyfin's `HomeView.getTabController()` has a hardcoded switch with cases only for the native Home (index 0) and Favorites (index 1) tabs. Our injected tab (index 2) has no case, so the dynamic `import('../controllers/')` resolves to `import('./')` and throws. The error was cosmetic (our click handler populated content independently) but polluted the console on every tab click and back-navigation. Added a capture-phase `tabchange` listener on the `emby-tabs` element that calls `stopImmediatePropagation()` when the selected tab index matches ours, preventing `TabbedView.onTabChange` from triggering the broken controller load. The `beforetabchange` event (which toggles `.is-active` on tab panels) is unaffected.
+- **Blank User Ratings tab after back-navigation (missing `.is-active`)** — After back-navigation, `displayRatingsList()` created a fresh `#ratingsTab` without the `.is-active` class. Jellyfin's CSS rule `.pageTabContent:not(.is-active) { display: none !important }` hid the div even though it had full content. The `.is-active` class was added by `mainTabsManager`'s `beforetabchange` listener to the *old* `#ratingsTab` (which `displayRatingsList()` then removed). Now `displayRatingsList()` checks if the tab button is already active when creating the fresh div and adds `.is-active` if so.
+
 ## v1.13.4.14 (beta)
 
 ### Fixes

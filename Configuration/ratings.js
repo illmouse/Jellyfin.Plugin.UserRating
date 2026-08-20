@@ -2288,6 +2288,17 @@ function updateStarDisplay(container, rating) {
         ratingsTabContent.setAttribute('data-index', existingCount);
         indexPage.appendChild(ratingsTabContent);
 
+        // If the User Ratings tab button is already active (e.g., after
+        // back-navigation where beforetabchange fired before displayRatingsList()
+        // replaced #ratingsTab), ensure the fresh div has .is-active so Jellyfin's
+        // CSS (.pageTabContent:not(.is-active) { display: none !important }) doesn't
+        // hide it. On a normal first click the button isn't active yet at this
+        // point, so this is a no-op and beforetabchange adds .is-active normally.
+        const _tabBtn = document.querySelector('[data-ratings-tab="true"]');
+        if (_tabBtn && _tabBtn.classList.contains('emby-tab-button-active')) {
+            ratingsTabContent.classList.add('is-active');
+        }
+
         // Show loading (content population — visibility is managed by Jellyfin's .is-active)
         ratingsTabContent.innerHTML = '<div style="padding: 3em 2em; text-align: center; color: rgba(255,255,255,0.6);">' + t('loadingRatings', 'Loading ratings...') + '</div>';
 
@@ -2951,6 +2962,29 @@ function updateStarDisplay(container, rating) {
 
             // Insert the tab button
             tabsSlider.appendChild(ratingsTab);
+
+            // Prevent Jellyfin's TabbedView from loading a controller for our tab.
+            // HomeView.getTabController() has cases only for index 0 (hometab) and
+            // 1 (favorites). Our tab (data-index=nextIndex) has no case, so the
+            // dynamic import resolves to import('../controllers/') which throws
+            // "Cannot find module './'". The error is cosmetic (our click handler
+            // populates content independently) but pollutes the console.
+            //
+            // mainTabsManager registers its onTabChange listener on the emby-tabs
+            // element (tabsSlider.parentElement) in the BUBBLING phase. A capture-phase
+            // listener on the same element runs first — stopImmediatePropagation
+            // prevents the bubbling-phase listener from calling loadTab(nextIndex).
+            // The beforetabchange event (which toggles .is-active on tab panels) is
+            // separate and still fires normally.
+            const tabsElem = tabsSlider.parentElement;
+            if (tabsElem && !tabsElem._ratingsTabGuard) {
+                tabsElem._ratingsTabGuard = true;
+                tabsElem.addEventListener('tabchange', function(e) {
+                    if (e.detail && parseInt(e.detail.selectedTabIndex, 10) === nextIndex) {
+                        e.stopImmediatePropagation();
+                    }
+                }, true);
+            }
 
             // Create #ratingsTab as a real .tabContent.pageTabContent inside #indexPage
             ensureRatingsTabContent();
