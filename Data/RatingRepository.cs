@@ -412,11 +412,35 @@ public class RatingRepository
         lock (_lock)
         {
             var key = GetKey(rating.ItemId, rating.UserId);
-            if (_ratings.TryGetValue(key, out var existing))
+
+            if (_ratings.TryGetValue(key, out var existingByKey))
             {
-                UnindexProviderIds(existing);
-                IndexRemove(existing.ItemId, existing.Rating);
+                rating = rating with
+                {
+                    Timestamp = existingByKey.Timestamp,
+                    Note = string.IsNullOrEmpty(rating.Note) ? existingByKey.Note : rating.Note
+                };
+                UnindexProviderIds(existingByKey);
+                IndexRemove(existingByKey.ItemId, existingByKey.Rating);
             }
+            else
+            {
+                var existingByProvider = FindByProviderIdsInternal(rating.UserId, rating.ProviderIds);
+                if (existingByProvider != null)
+                {
+                    rating = rating with
+                    {
+                        Timestamp = existingByProvider.Timestamp,
+                        Note = string.IsNullOrEmpty(rating.Note) ? existingByProvider.Note : rating.Note
+                    };
+                    var oldKey = GetKey(existingByProvider.ItemId, existingByProvider.UserId);
+                    UnindexProviderIds(existingByProvider);
+                    IndexRemove(existingByProvider.ItemId, existingByProvider.Rating);
+                    _ratings.Remove(oldKey);
+                    _logger.LogInformation("Re-keyed rating for user {UserId} from {OldItemId} to {NewItemId} (SaveRating)", rating.UserId, existingByProvider.ItemId, rating.ItemId);
+                }
+            }
+
             _ratings[key] = rating;
             IndexProviderIds(key, rating);
             IndexAdd(rating.ItemId, rating.Rating);

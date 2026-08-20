@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.13.4.12 (beta)
+
+### Fixes
+
+- **SaveRating now preserves timestamp and note on re-rate** — Previously, re-rating an item always reset the timestamp to the current time and overwrote the note with null if the client didn't send one. `SaveRating` now merges fields: it keeps the original timestamp (when the user first rated) and preserves the existing note when the incoming note is null/empty.
+- **SaveRating provider-ID fallback prevents duplicates after library rescan** — When an item's Jellyfin ItemId changes, `SaveRating` now finds the existing rating by provider IDs (Imdb/Tmdb/Tvdb) and re-keys it to the current ItemId, instead of creating a duplicate. This closes the window between library rescans and health check runs where a user could create a duplicate rating.
+- **Plex import skip-on-conflict now detects ratings under stale ItemIds** — Previously, if an item's Jellyfin ItemId changed (library rescan, metadata refresh), skip mode couldn't find the existing rating by `{itemId}_{userId}` key and silently created a duplicate with a new timestamp. `BulkSaveRatings` now falls back to provider-ID lookup via the existing `_providerIndex`, re-keying the old rating to the current ItemId while preserving all original fields (timestamp, note, source, rating). Applies to all conflict modes (skip, overwrite, keepHigher, default).
+- **Backup download no longer returns 401** — `downloadBackup()` used `window.open()` with the auth token as a query parameter, which Jellyfin's elevated-policy auth doesn't reliably accept. Replaced with `fetch()` + blob download so the token is sent as an `X-Emby-Token` header, matching all other backup API calls.
+
 ## v1.13.4.11 (beta)
 
 ### Fixes
