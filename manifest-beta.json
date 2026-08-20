@@ -13,8 +13,8 @@
         "changelog": "Fixed: SaveRating now preserves original timestamp and note on re-rate. Fixed: SaveRating provider-ID fallback prevents duplicate ratings after library rescan.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.12/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-08-20T00:00:00Z"
+        "checksum": "1778faf2a3d1bbd19a1a958c2b23b4ef",
+        "timestamp": "2026-08-20T15:48:15Z"
       },
       {
         "version": "1.13.4.11",
