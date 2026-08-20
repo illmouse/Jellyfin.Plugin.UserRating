@@ -2234,6 +2234,12 @@ function updateStarDisplay(container, rating) {
             const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
             if (wasUserRatings) {
                 setTimeout(() => {
+                    // Remove stale #ratingsTab from the restored cached view.
+                    // Without this, the click handler sees the cached tab content as
+                    // "already active and visible" and skips displayRatingsList(),
+                    // leaving the tab empty after back-navigation.
+                    document.querySelectorAll('#ratingsTab').forEach(el => el.remove());
+
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));

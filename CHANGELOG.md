@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.4.13 (beta)
+
+### Fixes
+
+- **Empty User Ratings tab after back-navigation from item detail page** — When navigating back from a detail page to the home tab, the cached `#ratingsTab` DOM was restored by Jellyfin's view cache but never repopulated. The tab click handler's "already active and visible" guard caused an early return, and `ensureRatingsTabContent()` also early-returned on the existing stale element. The hashchange handler now removes stale `#ratingsTab` elements before clicking the tab button, forcing `displayRatingsList()` to run and populate fresh content.
+
 ## v1.13.4.12 (beta)
 
 ### Fixes

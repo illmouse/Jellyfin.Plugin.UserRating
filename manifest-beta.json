@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.4.13",
+        "changelog": "Fixed: Empty User Ratings tab after back-navigation from item detail page. Stale cached #ratingsTab now removed before tab click, forcing fresh content render.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.13/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-08-20T00:00:00Z"
+      },
+      {
         "version": "1.13.4.12",
         "changelog": "Fixed: SaveRating now preserves original timestamp and note on re-rate. Fixed: SaveRating provider-ID fallback prevents duplicate ratings after library rescan.",
         "targetAbi": "10.11.0.0",
