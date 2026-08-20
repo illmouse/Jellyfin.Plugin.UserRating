@@ -1241,30 +1241,34 @@ function updateStarDisplay(container, rating) {
         const ids = Array.from(itemIds);
         if (ids.length === 0) return {};
         try {
-            const resp = await fetch(ApiClient.getUrl('api/UserRatings/BatchAverage'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Emby-Token': ApiClient.accessToken()
-                },
-                body: JSON.stringify({ itemIds: ids })
-            });
-            if (!resp.ok) return {};
-            const data = await resp.json();
             const map = {};
-            if (data.items) {
-                Object.keys(data.items).forEach(k => {
-                    const v = data.items[k];
-                    map[k] = { averageRating: v.averageRating, totalRatings: v.totalRatings };
-                    avgCacheSet(k, { averageRating: v.averageRating, totalRatings: v.totalRatings });
+            // Chunk into batches of 100 to stay within the server's max limit
+            for (let i = 0; i < ids.length; i += 100) {
+                const chunk = ids.slice(i, i + 100);
+                const resp = await fetch(ApiClient.getUrl('api/UserRatings/BatchAverage'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Emby-Token': ApiClient.accessToken()
+                    },
+                    body: JSON.stringify({ itemIds: chunk })
+                });
+                if (!resp.ok) continue;
+                const data = await resp.json();
+                if (data.items) {
+                    Object.keys(data.items).forEach(k => {
+                        const v = data.items[k];
+                        map[k] = { averageRating: v.averageRating, totalRatings: v.totalRatings };
+                        avgCacheSet(k, { averageRating: v.averageRating, totalRatings: v.totalRatings });
+                    });
+                }
+                chunk.forEach(id => {
+                    if (!map[id]) {
+                        map[id] = { averageRating: 0, totalRatings: 0 };
+                        avgCacheSet(id, { averageRating: 0, totalRatings: 0 });
+                    }
                 });
             }
-            ids.forEach(id => {
-                if (!map[id]) {
-                    map[id] = { averageRating: 0, totalRatings: 0 };
-                    avgCacheSet(id, { averageRating: 0, totalRatings: 0 });
-                }
-            });
             return map;
         } catch (e) {
             console.error('[UserRatings] Error fetching batch averages:', e);
@@ -2231,15 +2235,16 @@ function updateStarDisplay(container, rating) {
         const currentHash = window.location.hash;
 
         if (currentHash.includes('home')) {
+            // Always remove stale #ratingsTab from the restored cached view.
+            // Jellyfin's view cache restores old DOM including stale #ratingsTab
+            // content. If we don't remove it, ensureRatingsTabContent() sees it
+            // and skips creation, and the click handler guard sees it as
+            // "already active and visible" and skips displayRatingsList().
+            document.querySelectorAll('#ratingsTab').forEach(el => el.remove());
+
             const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
             if (wasUserRatings) {
                 setTimeout(() => {
-                    // Remove stale #ratingsTab from the restored cached view.
-                    // Without this, the click handler sees the cached tab content as
-                    // "already active and visible" and skips displayRatingsList(),
-                    // leaving the tab empty after back-navigation.
-                    document.querySelectorAll('#ratingsTab').forEach(el => el.remove());
-
                     const tabBtn = document.querySelector('[data-ratings-tab="true"]');
                     if (tabBtn) {
                         document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
@@ -2254,7 +2259,6 @@ function updateStarDisplay(container, rating) {
         currentItemId = null;
 
         setTimeout(injectRatingsTab, 100);
-        setTimeout(injectRatingsTab, 500);
         setTimeout(injectRatingsUI, 100);
         setTimeout(injectRatingsUI, 300);
         scheduleGlobalDecorate();
@@ -2921,16 +2925,14 @@ function updateStarDisplay(container, rating) {
                 if (ratingsTab.classList.contains('emby-tab-button-active')) {
                     const rt = document.querySelector('#ratingsTab');
                     const visibleIndex = document.querySelector('#indexPage:not(.hide)');
-                    if (rt && visibleIndex && visibleIndex.contains(rt)) {
-                        return; // Already active and visible — no refetch needed
+                    if (rt && visibleIndex && visibleIndex.contains(rt) && rt.children.length > 0) {
+                        return; // Already active, visible, and populated — no refetch needed
                     }
                 }
 
                 try {
-                    // Load and display ratings list (always creates fresh #ratingsTab
-                    // inside the visible #indexPage)
-                    await displayRatingsList();
-                    // Annotate current history entry so back-button restores us
+                    // Annotate current history entry BEFORE displayRatingsList() so
+                    // back-navigation restores us even if the API call fails.
                     try {
                         const state = window.history.state || {};
                         state.userRatingsActive = true;
@@ -2938,6 +2940,10 @@ function updateStarDisplay(container, rating) {
                     } catch (err) {
                         console.warn('[UserRatings] Could not replaceState on tab click:', err);
                     }
+
+                    // Load and display ratings list (always creates fresh #ratingsTab
+                    // inside the visible #indexPage)
+                    await displayRatingsList();
                 } catch (error) {
                     console.error('[UserRatings] Error in displayRatingsList:', error);
                 }

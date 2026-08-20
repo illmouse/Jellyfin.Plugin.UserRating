@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.13.4.14 (beta)
+
+### Fixes
+
+- **Empty User Ratings tab after back-navigation (root cause fix)** — The click handler guard (introduced in v1.12.3.4) checked whether `#ratingsTab` existed in the visible `#indexPage`, but not whether it had content. After back-navigation, Jellyfin's view cache restored a stale/empty `#ratingsTab` element, the guard saw it and skipped `displayRatingsList()`, leaving the tab empty. The guard now also checks `rt.children.length > 0`, so an empty tab always falls through to a fresh render.
+- **Stale `#ratingsTab` now always removed on back-to-home** — Previously, stale `#ratingsTab` content was only removed when `wasUserRatings` was true (user was on the User Ratings tab before navigating). Now removed unconditionally on every back-to-home hashchange, preventing stale cached content from blocking re-render.
+- **`setTimeout(injectRatingsTab, 500)` removed** — The 500ms retry could recreate an empty `#ratingsTab` that overwrote the one `displayRatingsList()` was populating. Eliminates the race condition.
+- **`userRatingsActive` flag set before `displayRatingsList()`** — The flag was previously set after `await displayRatingsList()`, so if the API call failed, the flag was never set and back-navigation wouldn't restore the tab. Now set before the async call.
+- **BatchAverage HTTP 400 on pages with many cards** — `fetchBatchAverage()` sent all item IDs in a single POST. The server rejects requests with > 100 IDs. Now chunks IDs into batches of 100, sending separate POSTs and merging results.
+
 ## v1.13.4.13 (beta)
 
 ### Fixes
