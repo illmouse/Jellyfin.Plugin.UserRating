@@ -13,8 +13,8 @@
         "changelog": "Fixed: \"Cannot find module './'\" console error when clicking User Ratings tab. Fixed: blank tab after back-navigation (missing .is-active class on #ratingsTab).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.4.15/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-08-20T00:00:00Z"
+        "checksum": "abdf4065eda8e8838f22218ef770c403",
+        "timestamp": "2026-08-20T17:52:00Z"
       },
       {
         "version": "1.13.4.14",
