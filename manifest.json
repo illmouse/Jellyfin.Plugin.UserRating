@@ -13,8 +13,8 @@
         "changelog": "Added Russian translations for the ratings interface and settings, localized dates and plural forms, and support for local translation files with English fallback.",
         "targetAbi": "12.0.0.0",
         "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v2.1.0/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "",
-        "timestamp": "2026-11-24T00:00:00Z"
+        "checksum": "73f99dd413e7f4daa05f604a511bfe0e",
+        "timestamp": "2026-11-24T19:04:04Z"
       },
       {
         "version": "2.0.1.0",
