@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.1.0 (beta)
+## v2.1.0
 
 - Added Russian translations for the ratings interface and plugin settings, with language selection based on Jellyfin's display language.
 - Added local translation files, plural-aware text and localized dates, with English fallback for untranslated strings.

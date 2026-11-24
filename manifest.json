@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "2.1.0.0",
+        "changelog": "Added Russian translations for the ratings interface and settings, localized dates and plural forms, and support for local translation files with English fallback.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v2.1.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-11-24T00:00:00Z"
+      },
+      {
         "version": "2.0.1.0",
         "changelog": "Jellyfin 12+ only (BREAKING): requires Jellyfin 12.0 or newer, not compatible with 10.11 (last 10.11 version is 1.13.5.0). Legacy token auth is no longer used. Fixed rating badges, item page widget and dashboard not appearing on Jellyfin 12, added a User Ratings link to the new top navigation bar, fixed navigation after returning from an item page.",
         "targetAbi": "12.0.0.0",
