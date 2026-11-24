@@ -137,3 +137,10 @@ Before changing navigation/tab/injection code, verify:
 - [ ] No attempt to reuse cached `#ratingsTab` DOM (always re-render via click)
 - [ ] One hashchange listener, one MutationObserver per concern
 - [ ] No code reads `data-dom-cache` attribute
+
+## Jellyfin 12+ compatibility (breaking vs 10.11)
+
+- **Legacy auth is disabled by default.** Jellyfin 12 sets `EnableLegacyAuthorization` to false: the `X-Emby-Token` / `X-MediaBrowser-Token` headers and `?api_key=` query are rejected with **401**. Only `Authorization: MediaBrowser Token="<token>"` (header) and `?ApiKey=<token>` (query, capital A/K) work. Use `mbAuthHeader()` in `ratings.js` and `configPage.html` for every `fetch`; use `?ApiKey=` only where headers are impossible (`EventSource`, `<img src>`, `window.open`). A 401 on every plugin API call looks exactly like "nothing is injected" — check the Network tab first.
+- **Modern layout is the default.** The legacy `.skinHeader .headerTabs` strip (where the User Ratings tab button lives) exists in the DOM but is not displayed. The top bar is a MUI `header.MuiAppBar-root` (desktop; links Home / Favorites / libraries) or a MUI drawer (narrow screens). `injectNavLinks()` clones the Favorites link (`a[href="#/home?tab=1"]`) / drawer `li`, marks it `data-ur-nav`, and its click handler activates the hidden `[data-ratings-tab]` button via `openRatingsTab()`. MUI class hashes (`css-xxxx`) change between builds — clone existing nodes, never hardcode them.
+- The MUI nav is React-owned: our injected node can be dropped on re-render, so `injectNavLinks()` runs from the body MutationObserver and is idempotent.
+- Local testing: `docker run jellyfin/jellyfin:12.4`, copy the built `Jellyfin.Plugin.UserRatings.dll` into `/config/plugins/UserRatings/`; Playwright (chromium) works for DOM checks.

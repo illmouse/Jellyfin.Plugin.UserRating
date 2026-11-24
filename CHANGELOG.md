@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.0.0 (beta)
+
+Jellyfin 12 support. The plugin is now built for Jellyfin 12+ only.
+
+### Breaking changes
+
+- **Requires Jellyfin 12.0 or newer.** The plugin is built for .NET 10 against the Jellyfin 12 server packages (`targetAbi` 12.0.0.0). It does not load on Jellyfin 10.11 or older, and the plugin catalog does not offer it to those servers. **The last version for Jellyfin 10.11 is v1.13.5.0** — servers on 10.11 stay on it and receive no further updates.
+- **Legacy API authentication is no longer used.** Jellyfin 12 disables `X-Emby-Token` / `X-MediaBrowser-Token` headers and the `api_key` query parameter by default (401). The plugin web UI and settings page now send `Authorization: MediaBrowser Token="..."` and use `?ApiKey=` where headers are not possible (avatars, import progress stream). Third-party scripts or integrations that call `api/UserRatings/*` with `X-Emby-Token` must be updated the same way, or enable the legacy authorization option on the server.
+- **Versioning scheme changed to three parts (X.Y.Z).** Beta releases are tagged `vX.Y.Z-beta` and published to `manifest-beta.json` only; stable releases are tagged `vX.Y.Z`.
+- Upgrade note: after upgrading the server to Jellyfin 12, update User Ratings to v2.0.0 from the plugin catalog (the 10.11 build is not supported on Jellyfin 12). Stored ratings (`plugins/configurations/UserRatings/ratings.json`) are kept. Until v2.0.0 is released as stable, add the beta repository (`manifest-beta.json`) to receive it.
+
+### Fixes
+
+- **Nothing was injected on Jellyfin 12** — Every plugin API call failed with HTTP 401 (see above), so rating badges on posters, the rating widget on item pages and the dashboard were empty or missing.
+- **"User Ratings" dashboard entry restored** — The Jellyfin 12 web UI no longer displays the tab strip the dashboard tab lived in. A "User Ratings" link is now added to the top navigation bar next to "Favorites" (and to the side menu on narrow screens). It opens the same dashboard on the home page and is highlighted while active.
 ## v1.13.5.0
 
 > **This is the last release for Jellyfin 10.11.** Starting with v2.0.0 the plugin is built for Jellyfin 12+ only (.NET 10) and will not install or load on 10.x. Servers running 10.11 should stay on this version.

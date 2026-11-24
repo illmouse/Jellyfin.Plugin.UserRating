@@ -3,6 +3,12 @@
 
     console.log('[UserRatings] Loading plugin...');
 
+    // Jellyfin 12+ disables legacy auth (X-Emby-Token header / api_key query) by default.
+    // Only the Authorization header (or ?ApiKey= for non-fetch cases) is accepted.
+    function mbAuthHeader() {
+        return 'MediaBrowser Token="' + ApiClient.accessToken() + '"';
+    }
+
     // CSS for inline ratings UI
     // Uses ElegantFin CSS custom properties with fallbacks for default Jellyfin
     const style = document.createElement('style');
@@ -948,7 +954,7 @@
             try {
                 await waitForApiClient();
                 const resp = await fetch(ApiClient.getUrl('api/UserRatings/Strings'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 });
                 if (resp.ok) {
                     _strings = await resp.json();
@@ -969,7 +975,7 @@
         if (!_cardConfigPromise) {
             _cardConfigPromise = waitForApiClient().then(function() {
                 return fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 });
             }).then(function(resp) {
                 if (!resp.ok) throw new Error('DisplayConfig request failed: ' + resp.status);
@@ -1087,7 +1093,7 @@ function updateStarDisplay(container, rating) {
         try {
             const response = await fetch(ApiClient.getUrl(`api/UserRatings/Item/${itemId}`), {
                 headers: {
-                    'X-Emby-Token': ApiClient.accessToken()
+                    'Authorization': mbAuthHeader()
                 }
             });
             const data = await response.json();
@@ -1103,7 +1109,7 @@ function updateStarDisplay(container, rating) {
         try {
             const response = await fetch(ApiClient.getUrl(`api/UserRatings/MyRating/${itemId}`), {
                 headers: {
-                    'X-Emby-Token': ApiClient.accessToken()
+                    'Authorization': mbAuthHeader()
                 }
             });
             const data = await response.json();
@@ -1120,7 +1126,7 @@ function updateStarDisplay(container, rating) {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'X-Emby-Token': ApiClient.accessToken()
+                    'Authorization': mbAuthHeader()
                 }
             });
             
@@ -1143,7 +1149,7 @@ function updateStarDisplay(container, rating) {
             const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
-                    'X-Emby-Token': ApiClient.accessToken()
+                    'Authorization': mbAuthHeader()
                 }
             });
             return await response.json();
@@ -1158,7 +1164,7 @@ function updateStarDisplay(container, rating) {
             let threshold = 9;
             try {
                 const resp = await fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 });
                 if (resp.ok) {
                     const cfg = await resp.json();
@@ -1185,7 +1191,7 @@ function updateStarDisplay(container, rating) {
             await waitForApiClient();
             const userId = ApiClient.getCurrentUserId();
             const resp = await fetch(ApiClient.getUrl(`api/UserRatings/User/${userId}`), {
-                headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                headers: { 'Authorization': mbAuthHeader() }
             });
             if (!resp.ok) { userRatingsMap = {}; return; }
             const data = await resp.json();
@@ -1249,7 +1255,7 @@ function updateStarDisplay(container, rating) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Emby-Token': ApiClient.accessToken()
+                        'Authorization': mbAuthHeader()
                     },
                     body: JSON.stringify({ itemIds: chunk })
                 });
@@ -1816,7 +1822,7 @@ function updateStarDisplay(container, rating) {
             img.alt = userName || '';
             img.src = ApiClient.getUrl('Users/' + userId + '/Images/Primary',
                 { maxwidth: 64, maxheight: 64, quality: 80 }) +
-                '&api_key=' + ApiClient.accessToken();
+                '&ApiKey=' + encodeURIComponent(ApiClient.accessToken());
             img.onload = function() {
                 avatarEl.textContent = '';
                 avatarEl.appendChild(img);
@@ -2231,6 +2237,7 @@ function updateStarDisplay(container, rating) {
     // hashchange: clean up detail-page UI, restore home tab, re-inject
     window.addEventListener('hashchange', () => {
         removeDetailPageUI();
+        setTimeout(syncNavLinkState, 300);
 
         const currentHash = window.location.hash;
 
@@ -2310,7 +2317,7 @@ function updateStarDisplay(container, rating) {
             let perPage = 24;
             try {
                 const configResp = await fetch(ApiClient.getUrl('api/UserRatings/DisplayConfig'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 });
                 if (configResp.ok) {
                     const pluginConfig = await configResp.json();
@@ -2417,7 +2424,7 @@ function updateStarDisplay(container, rating) {
                 const params = new URLSearchParams({ offset, limit, sortBy, sortDir });
                 if (typeFilter && typeFilter !== 'all') params.set('typeFilter', typeFilter);
                 const url = ApiClient.getUrl('api/UserRatings/AllRatedItems') + '?' + params.toString();
-                const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
+                const resp = await fetch(url, { headers: { 'Authorization': 'MediaBrowser Token="' + accessToken + '"' } });
                 if (!resp.ok) return { items: [], total: 0 };
                 const data = await resp.json();
                 return { items: data.items || [], total: data.total || 0 };
@@ -2699,7 +2706,7 @@ function updateStarDisplay(container, rating) {
             async function fetchUnratedType(itemType) {
                 try {
                     const url = ApiClient.getUrl(`api/UserRatings/UnratedWatchedItems?itemType=${itemType}`);
-                    const resp = await fetch(url, { headers: { 'X-Emby-Token': accessToken } });
+                    const resp = await fetch(url, { headers: { 'Authorization': 'MediaBrowser Token="' + accessToken + '"' } });
                     if (!resp.ok) return [];
                     const data = await resp.json();
                     if (!data.items) return [];
@@ -3033,6 +3040,148 @@ function updateStarDisplay(container, rating) {
         console.log('[UserRatings] Created #ratingsTab as pageTabContent inside visible #indexPage');
     }
 
+    // ---- Jellyfin 12+ navigation link ----------------------------------------
+    // Jellyfin 12 renders the top bar as a MUI AppBar (desktop) / MUI drawer
+    // (mobile). The legacy .headerTabs tab strip that held the "User Ratings" tab
+    // is no longer visible, so we add a link next to "Favorites" that activates
+    // the (hidden) plugin tab button on the home page.
+    const NAV_STAR_PATH = 'M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z';
+    const NAV_ACTIVE_COLOR = 'var(--mui-palette-primary-main, #00a4dc)';
+
+    function buildNavStarSvg() {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('focusable', 'false');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.style.cssText = 'width:1em;height:1em;font-size:1.5rem;fill:currentColor;flex-shrink:0;';
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', NAV_STAR_PATH);
+        svg.appendChild(path);
+        return svg;
+    }
+
+    function openRatingsTab() {
+        const clickTab = function() {
+            const btn = document.querySelector('[data-ratings-tab="true"]');
+            const indexPage = document.querySelector('#indexPage:not(.hide)');
+            // Wait until Jellyfin has built its own tabs and selected one, otherwise
+            // its initial tab selection would override ours.
+            const nativeActive = document.querySelector('.emby-tab-button.emby-tab-button-active:not([data-ratings-tab="true"])');
+            if (btn && indexPage && (nativeActive || btn.classList.contains('emby-tab-button-active'))) {
+                btn.click();
+                return true;
+            }
+            return false;
+        };
+
+        if (window.location.hash.startsWith('#/home') && clickTab()) return;
+        if (!window.location.hash.startsWith('#/home')) {
+            window.location.hash = '#/home';
+        }
+        let attempts = 0;
+        const timer = setInterval(function() {
+            attempts++;
+            if (clickTab() || attempts > 40) clearInterval(timer);
+        }, 150);
+    }
+
+    function onNavLinkClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Close the mobile drawer if the link lives in it
+        if (e.currentTarget.closest('.MuiDrawer-root')) {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
+        }
+        openRatingsTab();
+        setTimeout(syncNavLinkState, 400);
+    }
+
+    function injectNavLinks() {
+        const label = t('tabName', 'User Ratings');
+
+        // Desktop: MUI AppBar link row
+        const appBar = document.querySelector('header.MuiAppBar-root');
+        if (appBar && !appBar.querySelector('[data-ur-nav]')) {
+            const fav = appBar.querySelector('a[href="#/home?tab=1"]');
+            if (fav) {
+                // Clone an inactive (non-primary) link so we inherit its look
+                const source = fav.classList.contains('MuiButton-textInherit')
+                    ? fav
+                    : fav.parentElement.querySelector('a.MuiButton-textInherit[href]:not([href="#/"])');
+                if (source) {
+                    const link = source.cloneNode(true);
+                    link.setAttribute('data-ur-nav', 'true');
+                    link.setAttribute('href', '#/home?tab=ratings');
+                    link.removeAttribute('aria-current');
+                    const icon = link.querySelector('.MuiButton-startIcon');
+                    if (icon) {
+                        icon.textContent = '';
+                        icon.appendChild(buildNavStarSvg());
+                    }
+                    Array.from(link.childNodes).forEach(function(n) {
+                        if (n.nodeType === 3) n.remove();
+                    });
+                    link.appendChild(document.createTextNode(label));
+                    link.addEventListener('click', onNavLinkClick);
+                    fav.after(link);
+                }
+            }
+        }
+
+        // Mobile: MUI drawer list
+        const drawerFav = document.querySelector('.MuiDrawer-root a[href="#/home?tab=1"]');
+        if (drawerFav) {
+            const item = drawerFav.closest('li');
+            if (item && !item.parentElement.querySelector('[data-ur-nav]')) {
+                const clone = item.cloneNode(true);
+                clone.setAttribute('data-ur-nav', 'true');
+                const link = clone.querySelector('a');
+                link.setAttribute('href', '#/home?tab=ratings');
+                link.classList.remove('Mui-selected');
+                link.removeAttribute('aria-current');
+                const svg = clone.querySelector('.MuiListItemIcon-root');
+                if (svg) {
+                    svg.textContent = '';
+                    svg.appendChild(buildNavStarSvg());
+                }
+                const text = clone.querySelector('.MuiListItemText-primary');
+                if (text) text.textContent = label;
+                link.addEventListener('click', onNavLinkClick);
+                item.after(clone);
+            }
+        }
+
+        syncNavLinkState();
+    }
+
+    // The URL does not change when the ratings tab is opened, so clicking
+    // Home/Favorites with an identical hash would not leave it. Switch the native
+    // tab explicitly in that case.
+    document.addEventListener('click', function(e) {
+        const link = e.target && e.target.closest && e.target.closest('a[href="#/home?tab=1"], a[href="#/home"], a[href="#/home?tab=0"], a[href="#/"]');
+        if (!link || link.hasAttribute('data-ur-nav')) return;
+        const rt = document.querySelector('#indexPage:not(.hide) #ratingsTab.is-active');
+        if (!rt) return;
+        const index = link.getAttribute('href') === '#/home?tab=1' ? '1' : '0';
+        setTimeout(function() {
+            const btn = document.querySelector('.emby-tab-button[data-index="' + index + '"]:not([data-ratings-tab="true"])');
+            if (btn) btn.click();
+            syncNavLinkState();
+        }, 50);
+    }, true);
+
+    function syncNavLinkState() {
+        const rt = document.querySelector('#indexPage:not(.hide) #ratingsTab');
+        const active = !!(rt && rt.classList.contains('is-active') && window.location.hash.startsWith('#/home'));
+        document.querySelectorAll('a[data-ur-nav], li[data-ur-nav] a').forEach(function(a) {
+            if (a.closest('.MuiDrawer-root')) {
+                a.classList.toggle('Mui-selected', active);
+            } else {
+                a.style.color = active ? NAV_ACTIVE_COLOR : '';
+            }
+        });
+    }
+
     // On fresh page load (browser refresh), surrender to Jellyfin's default:
     // let the Home tab be active. Clear userRatingsActive from history state so
     // nothing restores the User Ratings tab on refresh. In-app navigation
@@ -3132,6 +3281,7 @@ function updateStarDisplay(container, rating) {
     // Watch for DOM changes to inject tab and decorate cards globally
     new MutationObserver((mutations) => {
         injectRatingsTab();
+        injectNavLinks();
         let hasCard = false;
         for (const m of mutations) {
             if (m.addedNodes && m.addedNodes.length > 0) {

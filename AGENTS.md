@@ -27,7 +27,7 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 
 ## Build & Test
 
-- No `dotnet` CLI available in this environment — cannot build locally
+- `dotnet` may not be installed; target is net10.0 (Jellyfin 12+). A .NET 10 SDK can be unpacked under /tmp for local builds
 - Verify C# syntax by reading files; cannot compile
 - Use `dev/` directory inside the project for temporary files (test pages, scratch work, etc.)
 

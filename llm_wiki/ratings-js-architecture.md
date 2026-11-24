@@ -170,3 +170,7 @@ Capture-phase listeners on all native `.emby-tab-button` (not the ratings tab). 
 - `.rate-popup-overlay` / `.rate-popup` modal (lines 462–604)
 
 All CSS uses `var(--custom, fallback)` patterns to integrate with ElegantFin and default Jellyfin themes.
+
+## Navigation links (Jellyfin 12+)
+
+`injectNavLinks()` / `openRatingsTab()` / `syncNavLinkState()` (next to `ensureRatingsTabContent()`) add a "User Ratings" entry to the MUI AppBar and mobile drawer. Called from the body MutationObserver; `syncNavLinkState()` also runs on hashchange and after clicks and highlights the entry while `#ratingsTab.is-active`. All requests authenticate through `mbAuthHeader()`.

@@ -22,29 +22,37 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Get version from tag
       id: version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Version: $VERSION"
-        FOURTH_OCTET=$(echo "$VERSION" | cut -d. -f4)
-        if [ "$FOURTH_OCTET" != "0" ]; then
-          echo "is_beta=true" >> $GITHUB_OUTPUT
-          echo "Beta release detected"
+        # Tag scheme: vX.Y.Z = stable, vX.Y.Z-beta = beta (pre-release)
+        TAG=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG#v}
+        if [[ "$VERSION" == *-beta ]]; then
+          IS_BETA=true
+          VERSION=${VERSION%-beta}
         else
-          echo "is_beta=false" >> $GITHUB_OUTPUT
-          echo "Stable release detected"
+          IS_BETA=false
         fi
+        if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Tag '$TAG' does not match vX.Y.Z or vX.Y.Z-beta"
+          exit 1
+        fi
+        # Jellyfin compares System.Version values: always use four parts for the assembly and manifests
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "assembly_version=$VERSION.0" >> $GITHUB_OUTPUT
+        echo "is_beta=$IS_BETA" >> $GITHUB_OUTPUT
+        echo "Tag: $TAG, version: $VERSION, beta: $IS_BETA"
 
     - name: Checkout tag for build
-      run: git checkout "v${{ steps.version.outputs.version }}"
+      run: git checkout "${{ steps.version.outputs.tag }}"
 
     - name: Update .csproj version
       run: |
-        VERSION=${{ steps.version.outputs.version }}
+        VERSION=${{ steps.version.outputs.assembly_version }}
         sed -i "s/<AssemblyVersion>.*<\/AssemblyVersion>/<AssemblyVersion>${VERSION}<\/AssemblyVersion>/" Jellyfin.Plugin.UserRatings.csproj
         sed -i "s/<FileVersion>.*<\/FileVersion>/<FileVersion>${VERSION}<\/FileVersion>/" Jellyfin.Plugin.UserRatings.csproj
 
@@ -56,20 +64,21 @@ jobs:
 
     - name: Create ZIP
       run: |
-        cd bin/Release/net9.0
+        cd bin/Release/net10.0
         zip -j Jellyfin.Plugin.UserRatings.zip Jellyfin.Plugin.UserRatings.dll
         cd ../../..
 
     - name: Calculate checksum
       id: checksum
       run: |
-        CHECKSUM=$(md5sum bin/Release/net9.0/Jellyfin.Plugin.UserRatings.zip | awk '{print $1}')
+        CHECKSUM=$(md5sum bin/Release/net10.0/Jellyfin.Plugin.UserRatings.zip | awk '{print $1}')
         echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
         echo "Checksum: $CHECKSUM"
 
     - name: Switch back to main and update manifests
       run: |
-        VERSION=${{ steps.version.outputs.version }}
+        VERSION=${{ steps.version.outputs.assembly_version }}
+        TAG=${{ steps.version.outputs.tag }}
         CHECKSUM=${{ steps.checksum.outputs.checksum }}
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         IS_BETA=${{ steps.version.outputs.is_beta }}
@@ -79,8 +88,8 @@ jobs:
 
         NEW_ENTRY=$(jq -n \
           --arg ver "$VERSION" \
-          --arg targetAbi "10.11.0.0" \
-          --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/v$VERSION/Jellyfin.Plugin.UserRatings.zip" \
+          --arg targetAbi "12.0.0.0" \
+          --arg sourceUrl "https://github.com/${{ github.repository }}/releases/download/$TAG/Jellyfin.Plugin.UserRatings.zip" \
           --arg checksum "$CHECKSUM" \
           --arg timestamp "$TIMESTAMP" \
           '{
@@ -127,7 +136,7 @@ jobs:
         if [ "${{ steps.version.outputs.is_beta }}" = "false" ]; then
           git add manifest.json
         fi
-        git commit -m "Release v${{ steps.version.outputs.version }}: update manifest, csproj, and README" || echo "No changes to commit"
+        git commit -m "Release ${{ steps.version.outputs.tag }}: update manifest, csproj, and README" || echo "No changes to commit"
         git push origin main
 
     - name: Build release body
@@ -143,7 +152,7 @@ jobs:
           MANIFEST_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/manifest.json"
         fi
 
-        CHANGELOG_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+        CHANGELOG_VERSION="$VERSION"
         if [ -f CHANGELOG.md ]; then
           CHANGELOG=$(awk "/^## v${CHANGELOG_VERSION}/{found=1; next} /^## v/{found=0} found && /^---$/{found=0; next} found" CHANGELOG.md)
         else
@@ -170,7 +179,7 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: bin/Release/net9.0/Jellyfin.Plugin.UserRatings.zip
+        files: bin/Release/net10.0/Jellyfin.Plugin.UserRatings.zip
         body_path: /tmp/release_body.txt
         draft: false
         prerelease: ${{ steps.version.outputs.is_beta }}

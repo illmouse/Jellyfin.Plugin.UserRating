@@ -3,7 +3,7 @@
 **Rate and review content with other users on your Jellyfin server**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Jellyfin 10.11.0+](https://img.shields.io/badge/Jellyfin-10.11.0%2B-blue)](https://jellyfin.org/)
+[![Jellyfin 12.0.0+](https://img.shields.io/badge/Jellyfin-12.0.0%2B-blue)](https://jellyfin.org/)
 
 A social rating system for Jellyfin. Rate movies, TV shows, and episodes, then browse what other users on your server think. Includes Plex rating import with scheduled auto-sync, provider ID-based self-healing, database health checks, and automatic backups.
 
@@ -62,6 +62,15 @@ A social rating system for Jellyfin. Rate movies, TV shows, and episodes, then b
    ```
 3. Go to **Catalog**, find **User Ratings**, and install
 4. Restart Jellyfin
+
+### Compatibility
+
+| Jellyfin | Plugin version |
+|---|---|
+| 12.0+ | 2.0.0 and newer (releases tagged `vX.Y.Z`, betas `vX.Y.Z-beta` via `manifest-beta.json`) |
+| 10.11 | 1.13.5.0 — the last release for 10.11, no further updates |
+
+The plugin catalog only offers versions whose target Jellyfin version is not newer than your server, so Jellyfin 10.11 servers keep receiving 1.13.5.0 and never see the 2.x builds (which are also built for .NET 10 and cannot load on 10.x).
 
 ## Usage
 

@@ -536,6 +536,11 @@
         </div>
 
         <script type="text/javascript">
+            // Jellyfin 12+ disables legacy X-Emby-Token auth; use the Authorization header.
+            function mbAuthHeader() {
+                return 'MediaBrowser Token="' + ApiClient.accessToken() + '"';
+            }
+
             var UserRatingsConfig = {
                 pluginUniqueId: "b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e"
             };
@@ -606,7 +611,7 @@
             function loadBackupList() {
                 var container = document.getElementById('backupListContainer');
                 fetch(ApiClient.getUrl('api/UserRatings/Backups'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (!result.success || !result.backups || result.backups.length === 0) {
                         container.innerHTML = '<div class="fieldDescription">No backup files found on disk.</div>';
@@ -641,7 +646,7 @@
 
             function downloadBackup(fileName) {
                 var url = ApiClient.getUrl('api/UserRatings/DownloadBackup?fileName=' + encodeURIComponent(fileName));
-                fetch(url, { headers: { 'X-Emby-Token': ApiClient.accessToken() } })
+                fetch(url, { headers: { 'Authorization': mbAuthHeader() } })
                     .then(function (r) {
                         if (!r.ok) throw new Error('Download failed: ' + r.status);
                         return r.blob();
@@ -672,7 +677,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/RestoreBackup?fileName=' + encodeURIComponent(fileName)), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         resultDiv.innerHTML = result.message;
@@ -700,7 +705,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/DeleteBackup?fileName=' + encodeURIComponent(fileName)), {
                     method: 'DELETE',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         resultDiv.innerHTML = result.message;
@@ -792,7 +797,7 @@
                 statusDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/PlexStatus'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         statusDiv.innerHTML = result.message;
@@ -849,7 +854,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/ImportFromPlex?userId=' + encodeURIComponent(userId) + '&conflictMode=' + encodeURIComponent(conflictMode) + '&importRatings=' + importRatings + '&importWatchHistory=' + importWatchHistory), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (!result.success) {
                         resultDiv.style.display = 'block';
@@ -874,7 +879,7 @@
                     currentEventSource.close();
                 }
 
-                var url = ApiClient.getUrl('api/UserRatings/ImportProgress/' + operationId + '?X-Emby-Token=' + encodeURIComponent(ApiClient.accessToken()));
+                var url = ApiClient.getUrl('api/UserRatings/ImportProgress/' + operationId + '?ApiKey=' + encodeURIComponent(ApiClient.accessToken()));
                 currentEventSource = new EventSource(url);
 
                 currentEventSource.onmessage = function (event) {
@@ -992,7 +997,7 @@
                 fetch(ApiClient.getUrl('api/UserRatings/DeleteAll'), {
                     method: 'DELETE',
                     headers: {
-                        'X-Emby-Token': ApiClient.accessToken()
+                        'Authorization': mbAuthHeader()
                     }
                 }).then(function (response) {
                     return response.json();
@@ -1027,7 +1032,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/MarkExistingFavorites'), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     btn.disabled = false;
                     btn.textContent = 'Mark Existing Favorites';
@@ -1063,7 +1068,7 @@
                 conflictSection.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealthReport'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         var html = '<strong>Health Check Results</strong><br>' +
@@ -1167,7 +1172,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/HealRatings'), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         var html = '<strong>Heal Complete</strong><br>' +
@@ -1261,7 +1266,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/ClearStale'), {
                     method: 'DELETE',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (response) {
                     return response.json();
                 }).then(function (result) {
@@ -1294,7 +1299,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/Backup'), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
                         resultDiv.innerHTML = result.message;
@@ -1330,7 +1335,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/UploadBackup'), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() },
+                    headers: { 'Authorization': mbAuthHeader() },
                     body: formData
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
@@ -1395,7 +1400,7 @@
             function loadMigrationStatus() {
                 var section = document.getElementById('migrationSection');
                 fetch(ApiClient.getUrl('api/UserRatings/MigrationStatus'), {
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (data) {
                     if (!data.success) return;
                     migrationData = data;
@@ -1445,7 +1450,7 @@
 
                 fetch(ApiClient.getUrl('api/UserRatings/MigrateTo10Star'), {
                     method: 'POST',
-                    headers: { 'X-Emby-Token': ApiClient.accessToken() }
+                    headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     restoreButtons();
                     if (result.success) {
