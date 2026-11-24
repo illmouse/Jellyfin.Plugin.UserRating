@@ -1,10 +1,21 @@
 # Changelog
 
-## v2.0.1 (beta)
+## v2.0.1
+
+Jellyfin 12 support. The plugin is now built for Jellyfin 12+ only. This release rolls up the 2.0.0 and 2.0.1 betas.
+
+### Breaking changes
+
+- **Requires Jellyfin 12.0 or newer.** The plugin is built for .NET 10 against the Jellyfin 12 server packages (`targetAbi` 12.0.0.0). It does not load on Jellyfin 10.11 or older, and the plugin catalog does not offer it to those servers. **The last version for Jellyfin 10.11 is v1.13.5.0** — servers on 10.11 stay on it and receive no further updates.
+- **Legacy API authentication is no longer used.** Jellyfin 12 disables `X-Emby-Token` / `X-MediaBrowser-Token` headers and the `api_key` query parameter by default (401). The plugin web UI and settings page now send `Authorization: MediaBrowser Token="..."` and use `?ApiKey=` where headers are not possible (avatars, import progress stream). Third-party scripts or integrations that call `api/UserRatings/*` with `X-Emby-Token` must be updated the same way, or enable the legacy authorization option on the server.
+- **Versioning scheme changed to three parts (X.Y.Z).** Beta releases are tagged `vX.Y.Z-beta` and published to `manifest-beta.json` only; stable releases are tagged `vX.Y.Z`.
+- Upgrade note: after upgrading the server to Jellyfin 12, update User Ratings to v2.0.1 from the plugin catalog (the 10.11 build is not supported on Jellyfin 12). Stored ratings (`plugins/configurations/UserRatings/ratings.json`) are kept.
 
 ### Fixes
 
-- **Navigation highlight and tabs broke after returning from an item page (Jellyfin 12)** — After opening an item from the User Ratings dashboard and pressing Back, the top bar kept "User Ratings" highlighted over the Home page, and switching between Home / Favorites / User Ratings afterwards could mark several sections at once or leave dead links. The User Ratings tab now has its own URL (`#/home?tab=0&ur=1`) and all state (open panel, highlight) is derived from it. Back from an item returns to the User Ratings dashboard, reloading the page on the dashboard keeps it open, and Home / Favorites always switch correctly.
+- **Nothing was injected on Jellyfin 12** — Every plugin API call failed with HTTP 401 (see above), so rating badges on posters, the rating widget on item pages and the dashboard were empty or missing.
+- **"User Ratings" dashboard entry restored** — The Jellyfin 12 web UI no longer displays the tab strip the dashboard tab lived in. A "User Ratings" link is now added to the top navigation bar next to "Favorites" (and to the side menu on narrow screens). It opens the same dashboard on the home page and is highlighted while active.
+- **Navigation after returning from an item page** — The User Ratings dashboard now has its own URL (`#/home?tab=0&ur=1`). Back from an item returns to the dashboard, reloading the page on the dashboard keeps it open, and Home / Favorites / User Ratings always switch correctly without several sections being highlighted at once.
 
 ---
 

@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "2.0.1.0",
+        "changelog": "Jellyfin 12+ only (BREAKING): requires Jellyfin 12.0 or newer, not compatible with 10.11 (last 10.11 version is 1.13.5.0). Legacy token auth is no longer used. Fixed rating badges, item page widget and dashboard not appearing on Jellyfin 12, added a User Ratings link to the new top navigation bar, fixed navigation after returning from an item page.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v2.0.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-11-24T14:12:37Z"
+      },
+      {
         "version": "1.13.5.0",
         "changelog": "LAST RELEASE FOR JELLYFIN 10.11 - later versions require Jellyfin 12+. Rolls up the 1.13.4.x beta cycle: authorization enforced on all API endpoints, season ratings in the dashboard, auto-favorite for high ratings, localization infrastructure, configurable health check, source-aware conflict resolution when healing, duplicate-rating and backup fixes.",
         "targetAbi": "10.11.0.0",
