@@ -932,6 +932,7 @@
     // Localized strings: fetched from the server once, falls back to English defaults
     let _strings = {};
     let _stringsPromise = null;
+    let _stringsLang = null;
 
     function waitForApiClient(timeout, interval) {
         return new Promise(function(resolve, reject) {
@@ -950,10 +951,13 @@
 
     async function loadStrings() {
         if (_stringsPromise) return _stringsPromise;
+        const lang = getUiLang();
+        _stringsLang = lang;
         _stringsPromise = (async function() {
             try {
                 await waitForApiClient();
-                const resp = await fetch(ApiClient.getUrl('api/UserRatings/Strings'), {
+                if (lang !== _stringsLang) return; // superseded by a newer load (language changed while waiting)
+                const resp = await fetch(ApiClient.getUrl('api/UserRatings/Strings', { lang: lang }), {
                     headers: { 'Authorization': mbAuthHeader() }
                 });
                 if (resp.ok) {
@@ -966,8 +970,50 @@
         return _stringsPromise;
     }
 
+    // Jellyfin Web keeps <html lang> in sync with the user's display language
+    // (globalize.updateCurrentCulture); fall back to the browser language.
+    function getUiLang() {
+        return (document.documentElement.getAttribute('lang') || navigator.language || 'en').toLowerCase();
+    }
+
+    // Reload the dictionary when the user changes Jellyfin's display language.
+    // Already-rendered UI picks the new strings up on its next render.
+    new MutationObserver(function() {
+        if (getUiLang() !== _stringsLang) {
+            _stringsPromise = null;
+            loadStrings();
+        }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
     function t(key, fallback) {
         return _strings[key] || fallback;
+    }
+
+    // Plural-aware lookup: keys are <key>_<zero|one|two|few|many|other> with a {0} placeholder.
+    function tp(key, n, fallbackOne, fallbackOther) {
+        let rule = 'other';
+        try { rule = new Intl.PluralRules(_stringsLang || getUiLang()).select(n); } catch (e) { /* keep 'other' */ }
+        const text = _strings[key + '_' + rule] || _strings[key + '_other']
+            || (n === 1 ? fallbackOne : fallbackOther);
+        return fmt(text, [n]);
+    }
+
+    // Substitute {0}, {1}, ... placeholders so translators can reorder them freely.
+    function fmt(text, args) {
+        return text.replace(/\{(\d+)\}/g, function(m, i) { return i < args.length ? args[i] : m; });
+    }
+
+    // Template lookup: tf(key, fallback, arg0, arg1, ...)
+    function tf(key, fallback) {
+        return fmt(t(key, fallback), Array.prototype.slice.call(arguments, 2));
+    }
+
+    function formatDate(ts, opts) {
+        try {
+            return new Date(ts).toLocaleDateString(_stringsLang || getUiLang(), opts);
+        } catch (e) {
+            return new Date(ts).toLocaleDateString(undefined, opts);
+        }
     }
 
     function ensureCardConfig() {
@@ -1481,7 +1527,7 @@ function updateStarDisplay(container, rating) {
                     var isLeft = e.clientX < rect.left + rect.width / 2;
                     var val = isLeft ? n - 0.5 : n;
                     setPopupStarFill(popupStars, val);
-                    document.getElementById('rpSubtitle').textContent = t('yourRating', 'Your rating: ') + formatStarRating(val);
+                    document.getElementById('rpSubtitle').textContent = tf('yourRating', 'Your rating: {0}', formatStarRating(val));
                     popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
                     star.classList.add('hover-highlight');
                     popupRafId = null;
@@ -1494,7 +1540,7 @@ function updateStarDisplay(container, rating) {
                 var val = isLeft ? n - 0.5 : n;
                 setPopupStarFill(popupStars, val);
                 overlay.dataset.selectedRating = String(val);
-                document.getElementById('rpSubtitle').textContent = t('yourRating', 'Your rating: ') + formatStarRating(val);
+                document.getElementById('rpSubtitle').textContent = tf('yourRating', 'Your rating: {0}', formatStarRating(val));
                 popupStars.forEach(function(s) { s.classList.remove('hover-highlight'); });
             });
         });
@@ -1543,7 +1589,7 @@ function updateStarDisplay(container, rating) {
                     onDetailPageRatingChanged(itemId, true);
                 }
             } else {
-                alert(t('errorSavingRating', 'Error saving rating: ') + result.message);
+                alert(tf('errorSavingRating', 'Error saving rating: {0}', result.message));
             }
         });
 
@@ -1574,7 +1620,7 @@ function updateStarDisplay(container, rating) {
                     onDetailPageRatingChanged(itemId, false);
                 }
             } else {
-                alert(t('errorDeletingRating', 'Error deleting rating: ') + result.message);
+                alert(tf('errorDeletingRating', 'Error deleting rating: {0}', result.message));
             }
         });
 
@@ -1587,7 +1633,7 @@ function updateStarDisplay(container, rating) {
 
         document.getElementById('rpTitle').textContent = t('rate', 'Rate') + ' "' + (itemName || 'this item') + '"';
         document.getElementById('rpTitle').title = itemName ? t('rate', 'Rate') + ' "' + itemName + '"' : '';
-        document.getElementById('rpSubtitle').textContent = preselected > 0 ? t('yourRating', 'Your rating: ') + formatStarRating(preselected) : t('selectYourRating', 'Select your rating');
+        document.getElementById('rpSubtitle').textContent = preselected > 0 ? tf('yourRating', 'Your rating: {0}', formatStarRating(preselected)) : t('selectYourRating', 'Select your rating');
         document.getElementById('rpNote').value = existingNote || '';
 
         const popupStars = popupModal.querySelectorAll('.rp-star');
@@ -1756,12 +1802,12 @@ function updateStarDisplay(container, rating) {
         const avgStr = avg > 0 ? avg.toFixed(1) : null;
         const parts = [];
         if (avgStr) {
-            parts.push(t('community', 'Community: ') + avgStr + ' (' + totalRatings + (totalRatings === 1 ? t('singleRating', ' rating') : t('ratings', ' ratings')) + ')');
+            parts.push(tf('communityRating', 'Community: {0} ({1})', avgStr, tp('ratingsCount', totalRatings, '{0} rating', '{0} ratings')));
         } else {
             parts.push(t('noCommunityRatings', 'No community ratings'));
         }
         if (myRating && myVal > 0) {
-            parts.push(t('yourRating', 'Your rating: ') + formatStarRating(myVal));
+            parts.push(tf('yourRating', 'Your rating: {0}', formatStarRating(myVal)));
         } else {
             parts.push(t('clickToRate', 'Click to rate'));
         }
@@ -1862,8 +1908,7 @@ function updateStarDisplay(container, rating) {
         if (timestamp) {
             const date = document.createElement('span');
             date.className = 'ur-rc-date';
-            const dateObj = new Date(timestamp);
-            date.textContent = dateObj.toLocaleDateString(undefined, {
+            date.textContent = formatDate(timestamp, {
                 year: 'numeric', month: 'short', day: 'numeric'
             });
             header.appendChild(date);
@@ -2003,8 +2048,7 @@ function updateStarDisplay(container, rating) {
             noteEl.style.display = 'none';
         }
         if (timestamp) {
-            const dateObj = new Date(timestamp);
-            _detailsPopup.querySelector('.ur-rdp-date').textContent = dateObj.toLocaleDateString(undefined, {
+            _detailsPopup.querySelector('.ur-rdp-date').textContent = formatDate(timestamp, {
                 year: 'numeric', month: 'long', day: 'numeric'
             });
         } else {
@@ -2492,7 +2536,7 @@ function updateStarDisplay(container, rating) {
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
                                 <div class="listPaging">
-                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0}${t('of', ' of ')}${total}</span>
+                                    <span style="vertical-align:middle;">${tf('pageOf', '{0} of {1}', total > 0 ? startIndex + '-' + endIndex : 0, total)}</span>
                                     <div style="display:inline-block;">
                                         <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                             <span class="material-icons arrow_back" aria-hidden="true"></span>
@@ -2601,7 +2645,7 @@ function updateStarDisplay(container, rating) {
                         <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                             <div class="paging">
                                 <div class="listPaging">
-                                    <span style="vertical-align:middle;">${total > 0 ? startIndex + '-' + endIndex : 0}${t('of', ' of ')}${total}</span>
+                                    <span style="vertical-align:middle;">${tf('pageOf', '{0} of {1}', total > 0 ? startIndex + '-' + endIndex : 0, total)}</span>
                                     <div style="display:inline-block;">
                                         <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                             <span class="material-icons arrow_back" aria-hidden="true"></span>
@@ -2800,7 +2844,7 @@ function updateStarDisplay(container, rating) {
                             <div class="flex align-items-center justify-content-center flex-wrap-wrap padded-top padded-left padded-right padded-bottom focuscontainer-x" style="gap: 1em;">
                                 <div class="paging">
                                     <div class="listPaging">
-                                        <span style="vertical-align:middle;">${items.length > 0 ? (startIndex + 1) + '-' + endIndex : 0}${t('of', ' of ')}${items.length}</span>
+                                        <span style="vertical-align:middle;">${tf('pageOf', '{0} of {1}', items.length > 0 ? (startIndex + 1) + '-' + endIndex : 0, items.length)}</span>
                                         <div style="display:inline-block;">
                                             <button is="paper-icon-button-light" class="prevPageBtn autoSize paper-icon-button-light" ${page === 1 ? 'disabled' : ''}>
                                                 <span class="material-icons arrow_back" aria-hidden="true"></span>

@@ -1,0 +1,27 @@
+name: Validate translations
+
+on:
+  pull_request:
+    paths:
+      - 'Strings/**'
+      - 'Configuration/ratings.js'
+      - 'Configuration/configPage.html'
+      - 'scripts/validate_strings.py'
+  push:
+    branches: [main]
+    paths:
+      - 'Strings/**'
+      - 'Configuration/ratings.js'
+      - 'Configuration/configPage.html'
+      - 'scripts/validate_strings.py'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Strings/*.json
+        run: python3 scripts/validate_strings.py

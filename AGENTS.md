@@ -40,7 +40,8 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 - `Data/RatingRepository.cs` — JSON-file-based rating storage (fail-safe per-entry deserialization)
 - `Data/BackupService.cs` — Scheduled/manual backup with rotation
 - `Models/UserRating.cs` — Data models (UserRating, RatingStats, RatedItemSummary, HealthReport, StaleItem)
-- `Strings/en.json` — English localization strings for user-facing UI (tab, badges, popup, dashboard)
+- `Strings/en.json` — English (source) localization strings; `Strings/<lang>.json` — local translations (flat JSON with plural suffixes)
+- `scripts/validate_strings.py` — validates translations (keys, `{N}` placeholders, HTML tags, keys used in code); run by `.github/workflows/validate-strings.yml`
 - `Configuration/ratings.js` — Client-side JS injected into Jellyfin UI (detail page rating widget + home tab dashboard)
 - `Configuration/configPage.html` — Admin config page (includes Database Health section)
 - `Configuration/PluginConfiguration.cs` — Plugin configuration model
@@ -70,6 +71,6 @@ Documents under `llm_wiki/` contain detailed procedures and architecture referen
 - All repository mutations are lock-protected (`lock _lock`)
 - `LoadRatings` uses per-entry deserialization — one malformed entry is logged and skipped, not fatal. Backs up corrupted files before starting empty
 - `SaveRatings` is guarded by `_loadFailed` flag — won't overwrite data file if load failed and DB is empty
-- Localization: `ratings.js` fetches strings from `api/UserRatings/Strings` at init; all user-facing text uses `t(key, fallback)` with English fallbacks. Config page stays English.
+- Localization: `ratings.js` fetches strings from `api/UserRatings/Strings?lang=<html lang>` (Jellyfin keeps `<html lang>` = user display language; `globalize` is NOT reachable from injected scripts). Server resolves `Strings/{lang}.json` → base language → `en`, overlaying on English. All user-facing text uses `t(key, fallback)`; plurals use `tp(key, n, ...)` with `key_one/few/many/other` + `{0}`. Placeholders are positional `{0}`, `{1}` — never concatenate translated fragments. Add a language = add `Strings/xx.json` (auto-embedded; `pt_BR.json`/`pt-BR.json` both accepted; empty values = untranslated → English). `Configuration/configPage.html` is localized the same way: static markup uses `data-i18n` / `data-i18n-html` / `data-i18n-placeholder` (English left in place as fallback), script text uses `T(key, fallback, ...args)` / `TP(...)` with `cfg*`/`cfgMsg*` keys. Scheduled task names/descriptions use `Localizer.Get(key)` (server UI culture, not per-user). Run `python3 scripts/validate_strings.py` after changing any string. Server-originated messages in API responses (e.g. backup/health `message`) are still English.
 - Auto-favorite: `FavoriteThreshold` config (default 9). Client calls `ApiClient.updateFavoriteStatus()` after rating save/delete. Backend `MarkExistingFavorites` endpoint for one-time batch marking.
 - Season display: Shows section type filter has 4 tabs (All/Shows/Seasons/Episodes). Season cards show `seriesName` as subtitle.

@@ -114,6 +114,23 @@ The ratings UI appears automatically on item detail pages after installation.
 
 Items are matched using provider IDs (IMDB → TMDB → TVDB). Plex's 10-point scale converts to Jellyfin's 5-star scale. Series-level ratings are imported; individual episode ratings are skipped.
 
+## Translations
+
+The rating widget, ratings tab, and settings page follow the user's Jellyfin display language. Scheduled task names use the server UI culture. English is the source language; currently available: English, Russian. Missing or untranslated strings fall back to English.
+
+### Contributing a translation
+
+Copy `Strings/en.json` to `Strings/<code>.json` (e.g. `de.json`, `pt-BR.json` or `pt_BR.json`) and translate the values. The file is embedded automatically, no code changes needed. Submit changes via a pull request.
+
+Rules for translators:
+
+- Keep `{0}`, `{1}` placeholders exactly as in English; you may move them around in the sentence.
+- Keep HTML tags (`<strong>`, `<a href=…>`, `<code>`) unchanged in the `cfgMigration*` and `cfgPlexTokenHelp` strings.
+- Plural strings come as `key_one`, `key_few`, `key_many`, `key_other` (CLDR categories of your language). English only has `_one` and `_other`; add the forms your language needs.
+- Leave a value empty to keep the English text.
+
+Check your file locally with `python3 scripts/validate_strings.py` (also run by CI).
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).

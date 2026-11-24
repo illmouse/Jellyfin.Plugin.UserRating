@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.UserRatings.Configuration;
 using Jellyfin.Plugin.UserRatings.Data;
+using Jellyfin.Plugin.UserRatings.Services;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -13,13 +14,13 @@ public class RatingsBackupTask(
 BackupService backupService,
 ILogger<RatingsBackupTask> logger) : IScheduledTask
 {
-public string Name => "Backup Ratings Database";
+public string Name => Localizer.Get("taskBackupName");
 
 public string Key => "RatingsBackup";
 
-public string Description => "Creates a backup of the ratings database and rotates old backups.";
+public string Description => Localizer.Get("taskBackupDescription");
 
-public string Category => "User Ratings";
+public string Category => Localizer.Get("taskCategory");
 
 public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
 {

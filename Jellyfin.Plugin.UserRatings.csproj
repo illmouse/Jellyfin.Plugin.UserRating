@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-<AssemblyVersion>2.0.1.0</AssemblyVersion>
-    <FileVersion>2.0.1.0</FileVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -23,10 +23,10 @@
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
     <None Remove="Configuration\ratings.js" />
-    <None Remove="Strings\en.json" />
+    <None Remove="Strings\*.json" />
     <EmbeddedResource Include="Configuration\configPage.html" />
     <EmbeddedResource Include="Configuration\ratings.js" />
-    <EmbeddedResource Include="Strings\en.json" />
+    <EmbeddedResource Include="Strings\*.json" />
   </ItemGroup>
 
 </Project>

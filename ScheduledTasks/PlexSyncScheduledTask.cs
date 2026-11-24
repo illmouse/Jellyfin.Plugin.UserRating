@@ -13,13 +13,13 @@ public class PlexSyncScheduledTask(
 PlexImportService importService,
 ILogger<PlexSyncScheduledTask> logger) : IScheduledTask
 {
-public string Name => "Import Plex Ratings";
+public string Name => Localizer.Get("taskPlexSyncName");
 
 public string Key => "PlexRatingsImport";
 
-public string Description => "Automatically imports ratings from a configured Plex Media Server.";
+public string Description => Localizer.Get("taskPlexSyncDescription");
 
-public string Category => "User Ratings";
+public string Category => Localizer.Get("taskCategory");
 
 public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
 {

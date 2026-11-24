@@ -12,13 +12,13 @@ public class RatingsHealthTask(
 HealthCheckService healthCheckService,
 ILogger<RatingsHealthTask> logger) : IScheduledTask
 {
-public string Name => "Check Ratings Database Health";
+public string Name => Localizer.Get("taskHealthName");
 
 public string Key => "RatingsHealthCheck";
 
-public string Description => "Scans the ratings database for stale entries and heals ratings with outdated item IDs.";
+public string Description => Localizer.Get("taskHealthDescription");
 
-public string Category => "User Ratings";
+public string Category => Localizer.Get("taskCategory");
 
     public async Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {

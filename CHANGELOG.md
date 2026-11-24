@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.1.0 (beta)
+
+- Added Russian translations for the ratings interface and plugin settings, with language selection based on Jellyfin's display language.
+- Added local translation files, plural-aware text and localized dates, with English fallback for untranslated strings.
+- Added translation validation for contributors and CI. Scheduled task names use the server UI culture.
+
+---
+
 ## v2.0.1
 
 Jellyfin 12 support. The plugin is now built for Jellyfin 12+ only. This release rolls up the 2.0.0 and 2.0.1 betas.

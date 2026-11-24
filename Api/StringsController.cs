@@ -1,10 +1,13 @@
-using System.IO;
-using System.Reflection;
+using Jellyfin.Plugin.UserRatings.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Jellyfin.Plugin.UserRatings.Api;
 
+/// <summary>
+/// Serves localized UI strings. The client passes the Jellyfin UI language (?lang=ru-RU);
+/// resolution is done by <see cref="Localizer"/>.
+/// </summary>
 [ApiController]
 [Route("api/UserRatings")]
 [AllowAnonymous]
@@ -12,19 +15,16 @@ public class StringsController : ControllerBase
 {
     [HttpGet("Strings")]
     [Produces("application/json")]
-    public ActionResult GetStrings()
+    public ActionResult GetStrings([FromQuery] string? lang = null)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = "Jellyfin.Plugin.UserRatings.Strings.en.json";
-
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null)
+        var resolved = Localizer.Resolve(lang);
+        if (resolved == null)
         {
             return NotFound(new { error = "Strings resource not found" });
         }
 
-        using var reader = new StreamReader(stream);
-        var json = reader.ReadToEnd();
-        return Content(json, "application/json");
+        Response.Headers["Content-Language"] = resolved.Value.Culture;
+        Response.Headers["Cache-Control"] = "private, max-age=300";
+        return new JsonResult(resolved.Value.Strings);
     }
 }

@@ -170,16 +170,16 @@
         <div data-role="content">
             <div class="content-primary">
                 <form id="UserRatingsConfigForm">
-                    <h2>User Ratings Plugin</h2>
+                    <h2 data-i18n="cfgUserRatingsPlugin">User Ratings Plugin</h2>
 
-                    <div class="fieldDescription" style="margin-bottom: 2em;">
+                    <div class="fieldDescription" style="margin-bottom: 2em;" data-i18n="cfgAllowUsersToRate">
                         Allow users to rate movies, TV shows, episodes, and music. Ratings and reviews are visible to all users on the server via the web interface.
                     </div>
 
                     <!-- Version History -->
                     <div id="versionHistorySection" class="section-divider" style="display:none;">
-                        <h3>Version History</h3>
-                        <div class="fieldDescription" style="margin-bottom: 0.8em;">
+                        <h3 data-i18n="cfgVersionHistory">Version History</h3>
+                        <div class="fieldDescription" style="margin-bottom: 0.8em;" data-i18n="cfgPluginVersionsInstalledOn">
                             Plugin versions installed on this server, newest first.
                         </div>
                         <div id="versionHistoryTableContainer" style="max-height: 320px; overflow-y: auto; border: 1px solid rgba(128,128,128,0.2); border-radius: 4px;">
@@ -187,8 +187,8 @@
                                 <thead style="position: sticky; top: 0; background: var(--theme-accent-bg, rgba(0,0,0,0.2)); z-index: 1;">
                                     <tr>
                                         <th style="text-align: left; padding: 0.4em 0.6em; width: 2.5em;">#</th>
-                                        <th style="text-align: left; padding: 0.4em 0.6em;">Version</th>
-                                        <th style="text-align: left; padding: 0.4em 0.6em;">Installed</th>
+                                        <th style="text-align: left; padding: 0.4em 0.6em;" data-i18n="cfgVersion">Version</th>
+                                        <th style="text-align: left; padding: 0.4em 0.6em;" data-i18n="cfgInstalled">Installed</th>
                                     </tr>
                                 </thead>
                                 <tbody id="versionHistoryTableBody"></tbody>
@@ -198,8 +198,8 @@
 
                     <!-- Rating System Migration -->
                     <div id="migrationSection" class="section-divider" style="display:none;">
-                        <h3 style="color: #FFC107;">&#9888; Rating System Migration</h3>
-                        <div class="fieldDescription" style="margin-bottom: 1em;">
+                        <h3 style="color: #FFC107;" data-i18n="cfgRatingSystemMigration">&#9888; Rating System Migration</h3>
+                        <div class="fieldDescription" style="margin-bottom: 1em;" data-i18n-html="cfgMigrationIntro">
                             Starting with version 1.12.0, User Ratings uses a <strong>10-star rating scale with half-star precision</strong> (previously 5-star). If you have existing ratings, you can convert them to the new scale below.
                         </div>
                         <div id="migrationInfo" style="margin-bottom: 1em;">
@@ -212,144 +212,144 @@
                             <div id="migrationAbove5List" style="margin-top: 0.5em; max-height: 200px; overflow-y: auto; display:none;"></div>
                         </div>
                         <div id="migrationHistory" style="display:none; margin-bottom: 1em;">
-                            <div class="fieldDescription"><strong>Migration history:</strong></div>
+                            <div class="fieldDescription" data-i18n-html="cfgMigrationHistory"><strong>Migration history:</strong></div>
                             <div id="migrationHistoryList"></div>
                         </div>
                         <div id="migrationActions">
-                            <div class="fieldDescription" style="margin-bottom: 0.5em;">
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n-html="cfgMigrationBackupNote">
                                 A backup of <code>ratings.json</code> will be created automatically before migration.
                             </div>
-                            <button id="btnMigrateTo10Star" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;" onclick="return false;">Migrate Ratings to 10-Star Scale</button>
+                            <button id="btnMigrateTo10Star" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;" onclick="return false;" data-i18n="cfgMigrateRatingsTo10">Migrate Ratings to 10-Star Scale</button>
                             <span id="migrationStatus" style="display:inline-block; margin-left: 1em;"></span>
                         </div>
                         <div id="migrationResult" style="display:none; margin-top: 0.5em;"></div>
                     </div>
 
                     <div class="inputContainer section-divider">
-                        <label class="inputLabel" for="recentlyRatedCount">Recently Rated Items Count</label>
+                        <label class="inputLabel" for="recentlyRatedCount" data-i18n="cfgRecentlyRatedItemsCount">Recently Rated Items Count</label>
                         <input type="number" id="recentlyRatedCount" min="5" max="50" step="1" />
-                        <div class="fieldDescription">Number of items to display per page in the Rated Movies, Rated Shows, and Watched sections. Default is 10.</div>
+                        <div class="fieldDescription" data-i18n="cfgNumberOfItemsTo">Number of items to display per page in the Rated Movies, Rated Shows, and Watched sections. Default is 10.</div>
                     </div>
 
                     <div class="section-divider">
-                        <h3>Card Overlays</h3>
-                        <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                        <h3 data-i18n="cfgCardOverlays">Card Overlays</h3>
+                        <div class="fieldDescription" style="margin-bottom: 1.5em;" data-i18n="cfgControlHowRatingBadges">
                             Control how rating badges appear on item cards across Jellyfin.
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="showAverageRatingBadge">Show Average Rating Badge</label>
+                            <label class="inputLabel" for="showAverageRatingBadge" data-i18n="cfgShowAverageRatingBadge">Show Average Rating Badge</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="showAverageRatingBadge" />
-                                <span>Show the community average rating (star) on item cards</span>
+                                <span data-i18n="cfgShowTheCommunityAverage">Show the community average rating (star) on item cards</span>
                             </div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="averageBadgePosition">Average Badge Position</label>
+                            <label class="inputLabel" for="averageBadgePosition" data-i18n="cfgAverageBadgePosition">Average Badge Position</label>
                             <select is="emby-select" id="averageBadgePosition" class="emby-select-withcolor emby-select" style="width: auto;">
-                                <option value="top-left">Top Left</option>
-                                <option value="top-center">Top Center</option>
-                                <option value="top-right">Top Right</option>
-                                <option value="middle-left">Middle Left</option>
-                                <option value="center">Center</option>
-                                <option value="middle-right">Middle Right</option>
-                                <option value="bottom-left">Bottom Left</option>
-                                <option value="bottom-center">Bottom Center</option>
-                                <option value="bottom-right">Bottom Right</option>
+                                <option value="top-left" data-i18n="cfgTopLeft">Top Left</option>
+                                <option value="top-center" data-i18n="cfgTopCenter">Top Center</option>
+                                <option value="top-right" data-i18n="cfgTopRight">Top Right</option>
+                                <option value="middle-left" data-i18n="cfgMiddleLeft">Middle Left</option>
+                                <option value="center" data-i18n="cfgCenter">Center</option>
+                                <option value="middle-right" data-i18n="cfgMiddleRight">Middle Right</option>
+                                <option value="bottom-left" data-i18n="cfgBottomLeft">Bottom Left</option>
+                                <option value="bottom-center" data-i18n="cfgBottomCenter">Bottom Center</option>
+                                <option value="bottom-right" data-i18n="cfgBottomRight">Bottom Right</option>
                             </select>
-                            <div class="fieldDescription">Corner or edge of the card where the average rating badge appears.</div>
+                            <div class="fieldDescription" data-i18n="cfgAverageBadgePositionHelp">Corner or edge of the card where the average rating badge appears.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="showPersonalRatingBadge">Show Personal Rating Badge</label>
+                            <label class="inputLabel" for="showPersonalRatingBadge" data-i18n="cfgShowPersonalRatingBadge">Show Personal Rating Badge</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="showPersonalRatingBadge" />
-                                <span>Show your personal rating (heart) on item cards</span>
+                                <span data-i18n="cfgShowYourPersonalRating">Show your personal rating (heart) on item cards</span>
                             </div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="personalBadgePosition">Personal Badge Position</label>
+                            <label class="inputLabel" for="personalBadgePosition" data-i18n="cfgPersonalBadgePosition">Personal Badge Position</label>
                             <select is="emby-select" id="personalBadgePosition" class="emby-select-withcolor emby-select" style="width: auto;">
-                                <option value="top-left">Top Left</option>
-                                <option value="top-center">Top Center</option>
-                                <option value="top-right">Top Right</option>
-                                <option value="middle-left">Middle Left</option>
-                                <option value="center">Center</option>
-                                <option value="middle-right">Middle Right</option>
-                                <option value="bottom-left">Bottom Left</option>
-                                <option value="bottom-center">Bottom Center</option>
-                                <option value="bottom-right">Bottom Right</option>
+                                <option value="top-left" data-i18n="cfgTopLeft">Top Left</option>
+                                <option value="top-center" data-i18n="cfgTopCenter">Top Center</option>
+                                <option value="top-right" data-i18n="cfgTopRight">Top Right</option>
+                                <option value="middle-left" data-i18n="cfgMiddleLeft">Middle Left</option>
+                                <option value="center" data-i18n="cfgCenter">Center</option>
+                                <option value="middle-right" data-i18n="cfgMiddleRight">Middle Right</option>
+                                <option value="bottom-left" data-i18n="cfgBottomLeft">Bottom Left</option>
+                                <option value="bottom-center" data-i18n="cfgBottomCenter">Bottom Center</option>
+                                <option value="bottom-right" data-i18n="cfgBottomRight">Bottom Right</option>
                             </select>
-                            <div class="fieldDescription">Corner or edge of the card where your personal rating badge appears. When both badges share the same position, the personal badge stacks below (top) or above (bottom) the average badge.</div>
+                            <div class="fieldDescription" data-i18n="cfgPersonalBadgePositionHelp">Corner or edge of the card where your personal rating badge appears. When both badges share the same position, the personal badge stacks below (top) or above (bottom) the average badge.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="favoriteThreshold">Favorite Threshold</label>
+                            <label class="inputLabel" for="favoriteThreshold" data-i18n="cfgFavoriteThreshold">Favorite Threshold</label>
                             <input type="number" id="favoriteThreshold" min="1" max="10" step="1" value="9" />
-                            <div class="fieldDescription">Automatically mark items as Jellyfin favorites when rated at or above this threshold (1\u201310). Set to 0 to disable. When enabled, deleting a rating always removes the favorite.</div>
+                            <div class="fieldDescription" data-i18n="cfgAutomaticallyMarkItemsAs">Automatically mark items as Jellyfin favorites when rated at or above this threshold (1–10). Set to 0 to disable. When enabled, deleting a rating always removes the favorite.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <button type="button" id="btnMarkFavorites" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Mark Existing Favorites</button>
-                            <div class="fieldDescription" style="margin-top: 0.5em;">One-time scan: marks all currently-rated items that meet the threshold as favorites.</div>
+                            <button type="button" id="btnMarkFavorites" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;" data-i18n="cfgMarkExistingFavorites">Mark Existing Favorites</button>
+                            <div class="fieldDescription" style="margin-top: 0.5em;" data-i18n="cfgOneTimeScanMarks">One-time scan: marks all currently-rated items that meet the threshold as favorites.</div>
                             <div id="markFavoritesResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px);"></div>
                         </div>
                     </div>
                 </form>
 
                 <div class="section-divider">
-                    <h3>Database Backup</h3>
-                    <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                    <h3 data-i18n="cfgDatabaseBackup">Database Backup</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1.5em;" data-i18n="cfgAutomaticallyBackUpThe">
                         Automatically back up the ratings database. Backups are stored as timestamped JSON files and rotated to keep only the most recent ones.
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="enableAutoBackup">Enable Automatic Backup</label>
+                        <label class="inputLabel" for="enableAutoBackup" data-i18n="cfgEnableAutomaticBackup">Enable Automatic Backup</label>
                         <div style="display: flex; align-items: center; gap: 0.5em;">
                             <input type="checkbox" id="enableAutoBackup" />
-                            <span>Automatically back up ratings on a schedule</span>
+                            <span data-i18n="cfgAutomaticallyBackUpRatings">Automatically back up ratings on a schedule</span>
                         </div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="backupIntervalHours">Backup Interval (hours)</label>
+                        <label class="inputLabel" for="backupIntervalHours" data-i18n="cfgBackupIntervalHours">Backup Interval (hours)</label>
                         <input type="number" id="backupIntervalHours" min="1" max="168" step="1" value="24" />
-                        <div class="fieldDescription">How often to create an automatic backup. Default is every 24 hours.</div>
+                        <div class="fieldDescription" data-i18n="cfgHowOftenToCreate">How often to create an automatic backup. Default is every 24 hours.</div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="maxBackups">Max Backups to Keep</label>
+                        <label class="inputLabel" for="maxBackups" data-i18n="cfgMaxBackupsToKeep">Max Backups to Keep</label>
                         <input type="number" id="maxBackups" min="1" max="100" step="1" value="7" />
-                        <div class="fieldDescription">Number of backup files to retain. Oldest backups are deleted when this limit is exceeded. Default is 7.</div>
+                        <div class="fieldDescription" data-i18n="cfgNumberOfBackupFiles">Number of backup files to retain. Oldest backups are deleted when this limit is exceeded. Default is 7.</div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="backupPath">Backup Directory Path</label>
+                        <label class="inputLabel" for="backupPath" data-i18n="cfgBackupDirectoryPath">Backup Directory Path</label>
                         <input type="text" id="backupPath" placeholder="/config/data/data/backups/UserRatings" />
-                        <div class="fieldDescription">Directory where backup files are stored. Leave empty to use the default path.</div>
+                        <div class="fieldDescription" data-i18n="cfgDirectoryWhereBackupFiles">Directory where backup files are stored. Leave empty to use the default path.</div>
                     </div>
 
                     <div style="margin-top: 1em; display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
                         <button type="button" id="btnBackupNow" is="emby-button" class="raised" style="min-width: 200px;">
-                            <span>Create Backup Now</span>
+                            <span data-i18n="cfgCreateBackupNow" data-i18n="cfgCreateBackupNow">Create Backup Now</span>
                         </button>
                     </div>
                     <div id="backupResult" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
 
                     <div class="subsection">
-                        <h4>Backup Files on Disk</h4>
+                        <h4 data-i18n="cfgBackupFilesOnDisk">Backup Files on Disk</h4>
                         <div id="backupListContainer" style="margin-top: 0.5em;">
-                            <div class="fieldDescription">Loading backup files...</div>
+                            <div class="fieldDescription" data-i18n="cfgLoadingBackupFiles">Loading backup files...</div>
                         </div>
 
                         <div style="margin-top: 1em;">
-                            <h4 style="margin-bottom: 0.3em;">Upload Backup File</h4>
-                            <div class="fieldDescription" style="margin-bottom: 0.5em;">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
+                            <h4 style="margin-bottom: 0.3em;" data-i18n="cfgUploadBackupFile">Upload Backup File</h4>
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgUploadAJsonBackup">Upload a JSON backup file to add it to the backup directory. You can then restore from it.</div>
                             <div class="upload-area">
                                 <input type="file" id="backupFileInput" accept=".json" style="color: var(--textColor, #fff);" />
-                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Upload</button>
+                                <button type="button" id="btnUploadBackup" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;" data-i18n="cfgUpload">Upload</button>
                             </div>
                             <div id="uploadResult" style="display: none; margin-top: 0.5em; padding: 0.5em; border-radius: var(--smallRadius, 4px); font-size: 0.9em;"></div>
                         </div>
@@ -357,177 +357,177 @@
                 </div>
 
                 <div class="section-divider">
-                    <h3>Plex Sync</h3>
-                    <div class="fieldDescription" style="margin-bottom: 1.5em;">
+                    <h3 data-i18n="cfgPlexSync">Plex Sync</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1.5em;" data-i18n="cfgSynchronizeYourRatingsFrom">
                         Synchronize your ratings from a Plex Media Server. Ratings are matched to Jellyfin items using IMDB, TMDB, and TVDB identifiers.
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="plexServerUrl">Plex Server URL</label>
+                        <label class="inputLabel" for="plexServerUrl" data-i18n="cfgPlexServerUrl">Plex Server URL</label>
                         <input type="text" id="plexServerUrl" placeholder="http://192.168.1.100:32400" />
-                        <div class="fieldDescription">The URL of your Plex Media Server, including the port (default: 32400).</div>
+                        <div class="fieldDescription" data-i18n="cfgTheUrlOfYour">The URL of your Plex Media Server, including the port (default: 32400).</div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="plexToken">Plex Token</label>
-                        <input type="password" id="plexToken" placeholder="Enter your Plex token" />
-                        <div class="fieldDescription">Your Plex authentication token. <a href="https://www.plexopedia.com/plex-media-server/general/plex-token/" target="_blank" style="color: var(--textColor, #fff);">How to find your Plex token</a>. Leave blank to keep the stored token.</div>
+                        <label class="inputLabel" for="plexToken" data-i18n="cfgPlexToken">Plex Token</label>
+                        <input type="password" id="plexToken" placeholder="Enter your Plex token"  data-i18n-placeholder="cfgPlexTokenPlaceholder"/>
+                        <div class="fieldDescription" data-i18n-html="cfgPlexTokenHelp">Your Plex authentication token. <a href="https://www.plexopedia.com/plex-media-server/general/plex-token/" target="_blank" style="color: var(--textColor, #fff);">How to find your Plex token</a>. Leave blank to keep the stored token.</div>
                     </div>
 
                     <div style="margin: 0.5em 0;">
-                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Clear Stored Token</button>
-                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;">Test Connection</button>
+                        <button type="button" id="btnClearPlexToken" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;" data-i18n="cfgClearStoredToken">Clear Stored Token</button>
+                        <button type="button" id="btnTestPlexConnection" is="emby-button" class="raised btn-small" style="font-size: 0.85em; padding: 0.3em 0.8em;" data-i18n="cfgTestConnection">Test Connection</button>
                     </div>
                     <div id="plexStatus" style="display: none; margin-top: 1em; padding: 0.8em 1em; border-radius: var(--smallRadius, 4px); font-size: 0.95em;"></div>
 
                     <div class="subsection">
-                        <h4>Scheduled Sync</h4>
-                        <div class="fieldDescription" style="margin-bottom: 1em;">
+                        <h4 data-i18n="cfgScheduledSync">Scheduled Sync</h4>
+                        <div class="fieldDescription" style="margin-bottom: 1em;" data-i18n="cfgAutomaticallySyncRatingsAnd">
                             Automatically sync ratings and optionally watch history from Plex on a schedule. These settings are saved and applied periodically.
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="enableAutoSync">Enable Automatic Sync</label>
+                            <label class="inputLabel" for="enableAutoSync" data-i18n="cfgEnableAutomaticSync">Enable Automatic Sync</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enableAutoSync" />
-                                <span>Automatically sync from Plex on a schedule</span>
+                                <span data-i18n="cfgAutomaticallySyncFromPlex">Automatically sync from Plex on a schedule</span>
                             </div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="enablePlexRatingSync">Sync Ratings</label>
+                            <label class="inputLabel" for="enablePlexRatingSync" data-i18n="cfgSyncRatings">Sync Ratings</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enablePlexRatingSync" />
-                                <span>Import ratings from Plex into Jellyfin.</span>
+                                <span data-i18n="cfgImportRatingsFromPlex">Import ratings from Plex into Jellyfin.</span>
                             </div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="enablePlexWatchHistorySync">Sync Watch History</label>
+                            <label class="inputLabel" for="enablePlexWatchHistorySync" data-i18n="cfgSyncWatchHistory">Sync Watch History</label>
                             <div style="display: flex; align-items: center; gap: 0.5em;">
                                 <input type="checkbox" id="enablePlexWatchHistorySync" />
-                                <span>Sync all watch history from Plex and mark items as played in Jellyfin. This includes all movies and episodes you've watched on Plex, not just rated items.</span>
+                                <span data-i18n="cfgSyncAllWatchHistory">Sync all watch history from Plex and mark items as played in Jellyfin. This includes all movies and episodes you've watched on Plex, not just rated items.</span>
                             </div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="syncUserId">Sync As User</label>
+                            <label class="inputLabel" for="syncUserId" data-i18n="cfgSyncAsUser">Sync As User</label>
                             <select is="emby-select" id="syncUserId" class="emby-select-withcolor emby-select">
-                                <option value="">Loading users...</option>
+                                <option value="" data-i18n="cfgLoadingUsers">Loading users...</option>
                             </select>
-                            <div class="fieldDescription">The Jellyfin user to sync Plex ratings and watch history for.</div>
+                            <div class="fieldDescription" data-i18n="cfgTheJellyfinUserTo">The Jellyfin user to sync Plex ratings and watch history for.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="syncConflictMode">On Conflict</label>
+                            <label class="inputLabel" for="syncConflictMode" data-i18n="cfgOnConflict">On Conflict</label>
                             <select is="emby-select" id="syncConflictMode" class="emby-select-withcolor emby-select">
-                                <option value="skip">Skip — Keep existing Jellyfin rating unchanged</option>
-                                <option value="overwrite">Overwrite — Plex/imported rating always replaces existing</option>
-                                <option value="keepHigher">Keep Higher — Higher rating wins; equal ratings keep existing</option>
+                                <option value="skip" data-i18n="cfgSyncConflictSkip">Skip — Keep existing Jellyfin rating unchanged</option>
+                                <option value="overwrite" data-i18n="cfgSyncConflictOverwrite">Overwrite — Plex/imported rating always replaces existing</option>
+                                <option value="keepHigher" data-i18n="cfgSyncConflictKeepHigher">Keep Higher — Higher rating wins; equal ratings keep existing</option>
                             </select>
-                            <div class="fieldDescription">How to resolve conflicts when importing from Plex encounters an existing Jellyfin rating. Affects both manual import and scheduled sync.</div>
+                            <div class="fieldDescription" data-i18n="cfgSyncConflictHelp">How to resolve conflicts when importing from Plex encounters an existing Jellyfin rating. Affects both manual import and scheduled sync.</div>
                         </div>
 
                         <div class="inputContainer">
-                            <label class="inputLabel" for="syncIntervalHours">Sync Interval (hours)</label>
+                            <label class="inputLabel" for="syncIntervalHours" data-i18n="cfgSyncIntervalHours">Sync Interval (hours)</label>
                             <input type="number" id="syncIntervalHours" min="1" max="168" step="1" value="24" />
-                            <div class="fieldDescription">How often to sync from Plex automatically. Default is every 24 hours.</div>
+                            <div class="fieldDescription" data-i18n="cfgHowOftenToSync">How often to sync from Plex automatically. Default is every 24 hours.</div>
                         </div>
 
                         <div id="importProgress" style="display: none; margin-top: 1.5em;">
-                            <h4>Sync Progress</h4>
+                            <h4 data-i18n="cfgSyncProgress">Sync Progress</h4>
                             <div style="background: var(--selectorBackgroundColor, rgba(255,255,255,0.1)); border-radius: var(--smallRadius, 4px); overflow: hidden; height: 24px; margin-bottom: 0.5em;">
                                 <div id="progressBar" style="height: 100%; background: #4CAF50; width: 0%; transition: width 0.3s ease; border-radius: var(--smallRadius, 4px);"></div>
                             </div>
-                            <div id="progressText" style="font-size: 0.9em; color: var(--dimTextColor, #ccc);">Preparing...</div>
+                            <div id="progressText" style="font-size: 0.9em; color: var(--dimTextColor, #ccc);" data-i18n="cfgPreparing">Preparing...</div>
                             <div id="progressStats" style="font-size: 0.85em; color: var(--dimTextColor, #aaa); margin-top: 0.3em;"></div>
                         </div>
 
                         <div id="importResult" style="display: none; margin-top: 1.5em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
 
                         <div id="unmatchedSection" style="display: none; margin-top: 1em;">
-                            <h4>Unmatched Items</h4>
-                            <div class="fieldDescription" style="margin-bottom: 0.5em;">These Plex items could not be matched to Jellyfin items.</div>
+                            <h4 data-i18n="cfgUnmatchedItems">Unmatched Items</h4>
+                            <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgThesePlexItemsCould">These Plex items could not be matched to Jellyfin items.</div>
                             <div id="unmatchedList" class="item-list"></div>
                         </div>
 
                         <div style="margin-top: 1.5em;">
-                            <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Sync Now</button>
+                            <button type="button" id="btnSyncNow" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;" data-i18n="cfgSyncNow">Sync Now</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="section-divider">
-                    <h3>Database Health</h3>
-                    <div class="fieldDescription" style="margin-bottom: 1em;">
+                    <h3 data-i18n="cfgDatabaseHealth">Database Health</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1em;" data-i18n="cfgCheckTheRatingsDatabase">
                         Check the ratings database for consistency. Ratings with stale item IDs (items no longer in the library) can be healed by matching provider IDs (IMDB, TMDB, TVDB) or cleared.
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="enableAutoHealthCheck">Enable Automatic Health Check</label>
+                        <label class="inputLabel" for="enableAutoHealthCheck" data-i18n="cfgEnableAutomaticHealthCheck">Enable Automatic Health Check</label>
                         <div style="display: flex; align-items: center; gap: 0.5em;">
                             <input type="checkbox" id="enableAutoHealthCheck" />
-                            <span>Run health check and healing on schedule</span>
+                            <span data-i18n="cfgRunHealthCheckAnd">Run health check and healing on schedule</span>
                         </div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="healthCheckIntervalMinutes">Health Check Interval (minutes)</label>
+                        <label class="inputLabel" for="healthCheckIntervalMinutes" data-i18n="cfgHealthCheckIntervalMinutes">Health Check Interval (minutes)</label>
                         <input type="number" id="healthCheckIntervalMinutes" min="5" max="1440" step="5" value="30" />
-                        <div class="fieldDescription">How often the scheduled task checks and heals stale ratings. Default is 30 minutes.</div>
+                        <div class="fieldDescription" data-i18n="cfgHowOftenTheScheduled">How often the scheduled task checks and heals stale ratings. Default is 30 minutes.</div>
                     </div>
 
                     <div class="inputContainer">
-                        <label class="inputLabel" for="healingConflictMode">Healing Conflict Mode</label>
+                        <label class="inputLabel" for="healingConflictMode" data-i18n="cfgHealingConflictMode">Healing Conflict Mode</label>
                         <select is="emby-select" id="healingConflictMode" class="emby-select-withcolor emby-select" style="width: auto;">
-                            <option value="skip">Skip — Prefer Jellyfin ratings; same source keeps newer</option>
-                            <option value="overwrite">Overwrite — Plex/imported ratings always win; same source keeps newer</option>
-                            <option value="keepHigher">Keep Higher — Higher rating wins; equal ratings keep newer</option>
+                            <option value="skip" data-i18n="cfgHealConflictSkip">Skip — Prefer Jellyfin ratings; same source keeps newer</option>
+                            <option value="overwrite" data-i18n="cfgHealConflictOverwrite">Overwrite — Plex/imported ratings always win; same source keeps newer</option>
+                            <option value="keepHigher" data-i18n="cfgHealConflictKeepHigher">Keep Higher — Higher rating wins; equal ratings keep newer</option>
                         </select>
-                        <div class="fieldDescription">How to resolve conflicts when healing re-links an orphaned rating to an item that already has a rating. This setting is independent from the Plex import conflict mode.</div>
+                        <div class="fieldDescription" data-i18n="cfgHealConflictHelp">How to resolve conflicts when healing re-links an orphaned rating to an item that already has a rating. This setting is independent from the Plex import conflict mode.</div>
                     </div>
 
                     <div style="display: flex; gap: 1em; align-items: center; flex-wrap: wrap;">
-                        <button type="button" id="btnHealthCheck" is="emby-button" class="raised" style="min-width: 200px;">Check Database Health</button>
-                        <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;">Heal Database</button>
+                        <button type="button" id="btnHealthCheck" is="emby-button" class="raised" style="min-width: 200px;" data-i18n="cfgCheckDatabaseHealth">Check Database Health</button>
+                        <button type="button" id="btnHealRatings" is="emby-button" class="raised button-submit" style="min-width: 200px; background: #4CAF50; color: #fff;" data-i18n="cfgHealDatabase">Heal Database</button>
                     </div>
                     <div id="healthResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: var(--smallRadius, 4px);"></div>
                     <div id="recoverableList" style="display: none; margin-top: 1em;">
-                        <h4>Recoverable Items</h4>
-                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings can be healed by matching their provider IDs (IMDB, TMDB, TVDB) to items in your library.</div>
+                        <h4 data-i18n="cfgRecoverableItems">Recoverable Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgTheseRatingsCanBe">These ratings can be healed by matching their provider IDs (IMDB, TMDB, TVDB) to items in your library.</div>
                         <div id="recoverableItems" class="item-list"></div>
                     </div>
                     <div id="healedList" style="display: none; margin-top: 1em;">
-                        <h4>Healed Items</h4>
-                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings were successfully re-linked to items in your library.</div>
+                        <h4 data-i18n="cfgHealedItems">Healed Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgTheseRatingsWereSuccessfully">These ratings were successfully re-linked to items in your library.</div>
                         <div id="healedItems" class="item-list"></div>
                     </div>
                     <div id="conflictList" style="display: none; margin-top: 1em;">
-                        <h4 style="color: #FF9800;">Conflicts</h4>
-                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be healed because the target item already has a rating. The incoming rating is preserved at its old key and will appear as recoverable in future health checks.</div>
+                        <h4 style="color: #FF9800;" data-i18n="cfgConflicts">Conflicts</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgConflictsHelp">These ratings could not be healed because the target item already has a rating. The incoming rating is preserved at its old key and will appear as recoverable in future health checks.</div>
                         <div id="conflictItems" class="item-list"></div>
                     </div>
                     <div id="staleList" style="display: none; margin-top: 1em;">
-                        <h4>Stale Items</h4>
-                        <div class="fieldDescription" style="margin-bottom: 0.5em;">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
+                        <h4 data-i18n="cfgStaleItems">Stale Items</h4>
+                        <div class="fieldDescription" style="margin-bottom: 0.5em;" data-i18n="cfgStaleItemsHelp">These ratings could not be matched to any library item by ItemId or provider IDs.</div>
                         <div id="staleItems" class="item-list"></div>
                     </div>
                 </div>
 
                 <div class="section-divider">
-                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm" style="min-width: 200px; background: #2196F3; color: #fff;">Save Settings</button>
+                    <button type="submit" is="emby-button" class="save-btn" form="UserRatingsConfigForm" style="min-width: 200px; background: #2196F3; color: #fff;" data-i18n="cfgSaveSettings">Save Settings</button>
                 </div>
 
                  <div style="margin-top: 2em; padding-top: 2em; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                     <h3 style="color: #e53935;">Danger Zone</h3>
-                     <div class="fieldDescription" style="margin-bottom: 1em;">
+                     <h3 style="color: #e53935;" data-i18n="cfgDangerZone">Danger Zone</h3>
+                     <div class="fieldDescription" style="margin-bottom: 1em;" data-i18n="cfgPermanentlyDeleteAllUser">
                          Permanently delete all user ratings from the database. This action cannot be undone.
                      </div>
                      <div style="display: flex; gap: 1em; flex-wrap: wrap;">
-                          <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;">Delete All Ratings</button>
-                          <button id="btnClearStale" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;">Clear Stale Ratings</button>
+                          <button id="btnDeleteAllRatings" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;" data-i18n="cfgDeleteAllRatings">Delete All Ratings</button>
+                          <button id="btnClearStale" type="button" is="emby-button" class="raised" style="background: #e53935; color: #fff;" data-i18n="cfgClearStaleRatings">Clear Stale Ratings</button>
                      </div>
-                     <div class="fieldDescription" style="margin-top: 0.5em; color: #ff9800;">
+                     <div class="fieldDescription" style="margin-top: 0.5em; color: #ff9800;" data-i18n="cfgClearStaleRemovesRatings">
                          Clear Stale: removes ratings that cannot be matched to any library item by any ID. Run "Check Database Health" first to see which ratings are stale.
                      </div>
                      <div id="deleteResult" style="display: none; margin-top: 1em; padding: 1em; border-radius: 4px;"></div>
@@ -545,10 +545,81 @@
                 pluginUniqueId: "b8c5d3e7-4f6a-8b9c-1d2e-3f4a5b6c7d8e"
             };
 
+            // ---- Localization -------------------------------------------------------------
+            // Strings come from api/UserRatings/Strings (Strings/{lang}.json, English fallback).
+            // Static markup carries data-i18n / data-i18n-html / data-i18n-placeholder with the
+            // English text left in place as the default; dynamic text uses T(key, fallback, ...args)
+            // where {0}, {1} are positional placeholders.
+            var _i18n = {};
+            var _i18nLang = null;
+
+            function i18nLang() {
+                // Jellyfin keeps <html lang> in sync with the user's display language.
+                return (document.documentElement.getAttribute('lang') || navigator.language || 'en').toLowerCase();
+            }
+
+            function i18nReady() {
+                var lang = i18nLang();
+                if (_i18nLang === lang) {
+                    return Promise.resolve();
+                }
+                return fetch(ApiClient.getUrl('api/UserRatings/Strings', { lang: lang }), {
+                    headers: { 'Authorization': mbAuthHeader() }
+                }).then(function (r) {
+                    return r.ok ? r.json() : {};
+                }).then(function (dict) {
+                    _i18n = dict;
+                    _i18nLang = lang;
+                }, function () { /* keep the English text from the markup */ });
+            }
+
+            function T(key, fallback) {
+                var args = Array.prototype.slice.call(arguments, 2);
+                return (_i18n[key] || fallback).replace(/\{(\d+)\}/g, function (m, i) {
+                    return i < args.length ? args[i] : m;
+                });
+            }
+
+            // Plural-aware lookup: keys are <key>_<zero|one|two|few|many|other>, each with a {0} placeholder.
+            function TP(key, n, fallbackOne, fallbackOther) {
+                var rule = 'other';
+                try { rule = new Intl.PluralRules(_i18nLang || i18nLang()).select(n); } catch (e) { /* keep 'other' */ }
+                var text = _i18n[key + '_' + rule] || _i18n[key + '_other'] || (n === 1 ? fallbackOne : fallbackOther);
+                return text.replace(/\{0\}/g, n);
+            }
+
+            function applyI18n(root) {
+                root.querySelectorAll('[data-i18n]').forEach(function (el) {
+                    var v = _i18n[el.getAttribute('data-i18n')];
+                    if (v) { el.textContent = v; }
+                });
+                root.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+                    var v = _i18n[el.getAttribute('data-i18n-html')];
+                    if (v) { el.innerHTML = v; }
+                });
+                root.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+                    var v = _i18n[el.getAttribute('data-i18n-placeholder')];
+                    if (v) { el.placeholder = v; }
+                });
+            }
+            // -------------------------------------------------------------------------------
+
+            // Locale for dates/numbers: the user's Jellyfin display language, not the browser's.
+            function loc() {
+                try { var l = i18nLang(); Intl.getCanonicalLocales(l); return l; } catch (e) { return undefined; }
+            }
+
+            function provList(obj) {
+                return Object.entries(obj || {}).map(function (e) { return e[0] + ': ' + e[1]; }).join(', ');
+            }
+
             document.getElementById('UserRatingsConfigPage').addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();
 
-                ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
+                i18nReady().then(function () {
+                    applyI18n(document.getElementById('UserRatingsConfigPage'));
+                    return ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId);
+                }).then(function (config) {
                     document.getElementById('recentlyRatedCount').value = config.RecentlyRatedItemsCount || 10;
                     document.getElementById('plexServerUrl').value = config.PlexServerUrl || '';
                     document.getElementById('enablePlexWatchHistorySync').checked = config.EnablePlexWatchHistorySync || false;
@@ -572,10 +643,10 @@
                     document.getElementById('favoriteThreshold').value = config.FavoriteThreshold ?? 9;
 
                     if (config.EncryptedPlexToken) {
-                        document.getElementById('plexToken').placeholder = 'Token is stored (leave blank to keep)';
+                        document.getElementById('plexToken').placeholder = T('cfgMsgTokenStored', 'Token is stored (leave blank to keep)');
                         document.getElementById('plexToken').value = '';
                     } else {
-                        document.getElementById('plexToken').placeholder = 'Enter your Plex token';
+                        document.getElementById('plexToken').placeholder = T('cfgPlexTokenPlaceholder', 'Enter your Plex token');
                         document.getElementById('plexToken').value = '';
                     }
 
@@ -604,7 +675,7 @@
                     });
                 }).catch(function () {
                     var syncSelect = document.getElementById('syncUserId');
-                    syncSelect.innerHTML = '<option value="">Failed to load users</option>';
+                    syncSelect.innerHTML = '<option value="">' + T('cfgMsgFailedLoadUsers', 'Failed to load users') + '</option>';
                 });
             }
 
@@ -614,15 +685,15 @@
                     headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (!result.success || !result.backups || result.backups.length === 0) {
-                        container.innerHTML = '<div class="fieldDescription">No backup files found on disk.</div>';
+                        container.innerHTML = '<div class="fieldDescription">' + T('cfgMsgNoBackups', 'No backup files found on disk.') + '</div>';
                         return;
                     }
 
                     var html = '<table class="backup-table">';
-                    html += '<thead><tr><th>File</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>';
+                    html += '<thead><tr><th>' + T('cfgMsgColFile', 'File') + '</th><th>' + T('cfgMsgColDate', 'Date') + '</th><th>' + T('cfgMsgColSize', 'Size') + '</th><th>' + T('cfgMsgColActions', 'Actions') + '</th></tr></thead>';
                     html += '<tbody>';
                     result.backups.forEach(function (b) {
-                        var dateStr = b.parsedTimestamp ? new Date(b.parsedTimestamp).toLocaleString() : new Date(b.lastModified).toLocaleString();
+                        var dateStr = b.parsedTimestamp ? new Date(b.parsedTimestamp).toLocaleString(loc()) : new Date(b.lastModified).toLocaleString(loc());
                         var sizeStr = b.fileSize < 1024 ? b.fileSize + ' B'
                             : b.fileSize < 1048576 ? (b.fileSize / 1024).toFixed(1) + ' KB'
                             : (b.fileSize / 1048576).toFixed(1) + ' MB';
@@ -631,16 +702,16 @@
                         html += '<td>' + dateStr + '</td>';
                         html += '<td>' + sizeStr + '</td>';
                         html += '<td>';
-                        html += '<button type="button" is="emby-button" class="raised btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">Download</button>';
-                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #FF9800; color: #fff;" onclick="restoreBackup(\'' + b.fileName + '\')">Restore</button>';
-                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #e53935; color: #fff;" onclick="deleteBackup(\'' + b.fileName + '\')">Delete</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" onclick="downloadBackup(\'' + b.fileName + '\')">' + T('cfgMsgDownload', 'Download') + '</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #FF9800; color: #fff;" onclick="restoreBackup(\'' + b.fileName + '\')">' + T('cfgMsgRestore', 'Restore') + '</button>';
+                        html += '<button type="button" is="emby-button" class="raised btn-small" style="background: #e53935; color: #fff;" onclick="deleteBackup(\'' + b.fileName + '\')">' + T('cfgMsgDelete', 'Delete') + '</button>';
                         html += '</td>';
                         html += '</tr>';
                     });
                     html += '</tbody></table>';
                     container.innerHTML = html;
                 }).catch(function (err) {
-                    container.innerHTML = '<div class="fieldDescription" style="color: #f44336;">Error loading backups: ' + err.message + '</div>';
+                    container.innerHTML = '<div class="fieldDescription" style="color: #f44336;">' + T('cfgMsgErrorLoadingBackups', 'Error loading backups: {0}', err.message) + '</div>';
                 });
             }
 
@@ -648,7 +719,7 @@
                 var url = ApiClient.getUrl('api/UserRatings/DownloadBackup?fileName=' + encodeURIComponent(fileName));
                 fetch(url, { headers: { 'Authorization': mbAuthHeader() } })
                     .then(function (r) {
-                        if (!r.ok) throw new Error('Download failed: ' + r.status);
+                        if (!r.ok) throw new Error(T('cfgMsgDownloadFailed', 'Download failed: {0}', r.status));
                         return r.blob();
                     })
                     .then(function (blob) {
@@ -661,18 +732,18 @@
                         URL.revokeObjectURL(a.href);
                     })
                     .catch(function (err) {
-                        alert('Error downloading backup: ' + err.message);
+                        alert(T('cfgMsgErrorDownloading', 'Error downloading backup: {0}', err.message));
                     });
             }
 
             function restoreBackup(fileName) {
-                if (!confirm('Are you sure you want to restore from "' + fileName + '"? This will replace ALL current ratings with the backup data. A pre-restore backup will be created automatically.')) {
+                if (!confirm(T('cfgMsgConfirmRestore', 'Are you sure you want to restore from "{0}"? This will replace ALL current ratings with the backup data. A pre-restore backup will be created automatically.', fileName))) {
                     return;
                 }
 
                 var resultDiv = document.getElementById('backupResult');
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Restoring from backup...';
+                resultDiv.innerHTML = T('cfgMsgRestoring', 'Restoring from backup...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/RestoreBackup?fileName=' + encodeURIComponent(fileName)), {
@@ -684,23 +755,23 @@
                         resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
                         loadBackupList();
                     } else {
-                        resultDiv.innerHTML = result.message || 'Restore failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgRestoreFailed', 'Restore failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             }
 
             function deleteBackup(fileName) {
-                if (!confirm('Are you sure you want to permanently delete "' + fileName + '"? This cannot be undone.')) {
+                if (!confirm(T('cfgMsgConfirmDeleteBackup', 'Are you sure you want to permanently delete "{0}"? This cannot be undone.', fileName))) {
                     return;
                 }
 
                 var resultDiv = document.getElementById('backupResult');
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Deleting backup...';
+                resultDiv.innerHTML = T('cfgMsgDeletingBackup', 'Deleting backup...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/DeleteBackup?fileName=' + encodeURIComponent(fileName)), {
@@ -716,7 +787,7 @@
                         resultDiv.style.backgroundColor = 'rgba(229,57,53,0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(229,57,53,0.2)';
                 });
             }
@@ -757,13 +828,13 @@
                     ApiClient.updatePluginConfiguration(UserRatingsConfig.pluginUniqueId, config).then(function () {
                         Dashboard.processPluginConfigurationUpdateResult();
                         tokenField.value = '';
-                        tokenField.placeholder = 'Token is stored (leave blank to keep)';
+                        tokenField.placeholder = T('cfgMsgTokenStored', 'Token is stored (leave blank to keep)');
 
                         var saveBtn = document.querySelector('.save-btn');
-                        saveBtn.textContent = 'Saved!';
+                        saveBtn.textContent = T('cfgMsgSaved', 'Saved!');
                         saveBtn.style.background = '#1565C0';
                         setTimeout(function () {
-                            saveBtn.textContent = 'Save Settings';
+                            saveBtn.textContent = T('cfgSaveSettings', 'Save Settings');
                             saveBtn.style.background = '';
                         }, 2000);
 
@@ -775,7 +846,7 @@
             });
 
             document.getElementById('btnClearPlexToken').addEventListener('click', function () {
-                if (!confirm('Are you sure you want to clear the stored Plex token?')) return;
+                if (!confirm(T('cfgMsgConfirmClearToken', 'Are you sure you want to clear the stored Plex token?'))) return;
 
                 ApiClient.getPluginConfiguration(UserRatingsConfig.pluginUniqueId).then(function (config) {
                     config.EncryptedPlexToken = '';
@@ -783,8 +854,8 @@
                     ApiClient.updatePluginConfiguration(UserRatingsConfig.pluginUniqueId, config).then(function () {
                         var tokenField = document.getElementById('plexToken');
                         tokenField.value = '';
-                        tokenField.placeholder = 'Enter your Plex token';
-                        showStatus('plexStatus', 'Plex token cleared.', true);
+                        tokenField.placeholder = T('cfgPlexTokenPlaceholder', 'Enter your Plex token');
+                        showStatus('plexStatus', T('cfgMsgTokenCleared', 'Plex token cleared.'), true);
                         window.dispatchEvent(new CustomEvent('userratings-config-changed'));
                     });
                 });
@@ -793,7 +864,7 @@
             document.getElementById('btnTestPlexConnection').addEventListener('click', function () {
                 var statusDiv = document.getElementById('plexStatus');
                 statusDiv.style.display = 'block';
-                statusDiv.innerHTML = 'Testing connection...';
+                statusDiv.innerHTML = T('cfgMsgTestingConnection', 'Testing connection...');
                 statusDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/PlexStatus'), {
@@ -807,7 +878,7 @@
                         statusDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    statusDiv.innerHTML = 'Connection error: ' + err.message;
+                    statusDiv.innerHTML = T('cfgMsgConnectionError', 'Connection error: {0}', err.message);
                     statusDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -817,13 +888,13 @@
             document.getElementById('btnSyncNow').addEventListener('click', function () {
                 var userId = document.getElementById('syncUserId').value;
                 if (!userId) {
-                    alert('Please select a user to sync for.');
+                    alert(T('cfgMsgSelectUser', 'Please select a user to sync for.'));
                     return;
                 }
 
                 var plexUrl = document.getElementById('plexServerUrl').value.trim();
                 if (!plexUrl) {
-                    alert('Please configure and save the Plex server URL first.');
+                    alert(T('cfgMsgConfigurePlexUrl', 'Please configure and save the Plex server URL first.'));
                     return;
                 }
 
@@ -832,7 +903,7 @@
                 var importWatchHistory = document.getElementById('enablePlexWatchHistorySync').checked;
 
                 if (!importRatings && !importWatchHistory) {
-                    alert('Please enable at least one: Sync Ratings or Sync Watch History.');
+                    alert(T('cfgMsgEnableOneSync', 'Please enable at least one: Sync Ratings or Sync Watch History.'));
                     return;
                 }
 
@@ -847,7 +918,7 @@
                 resultDiv.style.display = 'none';
                 unmatchedSection.style.display = 'none';
                 progressBar.style.width = '0%';
-                progressText.textContent = 'Starting sync...';
+                progressText.textContent = T('cfgMsgStartingSync', 'Starting sync...');
                 progressStats.textContent = '';
 
                 document.getElementById('btnSyncNow').disabled = true;
@@ -858,7 +929,7 @@
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (!result.success) {
                         resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = result.message || 'Sync failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgSyncFailed', 'Sync failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                         document.getElementById('btnSyncNow').disabled = false;
                         return;
@@ -868,7 +939,7 @@
                     connectProgressSSE(operationId);
                 }).catch(function (err) {
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     document.getElementById('btnSyncNow').disabled = false;
                 });
@@ -893,25 +964,25 @@
                     progressBar.style.width = data.percentComplete + '%';
 
                     if (data.status === 'fetching') {
-                        progressText.textContent = 'Fetching libraries from Plex...';
+                        progressText.textContent = T('cfgMsgFetchingLibraries', 'Fetching libraries from Plex...');
                     } else if (data.status === 'matching') {
-                        progressText.textContent = 'Matching rated items: ' + (data.currentItem || '...');
-                        progressStats.textContent = 'Processed ' + data.processedItems + ' of ' + data.totalItems + ' items';
+                        progressText.textContent = T('cfgMsgMatchingItems', 'Matching rated items: {0}', data.currentItem || '...');
+                        progressStats.textContent = T('cfgMsgProcessedOf', 'Processed {0} of {1} items', data.processedItems, data.totalItems);
                     } else if (data.status === 'saving') {
-                        progressText.textContent = 'Saving ratings...';
+                        progressText.textContent = T('cfgMsgSavingRatings', 'Saving ratings...');
                     } else if (data.status === 'watch_history') {
-                        progressText.textContent = 'Syncing watch history: ' + (data.currentItem || '...');
-                        progressStats.textContent = 'Processed ' + data.processedItems + ' of ' + data.totalItems + ' items';
+                        progressText.textContent = T('cfgMsgSyncingWatch', 'Syncing watch history: {0}', data.currentItem || '...');
+                        progressStats.textContent = T('cfgMsgProcessedOf', 'Processed {0} of {1} items', data.processedItems, data.totalItems);
                     } else if (data.status === 'completed') {
                         progressBar.style.width = '100%';
-                        progressText.textContent = 'Sync complete!';
+                        progressText.textContent = T('cfgMsgSyncComplete', 'Sync complete!');
                         progressStats.textContent = '';
                         currentEventSource.close();
                         currentEventSource = null;
                         document.getElementById('btnSyncNow').disabled = false;
                         showImportResult(data);
                     } else if (data.status === 'failed') {
-                        progressText.textContent = 'Sync failed';
+                        progressText.textContent = T('cfgMsgSyncFailed', 'Sync failed');
                         progressStats.textContent = '';
                         currentEventSource.close();
                         currentEventSource = null;
@@ -919,10 +990,10 @@
 
                         var resultDiv = document.getElementById('importResult');
                         resultDiv.style.display = 'block';
-                        resultDiv.innerHTML = data.errorMessage || 'Sync failed';
+                        resultDiv.innerHTML = data.errorMessage || T('cfgMsgSyncFailed', 'Sync failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     } else if (data.status === 'cancelled') {
-                        progressText.textContent = 'Sync cancelled';
+                        progressText.textContent = T('cfgMsgSyncCancelled', 'Sync cancelled');
                         currentEventSource.close();
                         currentEventSource = null;
                         document.getElementById('btnSyncNow').disabled = false;
@@ -940,12 +1011,12 @@
 
             function showImportResult(data) {
                 var resultDiv = document.getElementById('importResult');
-                var html = '<strong>Sync Complete</strong><br>' +
-                    'Imported: ' + data.importedItems + '<br>' +
-                    'Skipped: ' + data.skippedItems + '<br>' +
-                    'Unmatched: ' + data.unmatchedItems;
+                var html = '<strong>' + T('cfgMsgSyncCompleteTitle', 'Sync Complete') + '</strong><br>' +
+T('cfgMsgImported', 'Imported: {0}', data.importedItems) + '<br>' +
+T('cfgMsgSkipped', 'Skipped: {0}', data.skippedItems) + '<br>' +
+T('cfgMsgUnmatched', 'Unmatched: {0}', data.unmatchedItems);
                 if (data.watchedItems > 0) {
-                    html += '<br>Marked as played: ' + data.watchedItems;
+                    html += '<br>' + T('cfgMsgMarkedPlayed', 'Marked as played: {0}', data.watchedItems);
                 }
                 resultDiv.innerHTML = html;
                 resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
@@ -960,7 +1031,7 @@
                         var div = document.createElement('div');
                         div.className = 'item-entry';
                         div.innerHTML = '<strong>' + item.plexType + '</strong>: ' + item.title +
-                            ' <span style="color: var(--dimTextColor, #aaa);">(Plex rating: ' + item.plexRating + '/10)</span>' +
+                            ' <span style="color: var(--dimTextColor, #aaa);">' + T('cfgMsgPlexRating', '(Plex rating: {0}/10)', item.plexRating) + '</span>' +
                             '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + item.guids.join(', ') + '</span>';
                         unmatchedList.appendChild(div);
                     });
@@ -984,11 +1055,11 @@
                 var resultDiv = document.getElementById('deleteResult');
                 resultDiv.style.display = 'none';
 
-                if (!confirm('Are you ABSOLUTELY sure you want to delete ALL user ratings? This cannot be undone!')) {
+                if (!confirm(T('cfgMsgConfirmDeleteAll1', 'Are you ABSOLUTELY sure you want to delete ALL user ratings? This cannot be undone!'))) {
                     return;
                 }
 
-                if (!confirm('This will permanently delete all ratings from all users. Continue?')) {
+                if (!confirm(T('cfgMsgConfirmDeleteAll2', 'This will permanently delete all ratings from all users. Continue?'))) {
                     return;
                 }
 
@@ -1006,18 +1077,18 @@
                     resultDiv.style.display = 'block';
 
                     if (result.success) {
-                        resultDiv.innerHTML = result.message || 'All ratings have been deleted';
+                        resultDiv.innerHTML = result.message || T('cfgMsgAllDeleted', 'All ratings have been deleted');
                         resultDiv.style.backgroundColor = '#4CAF50';
                         resultDiv.style.color = 'white';
                     } else {
-                        resultDiv.innerHTML = result.message || 'Error deleting ratings';
+                        resultDiv.innerHTML = result.message || T('cfgMsgErrorDeletingRatings', 'Error deleting ratings');
                         resultDiv.style.backgroundColor = '#f44336';
                         resultDiv.style.color = 'white';
                     }
                 }).catch(function (error) {
                     Dashboard.hideLoadingMsg();
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = 'Error: ' + error.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', error.message);
                     resultDiv.style.backgroundColor = '#f44336';
                     resultDiv.style.color = 'white';
                 });
@@ -1027,7 +1098,7 @@
                 var btn = this;
                 var resultDiv = document.getElementById('markFavoritesResult');
                 btn.disabled = true;
-                btn.textContent = 'Marking...';
+                btn.textContent = T('cfgMsgMarking', 'Marking...');
                 resultDiv.style.display = 'none';
 
                 fetch(ApiClient.getUrl('api/UserRatings/MarkExistingFavorites'), {
@@ -1035,20 +1106,20 @@
                     headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     btn.disabled = false;
-                    btn.textContent = 'Mark Existing Favorites';
+                    btn.textContent = T('cfgMarkExistingFavorites', 'Mark Existing Favorites');
                     resultDiv.style.display = 'block';
                     if (result.success) {
-                        resultDiv.innerHTML = 'Marked ' + result.marked + ' items as favorites' + (result.skipped > 0 ? ' (' + result.skipped + ' skipped)' : '') + '.';
+                        resultDiv.innerHTML = (result.skipped > 0 ? T('cfgMsgMarkedFavSkipped', 'Marked {0} items as favorites ({1} skipped).', result.marked, result.skipped) : T('cfgMsgMarkedFav', 'Marked {0} items as favorites.', result.marked));
                         resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
                     } else {
-                        resultDiv.innerHTML = 'Error marking favorites.';
+                        resultDiv.innerHTML = T('cfgMsgErrorMarkingFavorites', 'Error marking favorites.');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (error) {
                     btn.disabled = false;
-                    btn.textContent = 'Mark Existing Favorites';
+                    btn.textContent = T('cfgMarkExistingFavorites', 'Mark Existing Favorites');
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = 'Error: ' + error.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', error.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -1060,7 +1131,7 @@
                 var healedSection = document.getElementById('healedList');
                 var conflictSection = document.getElementById('conflictList');
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Checking database health...';
+                resultDiv.innerHTML = T('cfgMsgCheckingHealth', 'Checking database health...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
                 recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
@@ -1071,13 +1142,13 @@
                     headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
-                        var html = '<strong>Health Check Results</strong><br>' +
-                            'OK: ' + result.ok + '<br>' +
-                            'Recoverable: ' + result.recoverable + '<br>' +
-                            'Updated: ' + result.updated + '<br>' +
-                            'Stale: ' + result.stale;
+                        var html = '<strong>' + T('cfgMsgHealthResults', 'Health Check Results') + '</strong><br>' +
+                            T('cfgMsgOk', 'OK: {0}', result.ok) + '<br>' +
+                            T('cfgMsgRecoverable', 'Recoverable: {0}', result.recoverable) + '<br>' +
+                            T('cfgMsgUpdated', 'Updated: {0}', result.updated) + '<br>' +
+                            T('cfgMsgStale', 'Stale: {0}', result.stale);
                         if (result.conflicts && result.conflicts > 0) {
-                            html += '<br>Conflicts: ' + result.conflicts;
+                            html += '<br>' + T('cfgMsgConflicts', 'Conflicts: {0}', result.conflicts);
                         }
                         resultDiv.innerHTML = html;
                         resultDiv.style.backgroundColor = result.stale > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.conflicts > 0 ? 'rgba(255, 152, 0, 0.2)' : (result.recoverable > 0 ? 'rgba(255, 193, 7, 0.2)' : 'rgba(76, 175, 80, 0.2)'));
@@ -1091,18 +1162,18 @@
                                 div.className = 'item-entry';
                                 var collectionWarning = '';
                                 if (item.matchType === 'collection') {
-                                    collectionWarning = '<br><span style="color: #FF9800; font-weight: bold;">&#9888; Collection match only — verify before healing</span>';
+                                    collectionWarning = '<br><span style="color: #FF9800; font-weight: bold;">&#9888; ' + T('cfgMsgCollectionWarning', 'Collection match only — verify before healing') + '</span>';
                                 }
                                 var matchInfo = '';
                                 if (item.matchedProviderIds && Object.keys(item.matchedProviderIds).length > 0) {
-                                    matchInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Matched by: ' + Object.entries(item.matchedProviderIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                    matchInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + T('cfgMsgMatchedBy', 'Matched by: {0}', provList(item.matchedProviderIds)) + '</span>';
                                 }
                                 var noteInfo = item.note ? ' &mdash; <em>' + item.note + '</em>' : '';
-                                div.innerHTML = '<strong style="color: #FFC107;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10' + noteInfo + ')</span>' +
+                                div.innerHTML = '<strong style="color: #FFC107;">' + (item.itemName || T('cfgMsgUnknown', 'Unknown')) + '</strong>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">' + T('cfgMsgRatingNote', '(Rating: {0}/10{1})', item.rating, noteInfo) + '</span>' +
                                     collectionWarning +
-                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Can be re-linked to: ' + item.newItemId.substring(0, 8) + '...' +
-                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + T('cfgMsgCanRelink', 'Can be re-linked to: {0}...', item.newItemId.substring(0, 8)) +
+                                    ' | ' + T('cfgMsgProviderIds', 'Provider IDs: {0}', provList(item.providerIds)) + '</span>' +
                                     matchInfo;
                                 recDiv.appendChild(div);
                             });
@@ -1116,13 +1187,13 @@
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
                                 div.style.borderLeft = '3px solid #FF9800';
-                                var reasonText = item.conflictReason || 'unknown';
-                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    '<br><span style="font-size: 0.85em;">Incoming: ' + item.incomingRating + '/10' + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
-                                    ' | Existing: ' + item.existingRating + '/10' + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
-                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Reason: ' + reasonText +
-                                    ' | Target: ' + item.newItemId.substring(0, 8) + '...' +
-                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                var reasonText = item.conflictReason || T('cfgMsgUnknownLower', 'unknown');
+                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || T('cfgMsgUnknown', 'Unknown')) + '</strong>' +
+                                    '<br><span style="font-size: 0.85em;">' + T('cfgMsgIncoming', 'Incoming: {0}/10', item.incomingRating) + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
+                                    ' | ' + T('cfgMsgExisting', 'Existing: {0}/10', item.existingRating) + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + T('cfgMsgReason', 'Reason: {0}', reasonText) +
+                                    ' | ' + T('cfgMsgTarget', 'Target: {0}...', item.newItemId.substring(0, 8)) +
+                                    ' | ' + T('cfgMsgProviderIds', 'Provider IDs: {0}', provList(item.providerIds)) + '</span>';
                                 confDiv.appendChild(div);
                             });
                         }
@@ -1139,19 +1210,19 @@
                                     providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
                                         Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
                                 }
-                                div.innerHTML = '<strong>Rating: ' + item.rating + '/10</strong> ' +
-                                    '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
+                                div.innerHTML = '<strong>' + T('cfgMsgRatingBold', 'Rating: {0}/10', item.rating) + '</strong> ' +
+                                    '<span style="color: var(--dimTextColor, #aaa);">' + T('cfgMsgUserParen', '(User: {0}...)', item.userId.substring(0, 8)) + '</span>' +
                                     (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
                                     providerInfo;
                                 staleDiv.appendChild(div);
                             });
                         }
                     } else {
-                        resultDiv.innerHTML = result.message || 'Health check failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgHealthFailed', 'Health check failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -1163,7 +1234,7 @@
                 var healedSection = document.getElementById('healedList');
                 var conflictSection = document.getElementById('conflictList');
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Healing database...';
+                resultDiv.innerHTML = T('cfgMsgHealing', 'Healing database...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
                 recoverableSection.style.display = 'none';
                 staleSection.style.display = 'none';
@@ -1175,13 +1246,13 @@
                     headers: { 'Authorization': mbAuthHeader() }
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.success) {
-                        var html = '<strong>Heal Complete</strong><br>' +
-                            'OK: ' + result.ok + '<br>' +
-                            'Healed: ' + result.healed + '<br>' +
-                            'Updated: ' + result.updated + '<br>' +
-                            'Stale: ' + result.stale + '<br>';
+                        var html = '<strong>' + T('cfgMsgHealComplete', 'Heal Complete') + '</strong><br>' +
+                            T('cfgMsgOk', 'OK: {0}', result.ok) + '<br>' +
+                            T('cfgMsgHealed', 'Healed: {0}', result.healed) + '<br>' +
+                            T('cfgMsgUpdated', 'Updated: {0}', result.updated) + '<br>' +
+                            T('cfgMsgStale', 'Stale: {0}', result.stale) + '<br>';
                         if (result.conflicts && result.conflicts > 0) {
-                            html += 'Conflicts: ' + result.conflicts + '<br>';
+                            html += T('cfgMsgConflicts', 'Conflicts: {0}', result.conflicts) + '<br>';
                         }
                         html += result.message;
                         resultDiv.innerHTML = html;
@@ -1195,9 +1266,9 @@
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
                                 var noteInfo = item.note ? ' &mdash; <em>' + item.note + '</em>' : '';
-                                div.innerHTML = '<strong style="color: #4CAF50;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    ' <span style="color: var(--dimTextColor, #aaa);">(Rating: ' + item.rating + '/10' + noteInfo + ')</span>' +
-                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Re-linked: ' + item.oldItemId.substring(0, 8) + '... → ' + item.newItemId.substring(0, 8) + '...</span>';
+                                div.innerHTML = '<strong style="color: #4CAF50;">' + (item.itemName || T('cfgMsgUnknown', 'Unknown')) + '</strong>' +
+                                    ' <span style="color: var(--dimTextColor, #aaa);">' + T('cfgMsgRatingNote', '(Rating: {0}/10{1})', item.rating, noteInfo) + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + T('cfgMsgRelinked', 'Re-linked: {0}... → {1}...', item.oldItemId.substring(0, 8), item.newItemId.substring(0, 8)) + '</span>';
                                 healedDiv.appendChild(div);
                             });
                         }
@@ -1210,13 +1281,13 @@
                                 var div = document.createElement('div');
                                 div.className = 'item-entry';
                                 div.style.borderLeft = '3px solid #FF9800';
-                                var reasonText = item.conflictReason || 'unknown';
-                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || 'Unknown') + '</strong>' +
-                                    '<br><span style="font-size: 0.85em;">Incoming: ' + item.incomingRating + '/10' + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
-                                    ' | Existing: ' + item.existingRating + '/10' + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
-                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">Reason: ' + reasonText +
-                                    ' | Target: ' + item.newItemId.substring(0, 8) + '...' +
-                                    ' | Provider IDs: ' + Object.entries(item.providerIds || {}).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
+                                var reasonText = item.conflictReason || T('cfgMsgUnknownLower', 'unknown');
+                                div.innerHTML = '<strong style="color: #FF9800;">' + (item.itemName || T('cfgMsgUnknown', 'Unknown')) + '</strong>' +
+                                    '<br><span style="font-size: 0.85em;">' + T('cfgMsgIncoming', 'Incoming: {0}/10', item.incomingRating) + (item.incomingNote ? ' &mdash; <em>' + item.incomingNote + '</em>' : '') +
+                                    ' | ' + T('cfgMsgExisting', 'Existing: {0}/10', item.existingRating) + (item.existingNote ? ' &mdash; <em>' + item.existingNote + '</em>' : '') + '</span>' +
+                                    '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' + T('cfgMsgReason', 'Reason: {0}', reasonText) +
+                                    ' | ' + T('cfgMsgTarget', 'Target: {0}...', item.newItemId.substring(0, 8)) +
+                                    ' | ' + T('cfgMsgProviderIds', 'Provider IDs: {0}', provList(item.providerIds)) + '</span>';
                                 confDiv.appendChild(div);
                             });
                         }
@@ -1233,19 +1304,19 @@
                                     providerInfo = '<br><span style="font-size: 0.8em; color: var(--dimTextColor, #888);">' +
                                         Object.entries(item.providerIds).map(function(e) { return e[0] + ': ' + e[1]; }).join(', ') + '</span>';
                                 }
-                                div.innerHTML = '<strong>Rating: ' + item.rating + '/10</strong> ' +
-                                    '<span style="color: var(--dimTextColor, #aaa);">(User: ' + item.userId.substring(0, 8) + '...)</span>' +
+                                div.innerHTML = '<strong>' + T('cfgMsgRatingBold', 'Rating: {0}/10', item.rating) + '</strong> ' +
+                                    '<span style="color: var(--dimTextColor, #aaa);">' + T('cfgMsgUserParen', '(User: {0}...)', item.userId.substring(0, 8)) + '</span>' +
                                     (item.note ? ' &mdash; <em>' + item.note + '</em>' : '') +
                                     providerInfo;
                                 staleDiv.appendChild(div);
                             });
                         }
                     } else {
-                        resultDiv.innerHTML = result.message || 'Heal failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgHealFailed', 'Heal failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -1254,11 +1325,11 @@
                 var resultDiv = document.getElementById('deleteResult');
                 resultDiv.style.display = 'none';
 
-                if (!confirm('Are you sure you want to clear all stale ratings? These ratings cannot be matched to any library item. This cannot be undone!')) {
+                if (!confirm(T('cfgMsgConfirmClearStale1', 'Are you sure you want to clear all stale ratings? These ratings cannot be matched to any library item. This cannot be undone!'))) {
                     return;
                 }
 
-                if (!confirm('This will permanently remove stale ratings. Continue?')) {
+                if (!confirm(T('cfgMsgConfirmClearStale2', 'This will permanently remove stale ratings. Continue?'))) {
                     return;
                 }
 
@@ -1274,18 +1345,18 @@
                     resultDiv.style.display = 'block';
 
                     if (result.success) {
-                        resultDiv.innerHTML = result.message || 'Stale ratings cleared';
+                        resultDiv.innerHTML = result.message || T('cfgMsgStaleCleared', 'Stale ratings cleared');
                         resultDiv.style.backgroundColor = '#4CAF50';
                         resultDiv.style.color = 'white';
                     } else {
-                        resultDiv.innerHTML = result.message || 'Error clearing stale ratings';
+                        resultDiv.innerHTML = result.message || T('cfgMsgErrorClearingStale', 'Error clearing stale ratings');
                         resultDiv.style.backgroundColor = '#f44336';
                         resultDiv.style.color = 'white';
                     }
                 }).catch(function (error) {
                     Dashboard.hideLoadingMsg();
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = 'Error: ' + error.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', error.message);
                     resultDiv.style.backgroundColor = '#f44336';
                     resultDiv.style.color = 'white';
                 });
@@ -1294,7 +1365,7 @@
             document.getElementById('btnBackupNow').addEventListener('click', function () {
                 var resultDiv = document.getElementById('backupResult');
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Creating backup...';
+                resultDiv.innerHTML = T('cfgMsgCreatingBackup', 'Creating backup...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/Backup'), {
@@ -1306,11 +1377,11 @@
                         resultDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
                         loadBackupList();
                     } else {
-                        resultDiv.innerHTML = result.message || 'Backup failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgBackupFailed', 'Backup failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -1321,7 +1392,7 @@
 
                 if (!fileInput.files || fileInput.files.length === 0) {
                     resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = 'Please select a file to upload.';
+                    resultDiv.innerHTML = T('cfgMsgSelectFile', 'Please select a file to upload.');
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     return;
                 }
@@ -1330,7 +1401,7 @@
                 formData.append('file', fileInput.files[0]);
 
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = 'Uploading...';
+                resultDiv.innerHTML = T('cfgMsgUploading', 'Uploading...');
                 resultDiv.style.backgroundColor = 'rgba(255,255,255,0.1)';
 
                 fetch(ApiClient.getUrl('api/UserRatings/UploadBackup'), {
@@ -1344,11 +1415,11 @@
                         fileInput.value = '';
                         loadBackupList();
                     } else {
-                        resultDiv.innerHTML = result.message || 'Upload failed';
+                        resultDiv.innerHTML = result.message || T('cfgMsgUploadFailed', 'Upload failed');
                         resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     }
                 }).catch(function (err) {
-                    resultDiv.innerHTML = 'Error: ' + err.message;
+                    resultDiv.innerHTML = T('cfgMsgError', 'Error: {0}', err.message);
                     resultDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                 });
             });
@@ -1358,10 +1429,10 @@
             var proceedAnywayBtn = null;
 
             function fmtDate(d) {
-                if (!d) return 'Unknown';
+                if (!d) return T('cfgMsgUnknown', 'Unknown');
                 var dt = new Date(d);
-                if (isNaN(dt.getTime())) return 'Unknown';
-                return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (isNaN(dt.getTime())) return T('cfgMsgUnknown', 'Unknown');
+                return dt.toLocaleDateString(loc()) + ' ' + dt.toLocaleTimeString(loc(), { hour: '2-digit', minute: '2-digit' });
             }
 
             function renderVersionHistoryTable(data) {
@@ -1385,7 +1456,7 @@
                     var badge = '';
                     if (row.current) {
                         style = ' style="background: rgba(76, 175, 80, 0.18); font-weight: 600;"';
-                        badge = ' <span style="color: #4CAF50; font-size: 0.8em;">(current)</span>';
+                        badge = ' <span style="color: #4CAF50; font-size: 0.8em;">' + T('cfgMsgCurrent', '(current)') + '</span>';
                     }
                     html += '<tr' + style + '>' +
                         '<td style="padding: 0.35em 0.6em; color: rgba(128,128,128,0.7);">' + num + '</td>' +
@@ -1409,9 +1480,7 @@
                     renderVersionHistoryTable(data);
 
                     document.getElementById('migrationCountDisplay').textContent =
-                        'Database: ' + data.ratingCount + ' ratings total (' +
-                        data.ratingsAbove5Count + ' already >5, ' +
-                        (data.ratingCount - data.ratingsAbove5Count) + ' ≤5).';
+                        T('cfgMsgMigrationCount', 'Database: {0} ratings total ({1} already >5, {2} ≤5).', data.ratingCount, data.ratingsAbove5Count, (data.ratingCount - data.ratingsAbove5Count));
 
                     var historyDiv = document.getElementById('migrationHistory');
                     var historyList = document.getElementById('migrationHistoryList');
@@ -1420,9 +1489,9 @@
                         historyList.innerHTML = data.migrations.map(function (m) {
                             var date = new Date(m.date);
                             return '<div class="fieldDescription" style="margin-left: 1em;">' +
-                                '&#8226; ' + m.name + ' &middot; ' + date.toLocaleDateString() +
+                                '&#8226; ' + m.name + ' &middot; ' + date.toLocaleDateString(loc()) +
                                 ' &middot; v' + m.pluginVersion +
-                                ' &mdash; ' + m.resultMigrated + ' migrated, ' + m.resultSkipped + ' skipped</div>';
+                                ' &mdash; ' + T('cfgMsgMigrationLine', '{0} migrated, {1} skipped', m.resultMigrated, m.resultSkipped) + '</div>';
                         }).join('');
                     } else {
                         historyDiv.style.display = 'none';
@@ -1438,7 +1507,7 @@
                 var resultEl = document.getElementById('migrationResult');
                 var warningsDiv = document.getElementById('migrationWarnings');
                 btn.disabled = true;
-                statusEl.textContent = 'Migrating...';
+                statusEl.textContent = T('cfgMsgMigrating', 'Migrating...');
                 resultEl.style.display = 'none';
                 warningsDiv.style.display = 'none';
 
@@ -1454,30 +1523,29 @@
                 }).then(function (r) { return r.json(); }).then(function (result) {
                     restoreButtons();
                     if (result.success) {
-                        statusEl.innerHTML = '&#10003; Done';
+                        statusEl.innerHTML = '&#10003; ' + T('cfgMsgDone', 'Done');
                         resultEl.style.display = 'block';
-                        resultEl.innerHTML = '<strong style="color: #4CAF50;">Migration complete</strong><br>' +
-                            result.migratedCount + ' ratings converted, ' +
-                            result.skippedCount + ' ratings preserved (already >5).<br>' +
-                            'Backup: <code>' + result.backupPath + '</code>';
+                        resultEl.innerHTML = '<strong style="color: #4CAF50;">' + T('cfgMsgMigrationComplete', 'Migration complete') + '</strong><br>' +
+T('cfgMsgMigrationConverted', '{0} ratings converted, {1} ratings preserved (already >5).', result.migratedCount, result.skippedCount) + '<br>' +
+T('cfgMsgBackupPath', 'Backup: {0}', '<code>' + result.backupPath + '</code>');
                         resultEl.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
                         resultEl.style.borderRadius = '4px';
                         resultEl.style.padding = '0.8em';
                         loadMigrationStatus();
                     } else {
-                        statusEl.textContent = 'Failed';
+                        statusEl.textContent = T('cfgMsgFailedShort', 'Failed');
                         resultEl.style.display = 'block';
-                        resultEl.innerHTML = '<strong style="color: #f44336;">Migration failed</strong><br>' +
-                            (result.message || 'Unknown error');
+                        resultEl.innerHTML = '<strong style="color: #f44336;">' + T('cfgMsgMigrationFailed', 'Migration failed') + '</strong><br>' +
+                            (result.message || T('cfgMsgUnknownError', 'Unknown error'));
                         resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                         resultEl.style.borderRadius = '4px';
                         resultEl.style.padding = '0.8em';
                     }
                 }).catch(function (err) {
                     restoreButtons();
-                    statusEl.textContent = 'Error';
+                    statusEl.textContent = T('cfgMsgErrorShort', 'Error');
                     resultEl.style.display = 'block';
-                    resultEl.innerHTML = '<strong style="color: #f44336;">Error:</strong> ' + err.message;
+                    resultEl.innerHTML = '<strong style="color: #f44336;">' + T('cfgMsgErrorPrefix', 'Error:') + '</strong> ' + err.message;
                     resultEl.style.backgroundColor = 'rgba(244, 67, 54, 0.2)';
                     resultEl.style.borderRadius = '4px';
                     resultEl.style.padding = '0.8em';
@@ -1497,14 +1565,14 @@
 
                 warningsDiv.style.display = 'block';
                 document.getElementById('migrationWarningText').innerHTML =
-                    migrationData.ratingsAbove5Count + ' rating(s) already exceed the old 5-star limit. ' +
-                    'This could mean the database was previously migrated. ' +
-                    'Ratings above 5 will NOT be modified. Only ratings \u2264 5 will be doubled.';
+                    TP('cfgMsgAbove5Warning', migrationData.ratingsAbove5Count,
+'{0} rating already exceeds the old 5-star limit. This could mean the database was previously migrated. Ratings above 5 will NOT be modified. Only ratings \u2264 5 will be doubled.',
+'{0} ratings already exceed the old 5-star limit. This could mean the database was previously migrated. Ratings above 5 will NOT be modified. Only ratings \u2264 5 will be doubled.');
 
                 if (migrationData.ratingsAbove5 && migrationData.ratingsAbove5.length > 0) {
                     above5List.style.display = 'block';
                     above5List.innerHTML = migrationData.ratingsAbove5.map(function (r) {
-                        var name = r.itemName || '(unknown item)';
+                        var name = r.itemName || T('cfgMsgUnknownItem', '(unknown item)');
                         return '<div class="item-entry"><strong>' + name + '</strong> &mdash; ' + r.rating + '/10</div>';
                     }).join('');
                 }
@@ -1517,7 +1585,7 @@
                     proceedAnywayBtn.setAttribute('is', 'emby-button');
                     proceedAnywayBtn.className = 'raised';
                     proceedAnywayBtn.style.cssText = 'background: #e53935; color: #fff; margin-top: 0.5em;';
-                    proceedAnywayBtn.textContent = 'Proceed Anyway';
+                    proceedAnywayBtn.textContent = T('cfgMsgProceedAnyway', 'Proceed Anyway');
                     proceedAnywayBtn.addEventListener('click', function () {
                         proceedAnywayBtn.style.display = 'none';
                         doMigrate();
@@ -1527,7 +1595,8 @@
                 proceedAnywayBtn.style.display = '';
             });
 
-            loadMigrationStatus();
+            // Wait for the dictionary so the dynamically rendered texts come out localized.
+            i18nReady().then(loadMigrationStatus);
         </script>
     </div>
 </body>
