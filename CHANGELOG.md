@@ -1,5 +1,45 @@
 # Changelog
 
+## v1.13.5.0
+
+> **This is the last release for Jellyfin 10.11.** Starting with v2.0.0 the plugin is built for Jellyfin 12+ only (.NET 10) and will not install or load on 10.x. Servers running 10.11 should stay on this version.
+
+This release rolls up the whole 1.13.4.x beta cycle.
+
+### Security
+
+- **Authorization enforced on all API endpoints** — All controllers now require authenticated users via `[Authorize]`. Previously, any request with a valid server token could act as any user by changing the `userId` query parameter.
+- **User identity derived from auth token** — `RateItem`, `DeleteRating`, `GetMyRating`, `GetUnratedWatchedItems` and `MarkExistingFavorites` no longer accept `userId`/`userName` query parameters; the server takes the identity from the authorization context.
+- **Admin-only access for sensitive endpoints** — Health check, heal, backup (create/restore/download/upload/delete), clear stale, delete all ratings, migration and Plex import/status now require elevation. `GetUserRatings` verifies ownership (non-owners get 403 unless admin).
+- **No exception message disclosure** — Error responses return a generic message; cancelled requests return HTTP 499 instead of hanging.
+- **Backup hardening** — Restore validates JSON before overwriting live data, uploads are limited to 10 MB.
+- **Plex import cancellation** — Running imports can be cancelled (admin-only `POST api/UserRatings/PlexImport/Cancel`).
+
+### New Features
+
+- **Season ratings in dashboard** — The Shows section has four type filters: All, Shows, Seasons, Episodes. Season cards show the series name as subtitle.
+- **Auto-favorite high-rated items** — Items rated at or above a configurable threshold (default 9) are marked as Jellyfin favorites; deleting a rating removes the favorite. "Mark Existing Favorites" batch-marks already rated items.
+- **Localization infrastructure** — Strings of the ratings tab and popup are served from `api/UserRatings/Strings` (`Strings/en.json`).
+- **Configurable automatic health check** — Enable/disable the scheduled check and set its interval in minutes.
+- **Source-aware conflict resolution** — Ratings carry a `Source` (jellyfin/plex); the new `HealingConflictMode` (Skip / Overwrite / Keep Higher) controls how healing resolves conflicts. The health check lists conflicts with details, shows warnings for collection-only matches and richer recoverable/healed item info. New `HealSingleItem` endpoint.
+- **Separate ratings and watch history sync** — Independent toggles for Plex ratings and watch history sync; Sync Now uses them.
+
+### Fixes
+
+- **Card overlay settings now apply to all users** — They were fetched through an admin-only endpoint, so non-admin users silently got defaults. A new `DisplayConfig` endpoint serves them to any authenticated user.
+- **Healing no longer overwrites or deletes ratings on conflict** — Conflicts are resolved by `HealingConflictMode`; the incoming rating is kept under its old key and reported instead of being deleted.
+- **Provider ID matching prefers specific IDs** — IMDB/TMDB/TVDB matches win over TmdbCollection, so different movies of one franchise no longer resolve to the same item.
+- **Re-rating keeps timestamp and note** — Re-rating no longer resets the timestamp or wipes the note.
+- **No duplicate ratings after library rescan** — `SaveRating` and Plex import (skip-on-conflict) fall back to provider IDs when an item's ItemId changed, and re-key the old rating.
+- **Atomic ratings file writes** — Written to a `.tmp` file and renamed, preventing corruption on interrupted writes. Removed the risky reload at the start of the health check.
+- **Backup download no longer returns 401**, and the backup list shows the real backup time.
+- **Import progress** — Fixed a memory leak and a race condition in the progress tracker.
+- **BatchAverage HTTP 400** on pages with more than 100 cards (requests are now chunked).
+- **Empty/blank User Ratings tab after back-navigation** from the item page, and the `Cannot find module './'` console error on tab click.
+- **UI polish** — Popup title ellipsis and smooth star hover, visible arrows in badge position dropdowns, Save Settings button moved after all settings sections.
+
+---
+
 ## v1.13.4.15 (beta)
 
 ### Fixes

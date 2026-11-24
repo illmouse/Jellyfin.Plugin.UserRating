@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/illmouse/Jellyfin.Plugin.UserRating/main/icon.png",
     "versions": [
       {
+        "version": "1.13.5.0",
+        "changelog": "LAST RELEASE FOR JELLYFIN 10.11 - later versions require Jellyfin 12+. Rolls up the 1.13.4.x beta cycle: authorization enforced on all API endpoints, season ratings in the dashboard, auto-favorite for high ratings, localization infrastructure, configurable health check, source-aware conflict resolution when healing, duplicate-rating and backup fixes.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v1.13.5.0/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "",
+        "timestamp": "2026-11-24T12:52:29Z"
+      },
+      {
         "version": "1.13.4.15",
         "changelog": "Fixed: \"Cannot find module './'\" console error when clicking User Ratings tab. Fixed: blank tab after back-navigation (missing .is-active class on #ratingsTab).",
         "targetAbi": "10.11.0.0",
