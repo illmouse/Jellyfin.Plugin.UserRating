@@ -116,7 +116,7 @@ Items are matched using provider IDs (IMDB → TMDB → TVDB). Plex's 10-point s
 
 ## Translations
 
-The rating widget, ratings tab, and settings page follow the user's Jellyfin display language. Scheduled task names use the server UI culture. English is the source language; currently available: English, Russian. Missing or untranslated strings fall back to English.
+The rating widget, ratings tab, and settings page follow the user's Jellyfin display language. Scheduled task names use the server UI culture. English is the source language; Russian, Ukrainian, German, French, and Japanese are translated. Missing or untranslated strings fall back to English.
 
 ### Contributing a translation
 

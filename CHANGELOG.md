@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.2.0
+
+- Added Ukrainian, German, French, and Japanese translations for the ratings interface, settings, and scheduled tasks.
+
+---
+
 ## v2.1.0
 
 - Added Russian translations for the ratings interface and plugin settings, with language selection based on Jellyfin's display language.
