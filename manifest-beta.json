@@ -12,9 +12,9 @@
         "version": "2.0.1.0",
         "changelog": "Jellyfin 12+ only (BREAKING): requires Jellyfin 12.0 or newer, not compatible with 10.11 (last 10.11 version is 1.13.5.0). Legacy token auth is no longer used. Fixed rating badges, item page widget and dashboard not appearing on Jellyfin 12, added a User Ratings link to the new top navigation bar, fixed navigation after returning from an item page.",
         "targetAbi": "12.0.0.0",
-        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v2.0.1-beta/Jellyfin.Plugin.UserRatings.zip",
-        "checksum": "25703e48b016567e1b55100cca7b4c38",
-        "timestamp": "2026-11-24T14:12:37Z"
+        "sourceUrl": "https://github.com/illmouse/Jellyfin.Plugin.UserRating/releases/download/v2.0.1/Jellyfin.Plugin.UserRatings.zip",
+        "checksum": "04d7808e987b4affc049c9234ce5ffc7",
+        "timestamp": "2026-11-24T14:22:58Z"
       },
       {
         "version": "2.0.0.0",
