@@ -177,5 +177,5 @@ Both have `data-dom-cache="true"`, both have `#ratingsTab.is-active`. The `.hide
 ## Jellyfin 12+ differences
 
 - App dirs renamed: `apps/experimental` → `apps/modern`, `apps/stable` → `apps/legacy` (hash router unchanged). Home (`apps/modern/routes/home.tsx`) still renders `#indexPage` with `#homeTab` / `#favoritesTab`; tabs are still built by `maintabsmanager` into `.headerTabs`, but that strip is hidden in the modern layout (see client-side-pitfalls.md → "Jellyfin 12+ compatibility").
-- Home/Favorites navigation is via MUI links in `header.MuiAppBar-root` (`#/` = server button = Home, `#/home?tab=1` = Favorites). Opening the ratings tab does not change the URL, so Home/Favorites clicks with an unchanged hash need an explicit native tab click (handled by the delegated click listener next to `syncNavLinkState()`).
+- Home/Favorites navigation is via MUI links in `header.MuiAppBar-root` (`#/` = server button = Home, `#/home?tab=1` = Favorites). The ratings tab uses its own URL `#/home?tab=0&ur=1` (see client-side-pitfalls.md); `tab` in the URL only drives the nav highlight and the initial tab, native tab clicks never touch the URL.
 - Item details page (`#itemDetailPage`, `.itemMiscInfo-primary`, `.mainDetailButtons`) and card classes (`.card[data-id]`, `.cardScalable`, `.cardIndicators`) are unchanged from 10.11.

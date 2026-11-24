@@ -17,7 +17,7 @@ Adds a "User Ratings" tab button to Jellyfin's home page tab slider and creates 
 - **When:** only when `window.location.hash` includes `'home'` (line 2409)
 - **Tab button:** created as `<button is="emby-button" class="emby-tab-button" data-ratings-tab="true">` and appended to `.emby-tabs-slider` in `skinHeader` (persistent across navigation)
 - **Tab content:** `#ratingsTab` created as `<div class="tabContent pageTabContent">` inside the visible `#indexPage` via `ensureRatingsTabContent()` (line 2513)
-- **Click handler:** calls `displayRatingsList()` to populate content; sets `history.state.userRatingsActive = true` for back-navigation restore
+- **Click handler:** calls `displayRatingsList()` to populate content; if the URL is not yet `#/home?tab=0&ur=1` (legacy tab strip) it `replaceState`s to it, so back-navigation restores the tab from the URL
 - **Skip guard:** if button is active AND `#ratingsTab` exists inside visible `#indexPage:not(.hide)`, skip re-render (line 2459)
 - **Critical:** does NOT call `e.preventDefault()` — lets Jellyfin's native tab handler manage `.is-active` on `.pageTabContent` and `.emby-tab-button-active` on buttons
 
@@ -60,18 +60,18 @@ Observed: `document.body`, `{ subtree: true, childList: true }`
 ### hashchange handler (line 1783)
 
 - Removes `#user-ratings-ui`
-- If hash includes `'home'` AND `history.state.userRatingsActive`: strips `emby-tab-button-active` from all tab buttons, clicks the User Ratings tab button to restore it
+- If hash includes `'home'`: removes stale `#ratingsTab`, then `syncRatingsWithUrl()` — when the URL has `ur=1` it waits for Jellyfin's native tab selection and clicks the User Ratings button (re-verifying for ~300 ms); otherwise, if our button is still active, it clicks the native tab given by `?tab=`
 - Resets `isInjecting`, `injectionAttempts`, `currentItemId`
 - Schedules: `injectRatingsTab` (100ms, 500ms), `injectRatingsUI` (100ms, 300ms), `scheduleGlobalDecorate()`
 
 ### User Ratings tab click handler (line 2455)
 
 - Skip guard: if button active AND `#ratingsTab` exists in visible `#indexPage`, return without refetch
-- Otherwise: `await displayRatingsList()` → sets `history.state.userRatingsActive = true`
+- Otherwise: `await displayRatingsList()`
 
 ### Native tab click listeners (line 2493)
 
-Capture-phase listeners on all native `.emby-tab-button` (not the ratings tab). On click: deletes `userRatingsActive` from history state so back-navigation restores the native tab, not User Ratings.
+Capture-phase listeners on all native `.emby-tab-button` (legacy tab strip). On click while on the ratings URL: `replaceState` to `#/home?tab=<index>`, so back-navigation restores the native tab, not User Ratings.
 
 ## Shared State Variables
 
@@ -153,7 +153,7 @@ Capture-phase listeners on all native `.emby-tab-button` (not the ratings tab). 
 
 ## Boot Sequence (lines 2539–2574)
 
-1. Clear stale `userRatingsActive` from history (fresh page load surrenders to Home tab)
+1. If the page was loaded on the ratings URL (`ur=1`), `syncRatingsWithUrl()` opens the tab
 2. `injectRatingsTab()` immediately + 5 timers (100/500/1000/2000/3000ms) + `setInterval(2000)`
 3. `fetchUserRatings()` to prime cache, set `_userRatingsPrimed = true`
 4. `decorateAllCards()` immediately + 3 timers (300/1000/2500ms) + `setInterval(3000)`
@@ -173,4 +173,4 @@ All CSS uses `var(--custom, fallback)` patterns to integrate with ElegantFin and
 
 ## Navigation links (Jellyfin 12+)
 
-`injectNavLinks()` / `openRatingsTab()` / `syncNavLinkState()` (next to `ensureRatingsTabContent()`) add a "User Ratings" entry to the MUI AppBar and mobile drawer. Called from the body MutationObserver; `syncNavLinkState()` also runs on hashchange and after clicks and highlights the entry while `#ratingsTab.is-active`. All requests authenticate through `mbAuthHeader()`.
+`injectNavLinks()` / `syncRatingsWithUrl()` / `isRatingsUrl()` / `syncNavLinkState()` (next to `ensureRatingsTabContent()`) add a "User Ratings" entry to the MUI AppBar and mobile drawer. Called from the body MutationObserver; The nav entry links to `#/home?tab=0&ur=1`; `syncRatingsWithUrl()` (hashchange / page load) activates or leaves the tab to match the URL; `syncNavLinkState()` highlights the entry from the URL only. `history.state.userRatingsActive` is no longer used. All requests authenticate through `mbAuthHeader()`.

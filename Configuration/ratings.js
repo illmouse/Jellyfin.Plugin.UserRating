@@ -2237,7 +2237,7 @@ function updateStarDisplay(container, rating) {
     // hashchange: clean up detail-page UI, restore home tab, re-inject
     window.addEventListener('hashchange', () => {
         removeDetailPageUI();
-        setTimeout(syncNavLinkState, 300);
+        syncNavLinkState();
 
         const currentHash = window.location.hash;
 
@@ -2248,17 +2248,7 @@ function updateStarDisplay(container, rating) {
             // and skips creation, and the click handler guard sees it as
             // "already active and visible" and skips displayRatingsList().
             document.querySelectorAll('#ratingsTab').forEach(el => el.remove());
-
-            const wasUserRatings = window.history.state && window.history.state.userRatingsActive;
-            if (wasUserRatings) {
-                setTimeout(() => {
-                    const tabBtn = document.querySelector('[data-ratings-tab="true"]');
-                    if (tabBtn) {
-                        document.querySelectorAll('.emby-tab-button').forEach(t => t.classList.remove('emby-tab-button-active'));
-                        tabBtn.click();
-                    }
-                }, 100);
-            }
+            syncRatingsWithUrl();
         }
 
         isInjecting = false;
@@ -2304,6 +2294,12 @@ function updateStarDisplay(container, rating) {
         const _tabBtn = document.querySelector('[data-ratings-tab="true"]');
         if (_tabBtn && _tabBtn.classList.contains('emby-tab-button-active')) {
             ratingsTabContent.classList.add('is-active');
+        }
+        // Whenever our tab is the active one, no other tab panel may stay active.
+        if (ratingsTabContent.classList.contains('is-active')) {
+            indexPage.querySelectorAll('.tabContent.is-active').forEach(function(el) {
+                if (el !== ratingsTabContent) el.classList.remove('is-active');
+            });
         }
 
         // Show loading (content population — visibility is managed by Jellyfin's .is-active)
@@ -2949,14 +2945,15 @@ function updateStarDisplay(container, rating) {
                 }
 
                 try {
-                    // Annotate current history entry BEFORE displayRatingsList() so
-                    // back-navigation restores us even if the API call fails.
-                    try {
-                        const state = window.history.state || {};
-                        state.userRatingsActive = true;
-                        window.history.replaceState(state, '', window.location.href);
-                    } catch (err) {
-                        console.warn('[UserRatings] Could not replaceState on tab click:', err);
+                    // The URL is the source of truth for "ratings tab is open" so that
+                    // back-navigation, reload and nav highlighting all follow it. Only
+                    // needed when the tab is opened from the (legacy) tab strip; the nav
+                    // link already navigates to this URL.
+                    if (!isRatingsUrl() && window.location.hash.startsWith('#/home')) {
+                        try {
+                            window.history.replaceState(window.history.state, '', RATINGS_HASH);
+                        } catch (err) { /* ignore */ }
+                        syncNavLinkState();
                     }
 
                     // Load and display ratings list (always creates fresh #ratingsTab
@@ -2996,22 +2993,19 @@ function updateStarDisplay(container, rating) {
             // Create #ratingsTab as a real .tabContent.pageTabContent inside #indexPage
             ensureRatingsTabContent();
 
-            // Listen to native tab clicks (capture phase) to clear userRatingsActive.
-            // No DOM manipulation — just history state cleanup so back-navigation
-            // restores the last-clicked native tab instead of User Ratings.
+            // Native tab clicks (legacy tab strip): leave the ratings URL so back-
+            // navigation restores the tab that was actually last selected.
             const nativeTabs = tabsSlider.querySelectorAll('.emby-tab-button:not([data-ratings-tab="true"])');
             nativeTabs.forEach(tab => {
                 tab.addEventListener('click', function() {
+                    if (!isRatingsUrl()) return;
                     try {
-                        const state = window.history.state || {};
-                        if (state.userRatingsActive) {
-                            delete state.userRatingsActive;
-                            window.history.replaceState(state, '', window.location.href);
-                        }
+                        window.history.replaceState(window.history.state, '', '#/home?tab=' + (tab.getAttribute('data-index') || '0'));
                     } catch (err) { /* ignore */ }
+                    syncNavLinkState();
                 }, true);
             });
-            
+
         } catch (error) {
             console.error('[UserRatings] Tab injection error:', error);
         }
@@ -3060,40 +3054,73 @@ function updateStarDisplay(container, rating) {
         return svg;
     }
 
-    function openRatingsTab() {
-        const clickTab = function() {
-            const btn = document.querySelector('[data-ratings-tab="true"]');
-            const indexPage = document.querySelector('#indexPage:not(.hide)');
-            // Wait until Jellyfin has built its own tabs and selected one, otherwise
-            // its initial tab selection would override ours.
-            const nativeActive = document.querySelector('.emby-tab-button.emby-tab-button-active:not([data-ratings-tab="true"])');
-            if (btn && indexPage && (nativeActive || btn.classList.contains('emby-tab-button-active'))) {
-                btn.click();
-                return true;
-            }
-            return false;
-        };
+    // The ratings tab has its own URL. Jellyfin's home page keeps showing tab 0
+    // (tab=0), we put our panel on top; "ur=1" marks the state. Native nav
+    // highlighting only reacts to tab=1 (Favorites), so nothing else gets marked.
+    const RATINGS_HASH = '#/home?tab=0&ur=1';
 
-        if (window.location.hash.startsWith('#/home') && clickTab()) return;
-        if (!window.location.hash.startsWith('#/home')) {
-            window.location.hash = '#/home';
-        }
+    function isRatingsUrl() {
+        const h = window.location.hash;
+        return h.startsWith('#/home') && /[?&]ur=1(&|$)/.test(h);
+    }
+
+    function nativeTabIndexFromUrl() {
+        const m = /[?&]tab=(\d+)/.exec(window.location.hash);
+        return m ? m[1] : '0';
+    }
+
+    let _syncTimer = null;
+
+    // Reconcile the home page tab state with the URL (called on hashchange).
+    function syncRatingsWithUrl() {
+        if (_syncTimer) { clearInterval(_syncTimer); _syncTimer = null; }
+        if (!window.location.hash.startsWith('#/home')) return;
+
         let attempts = 0;
-        const timer = setInterval(function() {
+        let stableTicks = 0;
+        _syncTimer = setInterval(function() {
             attempts++;
-            if (clickTab() || attempts > 40) clearInterval(timer);
-        }, 150);
+            const wantRatings = isRatingsUrl();
+            if (!window.location.hash.startsWith('#/home') || attempts > 40) {
+                clearInterval(_syncTimer); _syncTimer = null; return;
+            }
+            const btn = document.querySelector('#indexPage:not(.hide) [data-ratings-tab="true"]') ||
+                document.querySelector('[data-ratings-tab="true"]');
+            if (!btn) return;
+            const ratingsActive = btn.classList.contains('emby-tab-button-active');
+            const nativeActive = document.querySelector('.emby-tab-button.emby-tab-button-active:not([data-ratings-tab="true"])');
+            const rt = document.querySelector('#indexPage:not(.hide) #ratingsTab');
+            const ratingsShown = !!(rt && rt.classList.contains('is-active') && rt.children.length > 0);
+
+            if (wantRatings) {
+                if (ratingsActive && ratingsShown) {
+                    // Keep verifying for a moment: Jellyfin's own tab selection runs
+                    // asynchronously after navigation and could switch away again.
+                    if (++stableTicks >= 3) { clearInterval(_syncTimer); _syncTimer = null; }
+                } else if (nativeActive && nativeActive.getAttribute('data-index') === nativeTabIndexFromUrl()) {
+                    stableTicks = 0;
+                    btn.click();
+                } else if (ratingsActive && !ratingsShown) {
+                    stableTicks = 0;
+                    btn.click(); // active but panel missing/empty -> force a re-render
+                }
+            } else if (ratingsActive) {
+                // Left the ratings URL while our tab is still selected: hand over
+                // to the native tab that the URL asks for.
+                const target = document.querySelector('.emby-tab-button[data-index="' + nativeTabIndexFromUrl() + '"]:not([data-ratings-tab="true"])');
+                if (target) target.click();
+            } else {
+                clearInterval(_syncTimer); _syncTimer = null;
+            }
+        }, 100);
     }
 
     function onNavLinkClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Close the mobile drawer if the link lives in it
+        // The link's href is a plain hash URL, the browser navigates by itself.
+        // Close the mobile drawer if the link lives in it.
         if (e.currentTarget.closest('.MuiDrawer-root')) {
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
         }
-        openRatingsTab();
-        setTimeout(syncNavLinkState, 400);
     }
 
     function injectNavLinks() {
@@ -3111,7 +3138,7 @@ function updateStarDisplay(container, rating) {
                 if (source) {
                     const link = source.cloneNode(true);
                     link.setAttribute('data-ur-nav', 'true');
-                    link.setAttribute('href', '#/home?tab=ratings');
+                    link.setAttribute('href', RATINGS_HASH);
                     link.removeAttribute('aria-current');
                     const icon = link.querySelector('.MuiButton-startIcon');
                     if (icon) {
@@ -3136,7 +3163,7 @@ function updateStarDisplay(container, rating) {
                 const clone = item.cloneNode(true);
                 clone.setAttribute('data-ur-nav', 'true');
                 const link = clone.querySelector('a');
-                link.setAttribute('href', '#/home?tab=ratings');
+                link.setAttribute('href', RATINGS_HASH);
                 link.classList.remove('Mui-selected');
                 link.removeAttribute('aria-current');
                 const svg = clone.querySelector('.MuiListItemIcon-root');
@@ -3154,25 +3181,8 @@ function updateStarDisplay(container, rating) {
         syncNavLinkState();
     }
 
-    // The URL does not change when the ratings tab is opened, so clicking
-    // Home/Favorites with an identical hash would not leave it. Switch the native
-    // tab explicitly in that case.
-    document.addEventListener('click', function(e) {
-        const link = e.target && e.target.closest && e.target.closest('a[href="#/home?tab=1"], a[href="#/home"], a[href="#/home?tab=0"], a[href="#/"]');
-        if (!link || link.hasAttribute('data-ur-nav')) return;
-        const rt = document.querySelector('#indexPage:not(.hide) #ratingsTab.is-active');
-        if (!rt) return;
-        const index = link.getAttribute('href') === '#/home?tab=1' ? '1' : '0';
-        setTimeout(function() {
-            const btn = document.querySelector('.emby-tab-button[data-index="' + index + '"]:not([data-ratings-tab="true"])');
-            if (btn) btn.click();
-            syncNavLinkState();
-        }, 50);
-    }, true);
-
     function syncNavLinkState() {
-        const rt = document.querySelector('#indexPage:not(.hide) #ratingsTab');
-        const active = !!(rt && rt.classList.contains('is-active') && window.location.hash.startsWith('#/home'));
+        const active = isRatingsUrl();
         document.querySelectorAll('a[data-ur-nav], li[data-ur-nav] a').forEach(function(a) {
             if (a.closest('.MuiDrawer-root')) {
                 a.classList.toggle('Mui-selected', active);
@@ -3182,19 +3192,9 @@ function updateStarDisplay(container, rating) {
         });
     }
 
-    // On fresh page load (browser refresh), surrender to Jellyfin's default:
-    // let the Home tab be active. Clear userRatingsActive from history state so
-    // nothing restores the User Ratings tab on refresh. In-app navigation
-    // (back from details) re-sets this flag via the tab click handler, so that
-    // flow is unaffected.
-    try {
-        if (window.history.state && window.history.state.userRatingsActive) {
-            const state = window.history.state;
-            delete state.userRatingsActive;
-            window.history.replaceState(state, '', window.location.href);
-            console.log('[UserRatings] Fresh page load — cleared userRatingsActive, Home tab wins');
-        }
-    } catch (err) { /* ignore */ }
+    // Page loaded (or reloaded) directly on the ratings URL: open the tab once
+    // Jellyfin has built the home page.
+    if (isRatingsUrl()) syncRatingsWithUrl();
 
     // Fetch localized strings early so UI renders with translations when available
     loadStrings();

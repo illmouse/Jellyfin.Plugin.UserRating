@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.0.1 (beta)
+
+### Fixes
+
+- **Navigation highlight and tabs broke after returning from an item page (Jellyfin 12)** — After opening an item from the User Ratings dashboard and pressing Back, the top bar kept "User Ratings" highlighted over the Home page, and switching between Home / Favorites / User Ratings afterwards could mark several sections at once or leave dead links. The User Ratings tab now has its own URL (`#/home?tab=0&ur=1`) and all state (open panel, highlight) is derived from it. Back from an item returns to the User Ratings dashboard, reloading the page on the dashboard keeps it open, and Home / Favorites always switch correctly.
+
+---
+
 ## v2.0.0 (beta)
 
 Jellyfin 12 support. The plugin is now built for Jellyfin 12+ only.
